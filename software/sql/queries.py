@@ -104,19 +104,7 @@ class Queries:
         elif table_name is not None:
             print(f'Database data truncated.')
             return f'TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;'
-    
-    ############################################################################
-    ########################### SHAREHOLDER QUERIES ############################
-    ############################################################################
-    
-    @staticmethod
-    def AddShareholderQuery():
-        """SQl query for adding a shareholder"""
-        return """
-            INSERT INTO SHAREHOLDERS (NAME, OWNERSHIP, INVESTMENT, EMAIL)
-            VALUES (%s, %s, %s, %s);
-        """
-    
+
     ############################################################################
     ########################### TRANSACTION QUERIES ############################
     ############################################################################

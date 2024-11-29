@@ -221,7 +221,7 @@ class Transactions(Database):
         self.connection = connection
         self.cursor = cursor
         
-        self.firm_id = 1
+        self.firm_id = 1  # Default firm ID
 
     def transaction_buy(self, ticker: str, shares: int, pps: float):
         """
@@ -233,7 +233,7 @@ class Transactions(Database):
             pps (float): The price per individual share purchased.
         """
         try:
-            self.cursor.execute(q.Queries.TransactionQuery(), (self.firm_id, ticker, shares, pps, 'buy'))
+            self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'buy'))
             print(f'Buy transaction added: {shares} shares of {ticker} at {pps} per share.')
             
         except psy.DatabaseError as e:
@@ -251,7 +251,7 @@ class Transactions(Database):
             pps (float): The price per individual share purchased.
         """
         try:  
-            self.cursor.execute(q.Queries.TransactionQuery(), (self.firm_id, ticker, shares, pps, 'sell'))
+            self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'sell'))
             print(f'Sell transaction added: {shares} shares of {ticker} at {pps} per share.')
         
         except psy.DatabaseError as e:
