@@ -72,6 +72,22 @@ class Queries:
         return f"UPDATE {table_name} SET {set_clause} WHERE TICKER = %s"
 
     @staticmethod
+    def InsertIntoTableQuery(table_name: str, columns: list):
+        """
+        Generalized SQL query for inserting data into a table.
+
+        Args:
+            table_name (str): The name of the table to insert into.
+            columns (list): A list of column names where the data will be inserted.
+
+        Returns:
+            str: The generated SQL query string.
+        """
+        columns_str = ', '.join(columns)   
+        placeholders = ','.join(['%s'] * len(columns))
+        return f'INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders});'
+    
+    @staticmethod
     def DeleteFromTableQuery(table_name: str, condition_column: str):
         """ 
         Generalized SQL query for deleting a row from a table based on a condition.

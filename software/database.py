@@ -116,7 +116,7 @@ class Shareholder(Database):
             email (str): The shareholders email address.
         """
         try:
-            self.cursor.execute(q.Queries.AddShareholderQuery(), (name, ownership, investment, email))
+            self.cursor.execute(q.Queries.InsertIntoTableQuery('SHAREHOLDERS', ['NAME', 'OWNERSHIP', 'INVESTMENT', 'EMAIL']), (name, ownership, investment, email))
             print(f'Shareholder {name} added successfully.')
             return True
         except psy.IntegrityError as e:
