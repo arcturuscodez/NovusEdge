@@ -5,11 +5,7 @@ class Queries:
     
     def __init__(self):
         pass
-    
-    ############################################################################
-    ########################### General QUERIES ################################
-    ############################################################################
-    
+
     @staticmethod
     def FetchTableQuery(table_name: str):
         """
@@ -104,17 +100,3 @@ class Queries:
         elif table_name is not None:
             print(f'Database data truncated.')
             return f'TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;'
-
-    ############################################################################
-    ########################### TRANSACTION QUERIES ############################
-    ############################################################################
-    
-    @staticmethod
-    def TransactionQuery():
-        """SQL query for a buy transaction query."""
-        return """
-            INSERT INTO TRANSACTIONS (FIRM_ID, TICKER, SHARES, PRICE_PER_SHARE, TRANSACTION_TYPE)
-            VALUES (%s, %s, %s, %s, %s);
-        """
-
-    
