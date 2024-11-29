@@ -15,6 +15,13 @@ Software for the management of investment firm systems, finances, etc...
 
 ## Installation
 
+### Requried Software, Libraries, Etc...
+
+1. Python 3.10
+2. NumPy
+3. yfinance
+4. psycog2
+
 ## Usage
 
 ## Contributing
