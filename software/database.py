@@ -32,6 +32,7 @@ class Database:
         self.cursor = None
     
     def start_server(self):
+        """Start the PostgreSQL server."""
         try:
             print('Attempting to start PostgreSQL server...')
             command = r'"C:\Program Files\PostgreSQL\17\bin\pg_ctl.exe" start -D "C:\Program Files\PostgreSQL\17\data"'
