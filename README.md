@@ -26,14 +26,12 @@ Software for the management of investment firm systems, finances, etc...
 
 ## Contributing
 
-Check contact
+Sonny Holman (Main Developer)
 
 ## License
 
 All rights reserved.
 
 ## Contact
-
-Sonny Holman (Developer)
 
 Email: sonnyholman@hotmail.com
