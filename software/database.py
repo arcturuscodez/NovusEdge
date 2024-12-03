@@ -103,6 +103,27 @@ class Database:
             traceback.print_exc()
             raise
         
+    def __get__(self, table_name, column, print_data = False):
+        """Get data from a specified table and column. Optionally print the data to the terminal or return it."""
+        try:
+            query = f'SELECT {column} FROM {table_name}'
+            self.cursor.execute(query)
+            data = self.cursor.fetchall()
+            if not data:
+                print(f'No data to display for column {column}.')
+                return None
+            
+            if print_data:
+                utility.FormatTableData([column], data)
+                return None
+            
+            return [row[0] for row in data]
+        
+        except psy.DatabaseError as e:
+            print(f'Error: {e}')
+            traceback.print_exc()
+            raise
+        
     def __log__(self, log_type: str, message: str): # Not functional
         """
         Logs an event in the HISTORY table.
@@ -267,7 +288,6 @@ class Transactions(Database):
         """
         try:
             self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'buy'))
-            print(f'Buy transaction added: {shares} shares of {ticker} at {pps} per share.')
             
         except psy.DatabaseError as e:
             print(f'An error occured while creating the buy transaction: {e}')
