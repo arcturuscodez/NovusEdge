@@ -292,7 +292,7 @@ class History(Database):
     def __init__(self, connection, cursor):
         self.connection = connection
         self.cursor = cursor
-        
+    
     def edit_history(self, id):
         pass
     
