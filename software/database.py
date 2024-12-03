@@ -3,7 +3,6 @@ import psycopg2 as psy  # PostgreSQL database adapter
 import traceback
 import utility
 
-
 class Database:
     """
     A class for the management and manipulation of the database.
@@ -214,6 +213,10 @@ class Firm(Database):
         except Exception as e:
             self.connection.rollback()
             print(f"Error initializing firm: {e}")
+            
+    def update_firm(self, total_value = None, total_value_investments = None, cash_reserve = None):
+        """Update the firm table with given parameters"""
+        pass
             
 class Transactions(Database):
     

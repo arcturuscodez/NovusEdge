@@ -1,6 +1,9 @@
+# Bearhouse Capital
+
 <img src="software\img\logo.png" alt="Project Logo" width="200"/>
 
-# Project Name
+# Software Name
+
 NovusEdge
 
 ## Description
