@@ -1,7 +1,10 @@
 from sql import queries as q
+from psycopg2 import OperationalError
 import psycopg2 as psy  # PostgreSQL database adapter
 import traceback
 import utility
+import subprocess
+import time
 
 class Database:
     """
@@ -27,24 +30,42 @@ class Database:
         
         self.connection = None
         self.cursor = None
-        
+    
+    def start_server(self):
+        try:
+            print('Attempting to start PostgreSQL server...')
+            command = r'"C:\Program Files\PostgreSQL\17\bin\pg_ctl.exe" start -D "C:\Program Files\PostgreSQL\17\data"'
+            subprocess.run(command, check=True, shell=True)
+            print('PostgreSQL server started.')
+        except subprocess.CalledProcessError as e:
+            print(f'Failed to start PostgreSQL server: {e}')
+            raise
+    
     def __enter__(self):
         """Open a connection to the database when entering the context."""
-        try:
-            self.connection = psy.connect(
-                host=self.host,
-                database=self.db,
-                user=self.user,
-                password=self.password,
-                port=self.port  
-            )
-            self.cursor = self.connection.cursor()
-            print(f'Database connected at: {self.db}')
-            return self
-        
-        except psy.DatabaseError as e:
-            print(f'Error: {e}')
-            raise e
+        attempt = 0
+        while attempt < 3:
+            try:
+                self.connection = psy.connect(
+                    host=self.host,
+                    database=self.db,
+                    user=self.user,
+                    password=self.password,
+                    port=self.port  
+                )
+                self.cursor = self.connection.cursor()
+                print(f'Database connected at: {self.db}')
+                return self
+            
+            except OperationalError as e:
+                print(f"Error connecting to database: {e}")
+                if "Connection refused" in str(e):
+                    self.start_server()
+                    time.sleep(5)
+                else:
+                    break
+            attempt += 1
+        raise Exception("Failed to connect to the database after multiple attempts.")
         
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """Close the connection to the database when exiting the context."""
