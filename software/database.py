@@ -119,6 +119,17 @@ class Database:
             print(f'An error occured while trying to log the event: {e}')
             self.connection.rollback()
         
+    def __update__(self, update_type, columns, values, condition_column=None, condition_value=None):
+        """Updates any table and columns based on the provided arguments."""
+        try:
+            print(f'Updating columns: {columns} with values: {values}')
+            query, params = q.Queries.GeneralizedUpdateTableQuery('FIRM', columns, values, condition_column, condition_value)
+            self.cursor.execute(query, tuple(params))
+            print(f'Successfully updated {columns} with values {values}')
+        except Exception as e:
+            self.connection.rollback()
+            print(f'Error occured updating the table: {e}')
+        
 class Shareholder(Database):
     
     def __init__(self, connection, cursor):
@@ -138,6 +149,7 @@ class Shareholder(Database):
         """
         try:
             self.cursor.execute(q.Queries.InsertIntoTableQuery('SHAREHOLDERS', ['NAME', 'OWNERSHIP', 'INVESTMENT', 'EMAIL']), (name, ownership, investment, email))
+            self.__update__('cash_reserve', ['CASH_RESERVE'], [investment])
             print(f'Shareholder {name} added successfully.')
             return True
         except psy.IntegrityError as e:
@@ -235,10 +247,6 @@ class Firm(Database):
         except Exception as e:
             self.connection.rollback()
             print(f"Error initializing firm: {e}")
-            
-    def update_firm(self, total_value = None, total_value_investments = None, cash_reserve = None):
-        """Update the firm table with given parameters"""
-        pass
             
 class Transactions(Database):
     

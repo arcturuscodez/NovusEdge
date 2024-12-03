@@ -44,7 +44,7 @@ class Queries:
             return f'SELECT {columns_str} FROM {table_name} WHERE {condition_column}'
         return f'SELECT {columns_str} FROM {table_name}'
         
-    @staticmethod
+    @staticmethod # Redundant
     def ConditionalUpdateTableQuery(table_name: str, columns: list, condition_column: str):
         """
         Generalized SQL query for updating a table's specific columns with a condition.
@@ -53,7 +53,7 @@ class Queries:
         return f'UPDATE {table_name} SET {set_clause} WHERE {condition_column} = %s'
 
     @staticmethod
-    def UpdateTableQuery(table_name, columns):
+    def UpdateTableQuery(table_name, columns): # Redundant
         """
         Generalized SQL query for updating a table's specific columns with a condition.
 
@@ -66,6 +66,29 @@ class Queries:
         """
         set_clause = ', '.join([f"{column} = %s" for column in columns])
         return f"UPDATE {table_name} SET {set_clause} WHERE TICKER = %s"
+
+    @staticmethod
+    def GeneralizedUpdateTableQuery(table_name: str, columns: list, values: list, condition_column: str = None, condition_value: any = None):
+        """
+        Generalized SQL query for updating any table with any number of columns and values.
+
+        Args:
+            table_name (str): The name of the table to update.
+            columns (list): List of columns to be updated.
+            values (list): List of values corresponding to the columns.
+            condition_column (str): Optional column name to use for the WHERE condition.
+            condition_value (any): Optional value for the condition column to match rows.
+
+        Returns:
+            str: The SQL query string.
+        """
+        set_clause = ', '.join([f"{column} = %s" for column in columns])
+        query = f'UPDATE {table_name} SET {set_clause}'
+        if condition_column and condition_value is not None:
+            query += f" WHERE {condition_column} = %s"
+            return query, values + [condition_value]
+        
+        return query, values
 
     @staticmethod
     def InsertIntoTableQuery(table_name: str, columns: list):
