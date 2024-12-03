@@ -11,6 +11,8 @@ FIRM_DB_GROUP = OptionGroup(o, "Firm Database Options", "Options for the use of 
 TRANSACTION_DB_GROUP = OptionGroup(o, "Transaction Database Options", "Options for the use of the TRANSACTION table.")
 PORTFOLIO_DB_GROUP = OptionGroup(o, "Portfolio Options", "Options for the use of the PORTFOLIO table.")
 
+# Utility Group
+
 UTILITY_GROUP.add_option('--ST', '--showtable',
     dest='PrintTable',
     type=str,
@@ -31,6 +33,8 @@ UTILITY_GROUP.add_option('--cs', '--checkstock',
     action='store_true',
     default=False,
     help='Check if a stock exists in YF.')
+
+# Shareholder Group
 
 SHAREHOLDER_DB_GROUP.add_option('--AS', '--Add',
     dest='AddShareholder',
@@ -56,11 +60,15 @@ SHAREHOLDER_DB_GROUP.add_option('--ES', '--Editshareholder',
     help='Edit a shareholders information or values. Ensure you are using quotation marks.'
 )
 
+# Firm Group
+
 FIRM_DB_GROUP.add_option('--init', '--initializefirm',
     dest='InitializeFirmTable',
     action='store_true',
     default=False,
     help='Initialize the firm table.')
+
+# Transaction Group
 
 TRANSACTION_DB_GROUP.add_option('--buy', '--buystock',
     dest='BuyStock',
@@ -77,6 +85,8 @@ TRANSACTION_DB_GROUP.add_option('--sell', '--sellstock',
     metavar='KO:1000:50',
     help='Sell a stock TICKER:SHARES:PPS'
 )
+
+# Portfolio Group
 
 PORTFOLIO_DB_GROUP.add_option('--daily', '--dailyupdate',
     dest='LiveData',

@@ -103,7 +103,7 @@ class Database:
             traceback.print_exc()
             raise
         
-    def __log__(self, log_type: str, message: str):
+    def __log__(self, log_type: str, message: str): # Not functional
         """
         Logs an event in the HISTORY table.
 
