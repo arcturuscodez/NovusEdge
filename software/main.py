@@ -43,7 +43,7 @@ class Software:
                 elif o.PrintTable:
                     db.__fetch__(str(o.PrintTable).upper(), print_data=True)
                 elif o.Truncate:
-                    db.CURSOR.execute(q.Queries.TruncateTableData(table_name=str(o.Truncate).upper()))
+                    db.cursor.execute(q.Queries.TruncateTableData(table_name=str(o.Truncate).upper()))
                 elif o.CheckStock:
                     dailydata = StocksManager()
                     dailydata.CheckStock(o.CheckStock)
@@ -51,6 +51,8 @@ class Software:
                     fm.initialize_firm('Bearhouse Capital')
 
                 pm.live_data()
+                fm.update_total_investments()
+                fm.update_firm_total_value()
         
         except OperationalError as e:
             print(f'Failed to connect to the database: {e}')

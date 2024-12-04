@@ -277,6 +277,61 @@ class Firm(Database):
             self.connection.rollback()
             print(f"Error initializing firm: {e}")
             
+    def update_total_investments(self):
+        """
+        Update the TOTAL_VALUE_INVESTMENTS column in the FIRM table.
+        by summing up the TOTAL_VALUE from the PORTFOLIO table.
+        """
+        try:
+            self.cursor.execute(
+                """ 
+                UPDATE FIRM
+                SET TOTAL_VALUE_INVESTMENTS = (
+                    SELECT COALESCE(SUM(TOTAL_VALUE), 0)
+                    FROM PORTFOLIO
+                    WHERE PORTFOLIO.FIRM_ID = FIRM.ID
+                    )
+                """
+            )
+            
+        except psy.DatabaseError as e:
+            print(f'An error occured while updating TOTAL_VALUE_INVESTMENTS: {e}')
+            self.connection.rollback()
+    
+    def update_firm_total_value(self, firm_id: int = 1):
+        """ 
+        Updates the TOTAL_VALUE column in the FIRM table for the given firm_id.
+        
+        Args:
+            firm_id (int): The ID of the firm to update.
+        """
+        try:
+            self.cursor.execute(
+                """
+                SELECT TOTAL_VALUE_INVESTMENTS, CASH_RESERVE
+                FROM FIRM
+                WHERE ID = %s
+                """,
+                (firm_id,))
+            result = self.cursor.fetchone()
+            
+            if result:
+                total_value_investments, cash_reserve = result
+                total_value = total_value_investments + cash_reserve
+                
+                self.cursor.execute(
+                    """
+                    UPDATE FIRM
+                    SET TOTAL_VALUE = %s
+                    WHERE ID = %s
+                    """, 
+                    (total_value, firm_id))
+            else:
+                print(f'No firm found with ID {firm_id}')
+                
+        except Exception as e:
+            print(f'An error occured while updating TOTAL_VALUE: {e}')
+    
 class Transactions(Database):
     
     def __init__(self, connection, cursor):
