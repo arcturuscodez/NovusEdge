@@ -86,7 +86,7 @@ class Database:
             raise e
         
     def __fetch__(self, table_name, print_data = False):
-        """Fetches data from a specified table, and optionally prints the data to the terminal or returns it."""
+        """Fetches all data from a specified table, and optionally prints the data to the terminal or returns it."""
         try:
             self.cursor.execute(q.Queries.FetchTableQuery(table_name))
             columns = [description[0] for description in self.cursor.description]
