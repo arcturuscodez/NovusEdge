@@ -455,3 +455,12 @@ class Portfolio(Database):
         except psy.DatabaseError as e:
             self.connection.rollback()
             print(f'An error occurred while acquiring live data: {e}')
+            
+    def portfolio_add(self):
+        pass
+    
+    def portfolio_remove(self):
+        pass
+    
+    def portfolio_edit(self):
+        pass
