@@ -141,7 +141,15 @@ class Database:
             self.connection.rollback()
         
     def __update__(self, update_type, columns, values, condition_column=None, condition_value=None):
-        """Updates any table and columns based on the provided arguments."""
+        """Updates any table and columns based on the provided arguments.
+        
+        Args:
+            update_type (str): The type of update.
+            columns (str): The columns to be updated.
+            values (float): The value of the update.
+            condition_column (str): The condition of the update.
+            condition_value (flaot): The value of the condition.
+        """
         try:
             print(f'Updating columns: {columns} with values: {values}')
             query, params = q.Queries.GeneralizedUpdateTableQuery('FIRM', columns, values, condition_column, condition_value)
@@ -287,7 +295,19 @@ class Transactions(Database):
             pps (float): The price per individual share purchased.
         """
         try:
-            self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'buy'))
+            transaction_value = shares * pps # Calculate transaction value
+            
+            self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'buy')) # Add transaction to the TRANSACTION table
+            
+            self.cursor.execute(
+                """
+                UPDATE FIRM
+                SET CASH_RESERVE = CASH_RESERVE - %s
+                """,
+                (transaction_value,)
+            )
+            
+            print(f'Buy transaction added: {shares} shares of {ticker} at {pps} per share.')
             
         except psy.DatabaseError as e:
             print(f'An error occured while creating the buy transaction: {e}')
@@ -303,8 +323,19 @@ class Transactions(Database):
             shares (int): The number of shares of the ticker purchased.
             pps (float): The price per individual share purchased.
         """
-        try:  
+        try:
+            transaction_value = shares * pps
+            
             self.cursor.execute(q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE']), (self.firm_id, ticker, shares, pps, 'sell'))
+            
+            self.cursor.execute(
+                """ 
+                UPDATE FIRM
+                SET CASH_RESERVE = CASH_RESERVE + %s
+                """,
+                (transaction_value,)
+            )
+            
             print(f'Sell transaction added: {shares} shares of {ticker} at {pps} per share.')
         
         except psy.DatabaseError as e:
