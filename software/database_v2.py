@@ -142,10 +142,16 @@ class Database:
             
             return data
         
+        except psy.errors.UndefinedTable as e:
+            print(f'A database error occurred when fetching data: {e}')
         except psy.DatabaseError as e:
             print(f'A database error occurred when fetching data: {e}')
-            traceback.print_exc()
-            raise
+        except ValueError as e:
+            print(f'Value error: {e}')
+        except Exception as e:
+            print(f'An unexpected error occured: {e}')
+        finally:
+            self.connection.rollback()
         
     def update_table(self, table_name: str, columns: list, values: list, condition_column: str = None, condition_value: any = None):
         """
@@ -294,4 +300,110 @@ class Shareholder(Database):
         except psy.DatabaseError as e:
             print(f'Error fetching shareholders: {e}')
             return []
+
+class Firm(Database):
+    
+    def __init__(self, connection, cursor):
+        self.connection = connection
+        self.cursor = cursor
+        
+        self.firm_id = 1
+        
+    def update_total_investments(self):
+        """ 
+        Update the TOTAL_VALUE_INVESTMENTS column in the FIRM table.
+        by summing up the TOTAL_VALUE from the portfolio table.
+        """
+        try:
+            self.cursor.execute(
+                """ 
+                UPDATE FIRM
+                SET TOTAL_VALUE_INVESTMENTS = (
+                    SELECT COALESCE(SUM(TOTAL_VALUE), 0)
+                    FROM PORTFOLIO
+                    WHERE PORTFOLIO.FIRM_ID = FIRM.ID
+                    )
+                """
+            )
+        except psy.DatabaseError as e:
+            print(f'An error occured while updating TOTAL_VALUE_INVESTMENTS: {e}')
+            self.connection.rollback()
             
+    def update_firm_total_value(self, firm_id: int = 1):
+        """ 
+        Updates the TOTAL_VALUE column in the FIRM table for the given firm_id.
+        
+        Args:
+            firm_id (int): The ID of the firm to update.
+        """
+        try:
+            self.cursor.execute(
+                """ 
+                SELECT TOTAL_VALUE_INVESTMENTS, CASH_RESERVE
+                FROM FIRM
+                WHERE ID = %s
+                """,
+                (firm_id,))
+            result = self.cursor.fetchone()
+            
+            if result:
+                total_value_investments, cash_reserve = result
+                total_value = total_value_investments + cash_reserve
+                
+                self.cursor.execute(
+                    """ 
+                    UPDATE FIRM
+                    SET TOTAL_VALUE = %s
+                    WHERE ID = %s
+                    """,
+                    (total_value, firm_id))
+            else:
+                print(f'No firm found with ID {firm_id}')
+                
+        except Exception as e:
+            print(f'An error occurred while updating TOTAL_VALUE: {e}')
+            
+class Transactions(Database):
+    
+    def __init__(self, connection, cursor):
+        self.connection = connection
+        self.cursor = cursor
+        
+        self.firm_id = 1
+        
+    def transaction_buy(self):
+        pass
+    
+    def transaction_sell(self):
+        pass
+    
+    def transaction_edit(self):
+        pass
+    
+    def transaction_get(self):
+        pass
+    
+    def transaction_calculate(self):
+        pass
+    
+class History(Database):
+    
+    def __init__(self, connection, cursor):
+        self.connection = connection
+        self.cursor = cursor
+        
+    def history_edit(self):
+        pass
+    
+    def history_get(self):
+        pass
+    
+class Portfolio(Database):
+    
+    def __init__(self, connection, cursor):
+        self.connection = connection
+        self.cursor = cursor
+        
+    def portfolio_update(self):
+        pass
+        
