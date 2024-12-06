@@ -17,7 +17,7 @@ class Queries:
         return f'SELECT * FROM {table_name}'
     
     @staticmethod
-    def SelectFromTableQuery(table_name: str, condition_column: str = None):
+    def SelectFromTableQuery(table_name: str, condition_column: str = None): # Redundant
         """
         Generalized SQL query for selecting rows from a table with an optional condition.
         """

@@ -1,11 +1,33 @@
-from security import encryption
+from database_v2 import Database
+from security import credentials
 
-def test_db():
-    from database import Database
+class Testing:
     
-    with Database(db='bearhouse_capital', user='sonny', password=encryption.load_and_decrypt(), host='localhost', port='5432') as db:
-        db.cursor.execute('SELECT * FROM SHAREHOLDERS')
-        users = db.cursor.fetchall()
-        print(users)
+    def __init__(self):
+        """Set up the class for database testing."""
+        self.db = credentials.DB
+        self.user = credentials.USER
+        self.password = credentials.PASSWORD
+        self.host = credentials.HOST
+        self.port = credentials.PORT
+        self.pg_exe = credentials.PG_EXE_PATH
+
+        self.database = Database(
+            db = self.db,
+            user = self.user,
+            password = self.password,
+            host = self.host,
+            port = self.port,
+            pg_exe = self.pg_exe
+        )
+        
+        self.test_connection()
     
-test_db()
+    def test_connection(self):
+        with self.database as connection:
+            print("Successfully connected to the database.")
+            connection.cursor.execute("SELECT 1;")
+            result = connection.cursor.fetchone()
+            assert result == (1,), "Test query failed"
+
+Testing()
