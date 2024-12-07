@@ -309,6 +309,25 @@ class Firm(Database):
         
         self.firm_id = 1
         
+    def create_firm_rows(self, firm_name):
+        """
+        Initialize the static rows in the FIRM table.
+        
+        Args:
+            firm_name (str): Name of the firm to create rows for.
+        """
+        create_firm_rows_query = """
+            INSERT INTO FIRM (FIRM_NAME, TOTAL_VALUE, TOTAL_VALUE_INVESTMENTS, CASH_RESERVE, NET_PROFIT, NET_LOSS)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING;
+        """
+        try:
+            self.cursor.execute(create_firm_rows_query, (firm_name, 0, 0, 0, 0, 0))
+            print(f'Firm {firm_name} table rows initialized successfully.')
+        except Exception as e:
+            self.connection.rollback()
+            print(f'Error initializing rows in the firm table: {e}')
+        
     def update_total_investments(self):
         """ 
         Update the TOTAL_VALUE_INVESTMENTS column in the FIRM table.
@@ -371,12 +390,66 @@ class Transactions(Database):
         
         self.firm_id = 1
         
-    def transaction_buy(self):
-        pass
+    def transaction_buy(self, ticker: str, shares: int, pps: float):
+        """
+        Create a buy transaction.
+
+        Args:
+            ticker (str): The ticker of the stock purchased.
+            shares (int): The number of shares of the ticker purchased.
+            pps (float): The price per individual share purchased.
+        """
+        try:
+            transaction_value = shares * pps
+            
+            insert_query = q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE'], (self.firm_id, ticker, shares, pps, 'buy'))
+            self.cursor.execute(insert_query)
+            
+            self.cursor.execute(
+                """ 
+                UPDATE FIRM
+                SET CASH_RESERVE = CASH_RESERVE - %s
+                """,
+                (transaction_value,)
+            )
+            
+            print(f'Buy transaction added: {shares} shares of {ticker} at {pps} per share.')
+        
+        except psy.DatabaseError as e:
+            print(f'An error occurred while creating the buy transaction: {e}')
+            self.connection.rollback()
+            return False
     
-    def transaction_sell(self):
-        pass
-    
+    def transaction_sell(self, ticker: str, shares: int, pps: float):
+        """ 
+        Create a sell transaction.
+        
+        Args:
+            ticker (str): The ticker of the stock purchased.
+            shares (int): The number of shares of the ticker purchased.
+            pps (float): The price per individual share purchased.    
+        """
+        try:
+            transaction_value = shares * pps
+            
+            insert_query = q.Queries.InsertIntoTableQuery('TRANSACTIONS', ['FIRM_ID', 'TICKER', 'SHARES', 'PRICE_PER_SHARE', 'TRANSACTION_TYPE'], (self.firm_id, ticker, shares, pps, 'sell'))  
+            self.cursor.execute(insert_query)
+            
+            self.cursor.execute(
+                """ 
+                UPDATE FIRM
+                SET CASH_RESERVE = CASH_RESERVE + %s
+                """,
+                (transaction_value,)
+            )
+            
+            print(f'Sell transaction added: {shares} shares of {ticker} at {pps} per share.')
+            
+        except psy.DatabaseError as e:
+            print(f'An error occurred while creating the buy transaction: {e}')
+            self.connection.rollback()
+            return False
+            
     def transaction_edit(self):
         pass
     
