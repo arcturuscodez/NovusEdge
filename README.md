@@ -67,17 +67,9 @@ The current version of the software is -> V0.1.9
 
 Note: Currently unimplemented
 
-## Usage
-
-1. Setup a PostgreSQL database.
-2. Test the connection between the database and the software by simply running the main.py file
-    - Windows : NovusEdge/software/main.py
-3. Use -h to see relevant options
-    - Windows : NovusEdge/software/main.py -h
-
 ## Contributing
 
-Sonny Holman (Main Developer)
+Sonny Holman (Developer)
 
 ## License
 
