@@ -1,125 +1,108 @@
 class Queries:
-    """
-    Class to store queries for interaction between the user, software and the database.
-    """
+    """A class to store queries for interaction between the user, software and the database."""
     
     def __init__(self):
         pass
-
-    @staticmethod
-    def FetchTableQuery(table_name: str):
-        """
-        SQL query for fetching table data from a given table.
-        
-        Args:
-            table_name (str): The name of the given table. 
-        """
-        return f'SELECT * FROM {table_name}'
     
     @staticmethod
-    def SelectFromTableQuery(table_name: str, condition_column: str = None): # Redundant
+    def FetchTableDataQuery(table_name: str, columns: list = None, condition_column: str = None):
         """
-        Generalized SQL query for selecting rows from a table with an optional condition.
-        """
-        if condition_column:
-            return f'SELECT * FROM {table_name} WHERE {condition_column} = %s'
-        else:
-            return f'SELECT * FROM {table_name}'
-        
-    @staticmethod
-    def SelectColumnsFromTableQuery(table_name: str, columns: list, condition_column: str = None):
-        """
-        Generalized SQL query for selecting specific columns from a table with an optional condition.
-        
-        Args:
-            table_name (str): The name of the table to selecty from.
-            columns (list): The list of columns to select.
-            condition_column (str, optional): The column for the WHERE condition.
-        
-        Returns: 
-            str: The generated SQL query string.
-        """
-        columns_str = ', '.join(columns)
-        if condition_column:
-            return f'SELECT {columns_str} FROM {table_name} WHERE {condition_column}'
-        return f'SELECT {columns_str} FROM {table_name}'
-        
-    @staticmethod # Redundant
-    def ConditionalUpdateTableQuery(table_name: str, columns: list, condition_column: str):
-        """
-        Generalized SQL query for updating a table's specific columns with a condition.
-        """
-        set_clause = ', '.join([f"{column} = %s" for column in columns])
-        return f'UPDATE {table_name} SET {set_clause} WHERE {condition_column} = %s'
-
-    @staticmethod
-    def UpdateTableQuery(table_name, columns): # Redundant
-        """
-        Generalized SQL query for updating a table's specific columns with a condition.
+        Generalized SQL query for fetching table data from a given table, with optional columns and condition.
 
         Args:
-            table_name (str): The name of the table to update.
-            columns (list): The list of columns to update.
-
+            table_name (str): The name of the given table.
+            columns (list, optional): The list of columns to select. If None, all columns are selected.
+            condition_column (str, optional): The column for the WHERE condition. If None, no condition is applied.
+            
         Returns:
             str: The generated SQL query string.
         """
-        set_clause = ', '.join([f"{column} = %s" for column in columns])
-        return f"UPDATE {table_name} SET {set_clause} WHERE TICKER = %s"
-
+        if columns:
+            columns_str = ', '.join(columns)
+            query = f'SELECT {columns_str} FROM {table_name}'
+        else:
+            query = f'SELECT * FROM {table_name}'
+        if condition_column:
+            query += f' WHERE {condition_column} = %s'
+        
+        return query
+    
     @staticmethod
-    def GeneralizedUpdateTableQuery(table_name: str, columns: list, values: list, condition_column: str = None, condition_value: any = None):
+    def UpdateTableDataQuery(table_name: str, columns: list, values: list, condition_column: str = None, condition_value: any = None):
         """
-        Generalized SQL query for updating any table with any number of columns and values.
+        Generalized SQL query for updating a table with specific columns and optional conditions.
 
         Args:
             table_name (str): The name of the table to update.
             columns (list): List of columns to be updated.
             values (list): List of values corresponding to the columns.
-            condition_column (str): Optional column name to use for the WHERE condition.
-            condition_value (any): Optional value for the condition column to match rows.
+            condition_column (str, optional): The column name to use for the WHERE condition.
+            condition_value (any, optional): The value for the condition column to match rows.
 
         Returns:
-            str: The SQL query string.
+            str: The generated SQL query string.
+            list: The list of values to be used in the query (including condition value if present).
         """
         set_clause = ', '.join([f"{column} = %s" for column in columns])
         query = f'UPDATE {table_name} SET {set_clause}'
+        
         if condition_column and condition_value is not None:
             query += f" WHERE {condition_column} = %s"
             return query, values + [condition_value]
         
         return query, values
-
+    
     @staticmethod
-    def InsertIntoTableQuery(table_name: str, columns: list):
-        """
+    def InsertIntoTableQuery(table_name: str, columns: list, values: list = None):
+        """ 
         Generalized SQL query for inserting data into a table.
-
+        
         Args:
             table_name (str): The name of the table to insert into.
             columns (list): A list of column names where the data will be inserted.
-
+            values (list, optional): A list of values to insert. If None, the placeholders are returned without actual values.
+        
         Returns:
             str: The generated SQL query string.
+            list: The list of values to be inserted (if provided).    
         """
-        columns_str = ', '.join(columns)   
-        placeholders = ','.join(['%s'] * len(columns))
-        return f'INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders});'
+        if not columns:
+            raise ValueError("Columns must be provided for the insert query.")
+        
+        columns_str = ', '.join(columns)
+        placeholders = ', '.join(['%s'] * len(columns))
+        query = f'INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})'
+        
+        return query, values if values else []
     
     @staticmethod
-    def DeleteFromTableQuery(table_name: str, condition_column: str):
+    def DeleteFromTableQuery(table_name: str, condition_column: str, condition_value: any = None):
         """ 
         Generalized SQL query for deleting a row from a table based on a condition.
-        """
-        return f'DELETE FROM {table_name} WHERE {condition_column} = %s'
-    
-    @staticmethod
-    def TruncateTableData(table_name=None):
-        """Truncate the table data"""
         
-        if table_name == None:
-            print(f'Database data truncated.')
-            return 'TRUNCATE TABLE SHAREHOLDERS, FIRM, TRANSACTIONS, PORTFOLIO RESTART IDENTITY CASCADE;'
-        elif table_name is not None:
-            print(f'Database data truncated.')
-            return f'TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;'
+        Args:
+            table_name (str): The name of the table to delete from.
+            condition_column (str): The column name to use for the WHERE condition.
+            condition_value (any, optional): The value to match aganist the condition column.
+        
+        Returns:   
+            str: The generated SQL query string.
+            list: The list of values to be used with the query.    
+        """
+        if not condition_column:
+            raise ValueError("A condition column must be provided for deletion.")
+        
+        query = f'DELETE FROM {table_name} WHERE {condition_column} = %s'
+        return query, [condition_value] if condition_value else []
+        
+    @staticmethod
+    def TruncateTableDataQuery(table_name: list = None):
+        """Truncate the table data."""
+        if table_name is None:
+            table_name = ['SHAREHOLDERS', 'FIRM', 'TRANSACTIONS', 'PORTFOLIO']
+            print('Database data truncated.')
+        else:
+            print(f"Truncating data for tables: {', '.join(table_name)}.")
+            
+        tables_str = ', '.join(table_name)
+        return f'TRUNCATE TABLE {tables_str} RESTART IDENTITY CASCADE;'
