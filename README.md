@@ -7,7 +7,14 @@
 NovusEdge
 
 ## Description
-Software for the management of investment firm systems, finances, etc...
+
+The software being developed is a portfolio management system for an investment firm, designed to manage and track stock transactions, portfolio performance, and live market data. It allows users to execute buy transactions, update portfolio information with live stock prices, calculate unrealized profits and losses, and track dividend yields. The system interacts with a database to store transaction records, portfolio details, and firm financial information, and leverages external stock data sources for real-time price and dividend updates.
+
+The end goal of the software is to use machine learning and artificial intelligence to monitor, simulate and provide feedback on the portfolios provided to the software.
+
+### Version
+
+The current version of the software is -> V0.1.9
 
 ## Table of Contents
 - [Installation](#installation)
@@ -59,6 +66,14 @@ Software for the management of investment firm systems, finances, etc...
 #### History
 
 Note: Currently unimplemented
+
+## Usage
+
+1. Setup a PostgreSQL database.
+2. Test the connection between the database and the software by simply running the main.py file
+    - Windows : NovusEdge/software/main.py
+3. Use -h to see relevant options
+    - Windows : NovusEdge/software/main.py -h
 
 ## Contributing
 
