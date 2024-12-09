@@ -13,16 +13,13 @@ class Simulations:
         self.port = credentials.PORT
         self.pg_exe = credentials.PG_EXE_PATH
         
-        tickers = self.connection()
-        print(tickers)
+        self.portfolio = self.collect_portfolio_data()
         
     def collect_portfolio_data(self):
+        """Collect the data from the portfolio table."""
         with Database(db=self.db, user=self.user, password=self.password, host=self.host, port=self.port, pg_exe=self.pg_exe) as db:
             portfolio_data = db.fetch_data('PORTFOLIO')    
-            
-        
-
-        return tickers
+        return portfolio_data
     
 Simulations()
 

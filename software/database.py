@@ -38,8 +38,6 @@ class Database:
         
         self.pg_exe = pg_exe
         
-        self.firm_id = 1
-        
     def start_server(self):
         """Start the PostgreSQL server."""
         try:
