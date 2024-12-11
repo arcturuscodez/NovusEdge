@@ -1,4 +1,5 @@
 from database import Database, Shareholder, Firm, Transactions, Portfolio, History
+from sql import queries as q
 from options import o
 from security import credentials
 from psycopg2 import OperationalError
@@ -40,7 +41,11 @@ class NovusEdge:
                 elif o.SellStock:
                     parts = o.SellStock.split(':')
                     tm.transaction_sell(ticker=parts[0], shares=int(parts[1]), pps=float(parts[2]))
-                
+                elif o.Truncate:
+                    db.cursor.execute(q.Queries.TruncateTableDataQuery(table_name=str(o.Truncate).upper()))
+                elif o.InitializeFirmTable:
+                    fm.create_firm_rows('Bearhouse Capital')
+                                    
                 pm.portfolio_live_data()
                 fm.update_total_investments()
                 fm.update_firm_total_value()

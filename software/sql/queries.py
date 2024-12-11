@@ -96,13 +96,12 @@ class Queries:
         return query, [condition_value] if condition_value else []
         
     @staticmethod
-    def TruncateTableDataQuery(table_name: list = None):
-        """Truncate the table data."""
-        if table_name is None:
-            table_name = ['SHAREHOLDERS', 'FIRM', 'TRANSACTIONS', 'PORTFOLIO']
-            print('Database data truncated.')
-        else:
-            print(f"Truncating data for tables: {', '.join(table_name)}.")
-            
-        tables_str = ', '.join(table_name)
-        return f'TRUNCATE TABLE {tables_str} RESTART IDENTITY CASCADE;'
+    def TruncateTableDataQuery(table_name=None):
+        """Truncate the table data"""
+        
+        if table_name == None:
+            print(f'Database data truncated.')
+            return 'TRUNCATE TABLE SHAREHOLDERS, FIRM, TRANSACTIONS, PORTFOLIO RESTART IDENTITY CASCADE;'
+        elif table_name is not None:
+            print(f'Database data truncated.')
+            return f'TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;'

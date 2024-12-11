@@ -174,6 +174,8 @@ class Database:
             self.cursor.execute(query, tuple(params))
             print(f"Successfully updated {table_name}: {columns} with {values}")
             
+            self.connection.commit()
+            
         except Exception as e:
             self.connection.rollback()
             print(f'Error occurred while updating the table: {e}')
