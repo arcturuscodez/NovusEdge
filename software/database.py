@@ -489,8 +489,6 @@ class Portfolio(Database):
         Updates the columns of the PORTFOLIO table with live data: current price, 
         unrealized profit/loss, dividend yield percentage, and dividend yield amount.
         """
-        from stocks import StocksManager
-        update_data = StocksManager()
         try:
             tickers = self._get_all_tickers()
             for ticker in tickers:
