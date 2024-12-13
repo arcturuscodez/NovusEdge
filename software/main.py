@@ -5,6 +5,7 @@ from security import credentials
 from psycopg2 import OperationalError
 
 from datetime import datetime, timedelta
+from stocks_v2 import StockDataManager
 
 class NovusEdge:
     
@@ -48,28 +49,20 @@ class NovusEdge:
                 elif o.InitializeFirmTable:
                     fm.create_firm_rows('Bearhouse Capital')
                 elif o.plotdata:
-                    from stocks_v2 import StockDataManager
-                    manager = StockDataManager(str(o.plotdata).upper())
-                    end_date = datetime.today()
-                    start_date = end_date - timedelta(days=5 * 365)
-                    hist_data = manager.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+                    parts = o.plotdata.split(':')
+                    ticker = str(parts[0]).upper()
+
+                    # Use None if a parameter is missing
+                    days = int(parts[1]) if len(parts) > 1 and parts[1] else None
+                    time_steps = int(parts[2]) if len(parts) > 2 and parts[2] else None
+                    prediction_days = int(parts[3]) if len(parts) > 3 and parts[3] else 60  # Default 60 days
+
+                    manager = StockDataManager(ticker)
+                    manager.generate_prediction_plot(days=days, time_steps=time_steps, prediction_days=prediction_days)
                     
-                    if hist_data.empty:
-                        print('No historical data found. Exiting')
-                        exit()
-                    
-                    time_steps = 60
-                    
-                    x, y = manager.transform_data(hist_data, time_steps)
-                    if x is not None and y is not None:
-                        model = manager.train_model(x, y)
-                    if model: 
-                        predictions = manager.random_forest_regression_prediction(time_steps, model, x, prediction_days=60)
-                        manager.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=60)
-                                    
-                pm.portfolio_live_data()
-                fm.update_total_investments()
-                fm.update_firm_total_value()
+                #pm.portfolio_live_data()
+                #fm.update_total_investments()
+                #fm.update_firm_total_value()
         
         except OperationalError as e:
             print(f'Failed to connect to the database: {e}')

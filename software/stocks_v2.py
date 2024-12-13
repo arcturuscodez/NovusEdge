@@ -169,8 +169,21 @@ class StockDataManager:
             print(f'Error calculating technical indicators: {e}')
             return data
     
-    def train_model(self, x, y):
-        """Trains a machine learning model using provided data."""
+    def train_model_random_forst_regression(self, x, y):
+        """
+        Random Forest Regression for stock price predictions.
+
+        This method uses a trained Random Forest model to predict future stock 
+        prices based on historical data sequences. The model is trained on past 
+        stock prices and makes predictions based on the most recent sequence 
+        of data.
+
+        Args:
+            x (np.array): The sequence of historical stock data to predict from.
+
+        Returns:
+            list: A list of predicted stock prices.
+        """
         try:
             x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
             model = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -183,21 +196,9 @@ class StockDataManager:
             print(f'Error training model: {e}')
             return None
     
-    def random_forest_regression_prediction(self, time_steps, model, recent_data, prediction_days=30):
+    def predict_future_prices(self, time_steps, model, recent_data, prediction_days):
         """
-        Random Forest Regression for stock price predictions.
-
-        This method uses a trained Random Forest model to predict future stock 
-        prices based on historical data sequences. The model is trained on past 
-        stock prices and makes predictions based on the most recent sequence 
-        of data.
-
-        Args:
-            x (np.array): The sequence of historical stock data to predict from.
-            model (sklearn.ensemble.RandomForestRegressor): The trained model to use for predictions.
-
-        Returns:
-            list: A list of predicted stock prices.
+        Using the random forest regression prediction, predict the next x amount of days for stock price.
         """
         try:
             predictions = []
@@ -215,7 +216,7 @@ class StockDataManager:
         except Exception as e:
             print(f'Error predicting stock prices: {e}')
             return []
-    
+            
     def plot_stock_predictions(self, hist_data, predictions, end_date, prediction_days):
         """Plots historical stock data and predicted future stock prices."""
         try:
@@ -227,6 +228,12 @@ class StockDataManager:
             plt.figure(figsize=(10, 6))
             plt.plot(hist_data.index, hist_data['Close'], label='Historical Prices')
             plt.plot(future_dates, predictions, label='Predicted Prices', color='red', linestyle='--')
+
+            todays_date = datetime.today()
+            plt.axvline(todays_date, color='green', linestyle='--', label='Today')
+            
+            # Labels and title
+            
             plt.xlabel("Date")
             plt.ylabel("Price")
             plt.title(f"{self.ticker} Stock Price Prediction")
@@ -239,12 +246,33 @@ class StockDataManager:
             plt.show()
             print('Stock price plot generated.')
         except Exception as e:
-            print(f'Error plotting predictions: {e}')
+            print(f'Error plotting: {e}')
+    
+    def generate_prediction_plot(self, days = None, time_steps = None, prediction_days=60):
+        if days is None:
+            end_date = datetime.today()
+        else:
+            end_date = datetime.today() - timedelta(days=days)
+        
+        if time_steps is None:
+            time_steps = 30
+        
+        start_date = end_date - timedelta(days=5*365)
+        hist_data = self.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+        if hist_data.empty:
+            print(f'No historical data found. Exiting')
+        
+        x, y = self.transform_data(hist_data, time_steps)
+        if x is not None and y is not None:
+            model = self.train_model_random_forst_regression(x, y)
+        if model:
+            predictions = self.predict_future_prices(time_steps, model, x, prediction_days)
+            self.plot_stock_predictions(hist_data, predictions, end_date, prediction_days)
     
 if __name__=="__main__": # Testing
     sm = StockDataManager("TSLA")
     
-    end_date = datetime.today()
+    end_date = datetime.today() - timedelta(days=30)
     start_date = end_date - timedelta(days=5 * 365)
     hist_data = sm.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
     
@@ -255,10 +283,10 @@ if __name__=="__main__": # Testing
     time_steps = 60
     x, y = sm.transform_data(hist_data, time_steps=60)
     if x is not None and y is not None:
-        model = sm.train_model(x, y)
+        model = sm.train_model_random_forst_regression(x, y)
     
     if model:
-        predictions = sm.random_forest_regression_prediction(time_steps, model, x, prediction_days=60)
+        predictions = sm.predict_future_prices(time_steps, model, x, prediction_days=60)
         sm.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=60)
         
     

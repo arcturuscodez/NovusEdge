@@ -89,7 +89,7 @@ PLOTTING_GROUP.add_option('--plot', '--plotdata',
     dest='plotdata',
     type=str,
     default=None,
-    metavar='<ticker>',
+    metavar='ticker:days:timesteps:predictiondays',
     help='Plot historical prices along with predicted price.')
 
 o.add_option_group(UTILITY_GROUP)
