@@ -10,6 +10,7 @@ SHAREHOLDER_DB_GROUP = OptionGroup(o, "Shareholder Database Options", "Options f
 FIRM_DB_GROUP = OptionGroup(o, "Firm Database Options", "Options for the use of the FIRM table.")
 TRANSACTION_DB_GROUP = OptionGroup(o, "Transaction Database Options", "Options for the use of the TRANSACTION table.")
 PORTFOLIO_DB_GROUP = OptionGroup(o, "Portfolio Options", "Options for the use of the PORTFOLIO table.")
+PLOTTING_GROUP = OptionGroup(o, "Plotting Options", "Options for utilizing plotting systems.")
 
 # Utility Group
 
@@ -94,10 +95,20 @@ PORTFOLIO_DB_GROUP.add_option('--daily', '--dailyupdate',
     default=False,
     help='Update the portfolio table with live stock data.')
 
+# Plotting Group
+
+PLOTTING_GROUP.add_option('--plot', '.-plotdata',
+    dest='plotdata',
+    type=str,
+    default=None,
+    metavar='<ticker>',
+    help='Plot historical prices along with predicted price.')
+
 o.add_option_group(UTILITY_GROUP)
 o.add_option_group(SHAREHOLDER_DB_GROUP)
 o.add_option_group(FIRM_DB_GROUP)
 o.add_option_group(TRANSACTION_DB_GROUP)
+o.add_option_group(PLOTTING_GROUP)
 
 (o, args) = o.parse_args(sys.argv[1:])
 
