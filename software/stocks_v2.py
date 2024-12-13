@@ -269,25 +269,4 @@ class StockDataManager:
             predictions = self.predict_future_prices(time_steps, model, x, prediction_days)
             self.plot_stock_predictions(hist_data, predictions, end_date, prediction_days)
     
-if __name__=="__main__": # Testing
-    sm = StockDataManager("TSLA")
-    
-    end_date = datetime.today() - timedelta(days=30)
-    start_date = end_date - timedelta(days=5 * 365)
-    hist_data = sm.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
-    
-    if hist_data.empty:
-        print('No historical data found. Exiting.')
-        exit()
-        
-    time_steps = 60
-    x, y = sm.transform_data(hist_data, time_steps=60)
-    if x is not None and y is not None:
-        model = sm.train_model_random_forest_regression(x, y)
-    
-    if model:
-        predictions = sm.predict_future_prices(time_steps, model, x, prediction_days=60)
-        sm.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=60)
-        
-    
             
