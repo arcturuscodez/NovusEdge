@@ -4,6 +4,8 @@ from options import o
 from security import credentials
 from psycopg2 import OperationalError
 
+from datetime import datetime, timedelta
+
 class NovusEdge:
     
     def __init__(self):
@@ -45,6 +47,25 @@ class NovusEdge:
                     db.cursor.execute(q.Queries.TruncateTableDataQuery(table_name=str(o.Truncate).upper()))
                 elif o.InitializeFirmTable:
                     fm.create_firm_rows('Bearhouse Capital')
+                elif o.plotdata:
+                    from stocks_v2 import StockDataManager
+                    manager = StockDataManager(str(o.plotdata).upper())
+                    end_date = datetime.today()
+                    start_date = end_date - timedelta(days=5 * 365)
+                    hist_data = manager.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+                    
+                    if hist_data.empty:
+                        print('No historical data found. Exiting')
+                        exit()
+                    
+                    time_steps = 60
+                    
+                    x, y = manager.transform_data(hist_data, time_steps)
+                    if x is not None and y is not None:
+                        model = manager.train_model(x, y)
+                    if model: 
+                        predictions = manager.random_forest_regression_prediction(time_steps, model, x, prediction_days=60)
+                        manager.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=60)
                                     
                 pm.portfolio_live_data()
                 fm.update_total_investments()

@@ -29,12 +29,6 @@ UTILITY_GROUP.add_option('--T', '--Truncate',
     metavar='SHAREHOLDERS, FIRM',
     help='Truncate all (or a given) table data perserving formatting, triggers, functions.')
 
-UTILITY_GROUP.add_option('--cs', '--checkstock',
-    dest='CheckStock',
-    action='store_true',
-    default=False,
-    help='Check if a stock exists in YF.')
-
 # Shareholder Group
 
 SHAREHOLDER_DB_GROUP.add_option('--AS', '--Add',
@@ -89,15 +83,9 @@ TRANSACTION_DB_GROUP.add_option('--sell', '--sellstock',
 
 # Portfolio Group
 
-PORTFOLIO_DB_GROUP.add_option('--daily', '--dailyupdate',
-    dest='LiveData',
-    action='store_true',
-    default=False,
-    help='Update the portfolio table with live stock data.')
-
 # Plotting Group
 
-PLOTTING_GROUP.add_option('--plot', '.-plotdata',
+PLOTTING_GROUP.add_option('--plot', '--plotdata',
     dest='plotdata',
     type=str,
     default=None,

@@ -1,4 +1,4 @@
-import numpy as np
+"""import numpy as np
 import pandas as pd
 
 import tensorflow as tf
@@ -73,4 +73,19 @@ plt.plot(time, y_test, label='Actual Stock Price')
 plt.plot(time, predictions, label='Predicted Stock Price')
 plt.xlabel('Time')
 plt.legend()
-plt.show()
+plt.show()"""
+
+from stocks_v2 import StockDataManager
+
+stocks_manager = StockDataManager()
+
+portfolio = ['AAPL', 'KO', 'GME', 'TSLA']
+
+for element in portfolio:
+    stocks_manager.set_ticker(element)
+    current_price, _ = stocks_manager.get_latest_values()
+    print(current_price)
+
+stocks_manager.set_ticker('AAPL')
+current_price, _ = stocks_manager.get_latest_values()
+print(current_price)

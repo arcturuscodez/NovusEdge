@@ -10,12 +10,30 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 
+class StockDataFetcher:
+    """ 
+    Service to fetch stock data from external sources (e.g., Yahoo Finance.)
+    """
+    @staticmethod
+    def fetch_stock_data(ticker):
+        """Acquire the latest stock data for the given ticker."""
+        stock = yf.Ticker(ticker)
+        dividend_data = stock.dividends
+        current_price = float(stock.history(period='1d')['Close'].iloc[0])
+        
+        if not dividend_data.empty:
+            quarterly_latest_dividend_amount = float(dividend_data.iloc[-1])
+            return current_price, quarterly_latest_dividend_amount
+        else:
+            print(f'No dividend data available for {ticker}')
+            return None, None
+        
 class StockDataManager:
     """Class for the management and analysis of stock data."""
     
     def __init__(self, ticker):
         self.ticker = ticker
-        self.stock = yf.Ticker(ticker)
+        self.stock = yf.Ticker(self.ticker)
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.model = None
         
@@ -33,7 +51,7 @@ class StockDataManager:
         except Exception as e:
             print(f'Error fetching stock info: {e}')
             return {}
-        
+    
     def get_dividend_info(self):
         """Fetches dividend related information."""
         try:
@@ -223,10 +241,9 @@ class StockDataManager:
         except Exception as e:
             print(f'Error plotting predictions: {e}')
     
-if __name__=="__main__":
+if __name__=="__main__": # Testing
     sm = StockDataManager("TSLA")
     
-    # Fetch data
     end_date = datetime.today()
     start_date = end_date - timedelta(days=5 * 365)
     hist_data = sm.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
@@ -241,8 +258,8 @@ if __name__=="__main__":
         model = sm.train_model(x, y)
     
     if model:
-        predictions = sm.random_forest_regression_prediction(time_steps, model, x, prediction_days=500)
-        sm.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=500)
+        predictions = sm.random_forest_regression_prediction(time_steps, model, x, prediction_days=60)
+        sm.plot_stock_predictions(hist_data, predictions, end_date, prediction_days=60)
         
     
             

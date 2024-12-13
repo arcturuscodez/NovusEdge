@@ -1,5 +1,6 @@
 from sql import queries as q
 from psycopg2 import OperationalError
+from stocks_v2 import StockDataManager, StockDataFetcher
 import psycopg2 as psy
 import traceback
 import utility
@@ -482,9 +483,7 @@ class Portfolio(Database):
     def __init__(self, connection, cursor):
         self.connection = connection
         self.cursor = cursor
-        
-        from stocks import StocksManager
-        self.daily_data = StocksManager()
+        self.stock_fetcher = StockDataFetcher()
         
     def portfolio_live_data(self):
         """
@@ -494,11 +493,11 @@ class Portfolio(Database):
         try:
             tickers = self._get_all_tickers()
             for ticker in tickers:
-                stock_data = self._fetch_stock_data(self.daily_data, ticker)
+                stock_data = self._fetch_stock_data(ticker)
                 if stock_data:
                     self._update_portfolio_row(ticker, *stock_data)
                 else:
-                    print(f'Live data unavailable for {ticker}. Skipping update.')
+                    print(f'Recent data unavailable for {ticker}. Skipping update.')
         except Exception as e:
             self.connection.rollback()
             print(f'An error occurred while updating live data: {e}')
@@ -518,23 +517,22 @@ class Portfolio(Database):
         Returns:
             list: A list of stock tickers.
         """
-        data = self.fetch_data('PORTFOLIO', columns=['TICKER'])
-        return [row[0] for row in data] if data else []
+        portfolio = self.fetch_data('PORTFOLIO', columns=['TICKER'])
+        return [row[0] for row in portfolio] if portfolio else []
     
-    def _fetch_stock_data(self, daily_data, ticker):
+    def _fetch_stock_data(self, ticker):
         """ 
-        Fetches the live stock data for a given ticker.
-        
+        Fetches the most recent stock data for a given ticker using the new stock_v2.py methods.
+
         Args:
-            daily_data (StocksManager): The stocks manager for fetching live data.
             ticker (str): The stock ticker symbol
-            
+
         Returns:
-            tuple: (currewnt_price, latest_dividend) if data is available, None otherwise.
+            tuple: (current_price, latest_dividend) if data is available, None otherwise.
         """
         try:
-            current_price, latest_dividend = self.daily_data.DailyData(ticker)
-            return (current_price, latest_dividend) if current_price and latest_dividend else None
+            current_price, latest_dividend = StockDataFetcher.fetch_stock_data(ticker)
+            return current_price, latest_dividend if current_price else None
         except Exception as e:
             print(f'Failed to fetch stock data for {ticker}: {e}')
             return None
@@ -572,7 +570,7 @@ class Portfolio(Database):
     
     def _update_portfolio_row(self, ticker, current_price, latest_dividend):
         """ 
-        Updates the PORTFOLIO table with live data metrics for a ticker.
+        Updates the PORTFOLIO table with recent data metrics for a ticker.
 
         Args:
             ticker (str): The stock ticker.

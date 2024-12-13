@@ -101,3 +101,6 @@ class StocksManager:
             print(f'Stock: {stock} with ticker: {ticker} exists.')
         else:
             raise ValueError(f"Stock with ticker {ticker} not found.")
+        
+testdata = StocksManager.DailyData('GME')
+print(testdata)
