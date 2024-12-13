@@ -169,7 +169,7 @@ class StockDataManager:
             print(f'Error calculating technical indicators: {e}')
             return data
     
-    def train_model_random_forst_regression(self, x, y):
+    def train_model_random_forest_regression(self, x, y):
         """
         Random Forest Regression for stock price predictions.
 
@@ -283,7 +283,7 @@ if __name__=="__main__": # Testing
     time_steps = 60
     x, y = sm.transform_data(hist_data, time_steps=60)
     if x is not None and y is not None:
-        model = sm.train_model_random_forst_regression(x, y)
+        model = sm.train_model_random_forest_regression(x, y)
     
     if model:
         predictions = sm.predict_future_prices(time_steps, model, x, prediction_days=60)
