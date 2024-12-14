@@ -1,5 +1,7 @@
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+from tensorflow.keras.models import Sequential  # type: ignore
+from tensorflow.keras.layers import Dense, LSTM # type: ignore
 import json
 
 class Models:
@@ -48,4 +50,20 @@ class Models:
             model.fit(x_train, y_train)
             return model
     
-    
+    def create_lstm_model(self, input_shape):
+        """
+        Create and compile an LSTM model.
+        
+        Args:
+            input_shape (tuple): Shape of the input data (time_steps, features).
+        
+        Returns:
+            Sequential: The compiled LSTM model.
+        """
+        model = Sequential([
+            LSTM(50, return_sequences=True, input_shape=input_shape),
+            LSTM(50),
+            Dense(1)
+        ])
+        model.compile(optimizer='adam', loss='mean_squared_error')
+        return model

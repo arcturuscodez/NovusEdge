@@ -40,7 +40,7 @@ class StocksDataFetcher:
 class StockDataProcessor:
     """Class for the processing, management and transformation of stock data."""
     
-    def __init__(self, ticker):
+    def __init__(self, ticker, model_type='random_forest'):
         """
         Initialize the StockDataProcessor instance.
         
@@ -49,7 +49,7 @@ class StockDataProcessor:
         """
         self.ticker = ticker
         self.stock = yf.Ticker(ticker)
-        self.training = Training()
+        self.training = Training(model_type=model_type)
         
     def get_basic_info(self):
         """ 
@@ -155,10 +155,14 @@ class StockDataProcessor:
             
             future_dates = [end_date + timedelta(days=i) for i in range(1, prediction_days + 1)]
             
+            print(f'Historical data shape: {data.shape}')
+            print(f'Predictions shape: {len(predictions)}')
+            print(f'Future dates shape: {len(future_dates)}')
+            
             plt.figure(figsize=(10, 6))
             plt.plot(data.index, data['Close'], label='Historical Prices')
             plt.plot(future_dates, predictions, label='Predicted Prices', color='red', linestyle='--')
-
+    
             todays_date = datetime.today()
             plt.axvline(todays_date, color='green', linestyle='--', label='Today')
             
