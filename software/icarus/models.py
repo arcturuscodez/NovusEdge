@@ -1,10 +1,19 @@
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
+import json
 
 class Models:
     
     def __init__(self):
         pass
+    
+    def save_best_params(params, filename='best_params.json'):
+        with open(filename, 'w') as f:
+            json.dump(params, f)
+
+    def load_best_params(filename='best_params.json'):
+        with open(filename, 'r') as f:
+            return json.load(f)
     
     def add_grid_search(self, model, x_train, y_train):
         """Adds a grid search for hyperparameter tuning."""

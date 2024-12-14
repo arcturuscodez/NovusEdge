@@ -31,10 +31,12 @@ The current version of the software is -> V0.1.9
 2. NumPy
 3. yfinance
 4. psycog2
+5. Anaconda
+6. Cuda
 
 ## Features
 
-### Tables
+### Database & Tables
 
 1. All tables are viewable through the use of --ST "tablename".
 2. All tables can have their data fetched using the fetch_data method.
@@ -66,6 +68,19 @@ The current version of the software is -> V0.1.9
 #### History
 
 Note: Currently unimplemented
+
+### Machine Learning, Artificial Intelligence and Data Science Features
+
+#### Implemented Prediction Methods
+
+1. Random Forest Regression
+    
+    Currently as of 12/14/2024 the only prediction method available is the random forest regression. 
+    It is available inside the /icarus directory. 
+    It is primarily used for testing purposes until a more refined method of training and deployment can be provided.
+
+    - Predict future values 
+    - Backtest predictions 
 
 ## Contributing
 
