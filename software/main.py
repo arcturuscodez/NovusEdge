@@ -3,10 +3,7 @@ from sql import queries as q
 from options import o
 from security import credentials
 from psycopg2 import OperationalError
-
-from datetime import datetime, timedelta
-from stocks_v2 import StockDataProcessor
-from icarus.training import Training
+from stocks import StockDataProcessor
 
 class NovusEdge:
     

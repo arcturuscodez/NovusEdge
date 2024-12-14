@@ -1,4 +1,4 @@
-from stocks_v2 import StockDataProcessor
+from stocks import StockDataProcessor
 from icarus.training import Training
 from datetime import datetime, timedelta
 

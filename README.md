@@ -14,7 +14,7 @@ The end goal of the software is to use machine learning and artificial intellige
 
 ### Version
 
-The current version of the software is -> V0.1.9
+V0.1.9
 
 ## Table of Contents
 - [Installation](#installation)

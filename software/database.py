@@ -1,6 +1,6 @@
 from sql import queries as q
 from psycopg2 import OperationalError
-from stocks_v2 import StockDataProcessor, StocksDataFetcher
+from stocks import StocksDataFetcher
 import psycopg2 as psy
 import traceback
 import utility
