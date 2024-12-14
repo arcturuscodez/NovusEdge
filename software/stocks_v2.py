@@ -372,7 +372,7 @@ class StockDataManager:
         
         x, y = self.transform_data(hist_data, time_steps)
         if x is not None and y is not None:
-            model = self.train_model_random_forst_regression(x, y)
+            model = self.train_model_random_forest_regression(x, y)
         if model:
             predictions = self.predict_future_prices(time_steps, model, x, prediction_days)
             self.plot_stock_predictions(hist_data, predictions, end_date, prediction_days)
