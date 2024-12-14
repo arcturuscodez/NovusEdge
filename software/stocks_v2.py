@@ -49,7 +49,6 @@ class StockDataProcessor:
         """
         self.ticker = ticker
         self.stock = yf.Ticker(ticker)
-        #self.scaler = MinMaxScaler()
         self.training = Training()
         
     def get_basic_info(self):
@@ -139,36 +138,6 @@ class StockDataProcessor:
         except Exception as e:
             print(f'Error saving data: {e}')
             return None
-        
-    """
-    def transform_data(self, data, time_steps):
-
-        Prepares stock data for machine learning by scaling and creating sequences of historical data.
-        
-        Args:
-            data (pd.DataFrame): The stock data to be transformed.
-            time_steps (int): The number of time steps to look back when creating sequences.
-        
-        Returns:
-            tuple: Two numpy arrays, x (input data) and y (target data) for machine learning.
-
-        try:
-            scaled_data = self.scaler.fit_transform(data[['Close']])
-            x, y = [], []
-            
-            for i in range(time_steps, len(scaled_data)):
-                x.append(scaled_data[i - time_steps:i, 0])
-                y.append(scaled_data[i, 0])
-            
-            x, y = np.array(x), np.array(y)
-            x = x.reshape(x.shape[0], x.shape[1])
-            
-            print('Data transformed for machine learning.')
-            return x, y
-        except Exception as e:
-            print(f'Error transforming data: {e}')
-            return None, None
-    """
         
     def plot_data(self, data, predictions, end_date, prediction_days):
         """

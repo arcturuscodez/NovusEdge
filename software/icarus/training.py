@@ -92,58 +92,15 @@ class Training:
             dict: A dictionary containing the evaulation metrics.
         """
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-        model = self.models.create_random_forest_model(x_train, y_train)
+        model = self.models.create_random_forest_model(x_train, y_train, grid_search=False)
         
-        metrics = self.metrics(y_test, model.predict(x_test))    
+        if hasattr(model, 'best_params_'):
+            print(f'Best parameters found by grid search: {model.best_params_}')
+        
+        metrics = self.metrics(y_test, model.predict(x_test))
         
         print(f'Evaluation Metrics:\n{metrics}')
         return model, metrics
-    
-    def cross_validate_model(self, model, x, y):
-        """
-        Perform cross-validation on the model.
-
-        Args:
-            model (RandomForestRegressor): The trained model.
-            x (np.array): Features for cross-validation.
-            y (np.array): Labels for cross-validation.
-
-        Returns:
-            dict: A dictionary containing the cross-validation scores.
-        """
-        scores = cross_val_score(model, x, y, cv=5, scoring='neg_mean_absolute_error')
-        return {
-            'Cross-Validation MAE': -scores.mean(),
-            'Cross-Validation Std': scores.std()
-        }
-            
-    def backtest_model(self, processor, model, data, time_steps, prediction_days):
-        """
-        Backtest the model by making predictions starting from various points in the historical data.
-
-        Args:
-            processor (StockDataProcessor): The data processor instance.
-            model (RandomForestRegressor): The trained model.
-            hist_data (pd.DataFrame): Historical stock data.
-            time_steps (int): The number of time steps for prediction.
-            prediction_days (int): The number of days to predict into the future.
-
-        Returns:
-            dict: A dictionary containing the backtest results.
-        """
-        results = {}
-        for start in range(len(data) - time_steps - prediction_days):
-            recent_data = data[start:start + time_steps].values
-            true_values = data[start + time_steps:start + time_steps + prediction_days]['Close'].values
-            predictions = processor.training.predict_future_prices(model, recent_data, prediction_days)
-            metrics = {
-                'MAE': mean_absolute_error(true_values, predictions),
-                'MSE': mean_squared_error(true_values, predictions),
-                'RMSE': np.sqrt(mean_squared_error(true_values, predictions)),
-                'R2': r2_score(true_values, predictions)
-            }
-            results[start] = metrics
-        return results
     
     def predict_future_prices(self, model, data, prediction_days):
         """

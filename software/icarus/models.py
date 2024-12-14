@@ -16,8 +16,7 @@ class Models:
         }
         grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, verbose=2)
         grid_search.fit(x_train, y_train)
-        best_model = grid_search.best_estimator_
-        return best_model      
+        return grid_search    
     
     def create_random_forest_model(self, x_train, y_train, grid_search=False):
         """
@@ -33,15 +32,11 @@ class Models:
         """
         if grid_search:
             model = RandomForestRegressor(random_state=42)
-            searched_model = self.add_grid_search(model, x_train, y_train)
-            return searched_model
-        elif grid_search is False:
-            model = RandomForestRegressor(n_estimators=100, random_state=42)
-            model.fit(x_train, y_train)
-            score = model.score(x_train, y_train)
-            print(f'Training Score: {score}')
-            return model
+            grid_search_model = self.add_grid_search(model, x_train, y_train)
+            return grid_search_model
         else:
-            print('Invalid grid search parameter.')
+            model = RandomForestRegressor(max_depth=10, min_samples_leaf=1, n_estimators=200, random_state=42)
+            model.fit(x_train, y_train)
+            return model
     
     
