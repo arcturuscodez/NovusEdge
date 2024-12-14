@@ -1,6 +1,6 @@
 from sql import queries as q
 from psycopg2 import OperationalError
-from stocks_v2 import StockDataManager, StockDataFetcher
+from stocks_v2 import StockDataProcessor, StocksDataFetcher
 import psycopg2 as psy
 import traceback
 import utility
@@ -483,7 +483,7 @@ class Portfolio(Database):
     def __init__(self, connection, cursor):
         self.connection = connection
         self.cursor = cursor
-        self.stock_fetcher = StockDataFetcher()
+        self.stock_fetcher = StocksDataFetcher()
         
     def portfolio_live_data(self):
         """
@@ -531,7 +531,7 @@ class Portfolio(Database):
             tuple: (current_price, latest_dividend) if data is available, None otherwise.
         """
         try:
-            current_price, latest_dividend = StockDataFetcher.fetch_stock_data(ticker)
+            current_price, latest_dividend = self.stock_fetcher.fetch_stock_data(ticker)
             return current_price, latest_dividend if current_price else None
         except Exception as e:
             print(f'Failed to fetch stock data for {ticker}: {e}')

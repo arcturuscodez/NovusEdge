@@ -5,7 +5,8 @@ from security import credentials
 from psycopg2 import OperationalError
 
 from datetime import datetime, timedelta
-from stocks_v2 import StockDataManager
+from stocks_v2 import StockDataProcessor
+from icarus.training import Training
 
 class NovusEdge:
     
@@ -51,14 +52,17 @@ class NovusEdge:
                 elif o.plotdata:
                     parts = o.plotdata.split(':')
                     ticker = str(parts[0]).upper()
-
+                
                     # Use None if a parameter is missing
                     days = int(parts[1]) if len(parts) > 1 and parts[1] else None
-                    time_steps = int(parts[2]) if len(parts) > 2 and parts[2] else None
+                    time_steps = int(parts[2]) if len(parts) > 2 and parts[2] else 60  # Default 60 time steps
                     prediction_days = int(parts[3]) if len(parts) > 3 and parts[3] else 60  # Default 60 days
-
-                    manager = StockDataManager(ticker)
-                    manager.generate_prediction_plot(days=days, time_steps=time_steps, prediction_days=prediction_days)
+                
+                    # Initialize the StockDataProcessor with the ticker symbol
+                    processor = StockDataProcessor(ticker)
+                
+                    # Generate the prediction plot
+                    processor.generate_prediction_plot(days=days, time_steps=time_steps, prediction_days=prediction_days)
                     
                 #pm.portfolio_live_data()
                 #fm.update_total_investments()

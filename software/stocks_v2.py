@@ -1,31 +1,30 @@
-import os
+import os 
 import random
-import plotting
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
 from datetime import datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
+from icarus.training import Training
 
-class StockDataFetcher:
-    """ 
-    Service to fetch stock data from external sources (e.g., Yahoo Finance.)
-    This class provides methods to fetch stock data and dividend information for a given ticker.
+class StocksDataFetcher:
     """
+    Service to fetch stock data from external sources. (e.g. Yahoo Finance)
+    This class provides methods to fetch stock data and dividend information for a given ticker quickly.
+    """
+    
     @staticmethod
     def fetch_stock_data(ticker):
-        """
+        """ 
         Acquire the latest stock data for the given ticker.
         
         Args:
-            ticker (str): The stock ticker symbol (e.g., 'AAPL', 'GOOG').
-        
+            ticker (str): The stock ticker symbol (e.g, 'AAPL', 'GOOG')
+            
         Returns:
-            tuple: The current stock price and the most recent quarterly dividend amount (if available).
-            If no dividend data is available, returns (None, None).
+            tuple: The current stock price and the most recent QUARTERLY dividend amount (if available).
+            If no dividend information is available, returns (current_price, None).
         """
         stock = yf.Ticker(ticker)
         dividend_data = stock.dividends
@@ -35,30 +34,30 @@ class StockDataFetcher:
             quarterly_latest_dividend_amount = float(dividend_data.iloc[-1])
             return current_price, quarterly_latest_dividend_amount
         else:
-            print(f'No dividend data available for {ticker}')
-            return None, None
-        
-class StockDataManager:
-    """Class for the management and analysis of stock data."""
+            print(f'No dividend information available for {ticker}.')
+            return current_price, None
+
+class StockDataProcessor:
+    """Class for the processing, management and transformation of stock data."""
     
     def __init__(self, ticker):
         """
-        Initializes the StockDataManager instance with a stock ticker symbol.
+        Initialize the StockDataProcessor instance.
         
         Args:
-            ticker (str): The stock ticker symbol (e.g., 'AAPL', 'GOOG').
+            ticker (str): The stock ticker symbol (e.g, 'AAPL', 'GOOG')
         """
         self.ticker = ticker
-        self.stock = yf.Ticker(self.ticker)
-        self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.model = None
+        self.stock = yf.Ticker(ticker)
+        self.scaler = MinMaxScaler()
+        self.training = Training()
         
     def get_basic_info(self):
-        """
+        """ 
         Fetches basic stock information such as company name, sector, and website.
         
         Returns:
-            dict: A dictionary containing key information about the stock.
+            dict: A dictionary containing basic stock information.
         """
         try:
             info = self.stock.info
@@ -70,9 +69,9 @@ class StockDataManager:
                 "website": info.get('website', 'N/A')
             }
         except Exception as e:
-            print(f'Error fetching stock info: {e}')
+            print(f'Error fetching basic information: {e}')
             return {}
-    
+        
     def get_dividend_info(self):
         """
         Fetches dividend related information, including the most recent dividend and the annualized dividend.
@@ -169,147 +168,7 @@ class StockDataManager:
             print(f'Error transforming data: {e}')
             return None, None
         
-    def generate_synthetic_data(self, start_price, time_steps, days):
-        """
-        Generates synthetic stock data for testing or simulation purposes.
-        
-        Args:
-            start_price (float): The starting price for the synthetic data.
-            time_steps (int): The number of time steps for the synthetic data.
-            days (int): The number of days to generate synthetic data for.
-        
-        Returns:
-            pd.DataFrame: A DataFrame containing the generated synthetic stock data.
-        """
-        try:
-            dates = [datetime.today() + timedelta(days=i) for i in range(days)]
-            prices = [start_price]
-
-            for _ in range(1, days):
-                change = random.uniform(-0.03, 0.03)
-                new_price = max(0, prices[-1] * (1 + change))
-                prices.append(new_price)
-
-            data = pd.DataFrame({"Date": dates, "Close": prices}).set_index("Date")
-            print("Synthetic data generated.")
-            return data
-        except Exception as e:
-            print(f'Error generating synthetic data: {e}')
-            return []
-    
-    def validate_data(self, data):
-        """
-        Performs basic validation on stock data by checking if the data is empty
-        and computing basic statistics such as mean, standard deviation, min, and max.
-        
-        Args:
-            data (pd.DataFrame): The stock data to validate.
-        
-        Returns:
-            bool: True if data is valid, False if data is empty or invalid.
-        """
-        try:
-            if data.empty:
-                print('Data validation failed: DataFrame is empty.')
-                return False
-            
-            stats = {
-                "mean": data["Close"].mean(),
-                "std": data["Close"].std(),
-                "min": data["Close"].min(),
-                "max": data["Close"].max()
-            }
-            
-            print(f'Data validation stats: {stats}')
-            return True
-        except Exception as e:
-            print(f'Error validating data: {e}')
-            return False
-        
-    def calclate_technical_indicators(self, data):
-        """
-        Calculates key technical indicators such as Simple Moving Average (SMA),
-        Exponential Moving Average (EMA), and Relative Strength Index (RSI).
-        
-        Args:
-            data (pd.DataFrame): The stock data to calculate indicators for.
-        
-        Returns:
-            pd.DataFrame: The original data with new columns for SMA, EMA, and RSI.
-        """
-        try:
-            data.loc[:, 'SMA_20'] = data['Close'].rolling(window=20).mean()
-            data.loc[:, 'EMA_20'] = data['Close'].ewm(span=20, adjust=False).mean()
-            delta = data['Close'].diff()
-            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-            loss = (-delta.where(delta <0, 0)).rolling(window=14).mean()
-            rs = gain / loss
-            data.loc[:, 'RSI'] = 100 - (100 / (1 + rs))
-            print('Technical indicators calculated.')
-            return data
-        except Exception as e:
-            print(f'Error calculating technical indicators: {e}')
-            return data
-    
-    def train_model_random_forest_regression(self, x, y):
-        """
-        Random Forest Regression for stock price predictions.
-        
-        This method uses a trained Random Forest model to predict future stock 
-        prices based on historical data sequences. The model is trained on past 
-        stock prices and makes predictions based on the most recent sequence 
-        of data.
-
-        Args:
-            x (np.array): The sequence of historical stock data to predict from.
-            y (np.array): The target values (future stock prices) for training.
-        
-        Returns:
-            model (RandomForestRegressor): A trained Random Forest model.
-        """
-        try:
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-            model = RandomForestRegressor(n_estimators=100, random_state=42)
-            model.fit(x_train, y_train)
-            score = model.score(x_test, y_test)
-            print(f'Model trained with score: {score}')
-            return model
-        
-        except Exception as e:
-            print(f'Error training model: {e}')
-            return None
-    
-    def predict_future_prices(self, time_steps, model, recent_data, prediction_days):
-        """
-        Predict future stock prices using a trained Random Forest model.
-        
-        Args:
-            time_steps (int): The number of time steps for prediction.
-            model (RandomForestRegressor): The trained model to make predictions.
-            recent_data (np.array): The most recent stock data to base predictions on.
-            prediction_days (int): The number of days to predict into the future.
-        
-        Returns:
-            list: A list of predicted stock prices for the specified number of days.
-        """
-        try:
-            predictions = []
-            last_sequence = recent_data[-1].reshape(1, -1)
-            
-            for _ in range(prediction_days):
-                next_pred = model.predict(last_sequence)
-                predictions.append(next_pred[0])
-                last_sequence = np.append(last_sequence[:, 1:], [[next_pred[0]]], axis=1)
-                
-            predictions = self.scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten()
-            print('Stock price predictions generated.')
-            return predictions
-        
-        except Exception as e:
-            print(f'Error predicting stock prices: {e}')
-            return []
-            
-    def plot_stock_predictions(self, hist_data, predictions, end_date, prediction_days):
+    def plot_data(self, data, predictions, end_date, prediction_days):
         """
         Plots historical stock data and predicted future stock prices.
         
@@ -326,7 +185,7 @@ class StockDataManager:
             future_dates = [end_date + timedelta(days=i) for i in range(1, prediction_days + 1)]
             
             plt.figure(figsize=(10, 6))
-            plt.plot(hist_data.index, hist_data['Close'], label='Historical Prices')
+            plt.plot(data.index, data['Close'], label='Historical Prices')
             plt.plot(future_dates, predictions, label='Predicted Prices', color='red', linestyle='--')
 
             todays_date = datetime.today()
@@ -347,34 +206,40 @@ class StockDataManager:
             print('Stock price plot generated.')
         except Exception as e:
             print(f'Error plotting: {e}')
-    
-    def generate_prediction_plot(self, days = None, time_steps = None, prediction_days=60):
+            
+    def generate_prediction_plot(self, days=None, time_steps=None, prediction_days=60):
         """
-        Generates a prediction plot for future stock prices.
+        Generates a prediction plot for future stock prices using the random tree regression.
         
         Args:
             days (int, optional): The number of days to look back for historical data. Defaults to None.
             time_steps (int, optional): The number of time steps for machine learning model. Defaults to None.
             prediction_days (int): The number of future days to predict. Defaults to 60.
         """
+        # If days are not provided, use the default value of 5 years
         if days is None:
             end_date = datetime.today()
         else:
             end_date = datetime.today() - timedelta(days=days)
         
+        # if time_steps are not provided, use the default value of 30
         if time_steps is None:
             time_steps = 30
         
+        # Fetch historical data depending on the end date
         start_date = end_date - timedelta(days=5*365)
         hist_data = self.fetch_historical_data(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
         if hist_data.empty:
             print(f'No historical data found. Exiting')
         
-        x, y = self.transform_data(hist_data, time_steps)
+        x, y = self.transform_data(hist_data, time_steps) # Transform the data for machine learning
+        
+        #####################
+        
+        
         if x is not None and y is not None:
-            model = self.train_model_random_forest_regression(x, y)
+            model = self.training.train_and_evaluate(x, y)[0]
         if model:
-            predictions = self.predict_future_prices(time_steps, model, x, prediction_days)
-            self.plot_stock_predictions(hist_data, predictions, end_date, prediction_days)
-    
-            
+            predictions = self.training.predict_future_prices(model, x[-time_steps:], prediction_days)
+            predictions = self.scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten()
+            self.plot_data(hist_data, predictions, end_date, prediction_days)

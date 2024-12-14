@@ -1,91 +1,47 @@
-"""import numpy as np
-import pandas as pd
+from stocks_v2 import StockDataProcessor
+from icarus.training import Training
+from datetime import datetime, timedelta
 
-import tensorflow as tf
+def run_test(ticker, days=None, time_steps=60, prediction_days=60):
+    # Initialize the StockDataProcessor with the ticker symbol
+    processor =  StockDataProcessor(ticker)
 
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential # type: ignore
-from tensorflow.keras.layers import LSTM, Dense, Dropout # type: ignore
-from stocks import StocksManager as sm
+    # Fetch historical stock data
+    end_date = datetime.now().strftime('%Y-%m-%d')
+    start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d') if days else '2022-01-01'
+    hist_data = processor.fetch_historical_data(start_date, end_date)
 
-def load_data(ticker='GME'):
-    df = sm.fetch_historical_data(ticker)
-    print(df.head())
-    print(df.info())
-    #quit()
-    data = df.filter(['Close']).values
-    scaler = MinMaxScaler(feature_range=(0,1))
-    scaled_data = scaler.fit_transform(data)
-    print(scaled_data)
-    return scaled_data, scaler
+    # Transform the data for machine learning
+    x, y = processor.transform_data(hist_data, time_steps)
 
-def create_dataset(data, time_step):
-    x, y = [], []
-    for i in range(len(data) - time_step - 1):
-        x.append(data[i:(i + time_step), 0])
-        y.append(data[i + time_step, 0])
-    return np.array(x), np.array(y)
+    # Initialize the Training class
+    training = Training()
 
-time_step = 60
-epochs = 100
-batch_size = 32
+    # Train and evaluate the model
+    model, metrics = training.train_and_evaluate(x, y)
+    print(f'Trained model: {model}')
+    print(f'Metrics: {metrics}')
 
-# Preprocess
+    # Cross-validate the model
+    #cross_val_metrics = training.cross_validate_model(model, x, y)
+    #print(f'Cross-Validation Metrics:\n{cross_val_metrics}')
 
-data, scaler = load_data()
+    # Backtest the model
+    #backtest_results = training.backtest_model(processor, model, hist_data, time_steps, prediction_days)
+    #print(f'Backtest Results:\n{backtest_results}')
 
-print(data, scaler)
+    # Predict future stock prices
+    recent_data = x[-time_steps:]  # Use the last sequence for prediction
+    predictions = training.predict_future_prices(model, recent_data, prediction_days)
 
-# training and test sets
+    # Plot the predictions
+    processor.generate_prediction_plot(hist_data, predictions, prediction_days)
 
-train_size = int(len(data) * 0.8)
-train_data = data[0:train_size, :]
-test_data = data[train_size - time_step:, :]
+if __name__ == '__main__':
+    # Example parameters for testing
+    ticker = 'AAPL'
+    days = 365  # Last 1 year of data
+    time_steps = 60  # Default 60 time steps
+    prediction_days = 60  # Default 60 days
 
-x_train, y_train = create_dataset(train_data, time_step)
-x_test, y_test = create_dataset(test_data, time_step)
-
-# Reshape
-
-x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-
-# Build model
-
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-model.add(LSTM(units=50, return_sequences=False))
-model.add(Dense(units=25))
-model.add(Dense(units=1))
-
-model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size)
-
-predictions = model.predict(x_test)
-predictions = scaler.inverse_transform(predictions)
-
-import matplotlib.pyplot as plt
-
-time = np.arange(0, len(y_test))
-
-plt.figure(figsize=(12,6))
-plt.plot(time, y_test, label='Actual Stock Price')
-plt.plot(time, predictions, label='Predicted Stock Price')
-plt.xlabel('Time')
-plt.legend()
-plt.show()"""
-
-from stocks_v2 import StockDataManager
-
-stocks_manager = StockDataManager()
-
-portfolio = ['AAPL', 'KO', 'GME', 'TSLA']
-
-for element in portfolio:
-    stocks_manager.set_ticker(element)
-    current_price, _ = stocks_manager.get_latest_values()
-    print(current_price)
-
-stocks_manager.set_ticker('AAPL')
-current_price, _ = stocks_manager.get_latest_values()
-print(current_price)
+    run_test(ticker, days, time_steps, prediction_days)

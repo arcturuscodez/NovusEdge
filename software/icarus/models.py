@@ -1,0 +1,47 @@
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+
+class Models:
+    
+    def __init__(self):
+        pass
+    
+    def add_grid_search(self, model, x_train, y_train):
+        """Adds a grid search for hyperparameter tuning."""
+        param_grid = {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [5, 10, 20, 50, 100],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4]
+        }
+        grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, verbose=2)
+        grid_search.fit(x_train, y_train)
+        best_model = grid_search.best_estimator_
+        return best_model      
+    
+    def create_random_forest_model(self, x_train, y_train, grid_search=False):
+        """
+        Create and train a Random Forest model with hyperparameter tuning.
+        
+        Args:
+            x_train (np.array): Training data features.
+            y_train (np.array): Training data labels.
+            grid_search (bool): Whether to perform grid search for hyperparameter tuning.
+        
+        Returns:
+            RandomForestRegressor: The trained Random Forest model.
+        """
+        if grid_search:
+            model = RandomForestRegressor(random_state=42)
+            searched_model = self.add_grid_search(model, x_train, y_train)
+            return searched_model
+        elif grid_search is False:
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            model.fit(x_train, y_train)
+            score = model.score(x_train, y_train)
+            print(f'Training Score: {score}')
+            return model
+        else:
+            print('Invalid grid search parameter.')
+    
+    
