@@ -59,7 +59,7 @@ class NovusEdge:
                     prediction_days = int(parts[3]) if len(parts) > 3 and parts[3] else 60  # Default 60 days
                 
                     # Initialize the StockDataProcessor with the ticker symbol
-                    processor = StockDataProcessor(ticker, model_type='lstm')
+                    processor = StockDataProcessor(ticker)
                 
                     # Generate the prediction plot
                     processor.generate_prediction_plot(days=days, time_steps=time_steps, prediction_days=prediction_days)

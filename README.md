@@ -71,16 +71,9 @@ Note: Currently unimplemented
 
 ### Machine Learning, Artificial Intelligence and Data Science Features
 
-#### Implemented Prediction Methods
+Icarus is the name of a package that will be used further in this program for various predictions and analysis of stocks and the overall market.
 
-1. Random Forest Regression
-    
-    Currently as of 12/14/2024 the only prediction method available is the random forest regression. 
-    It is available inside the /icarus directory. 
-    It is primarily used for testing purposes until a more refined method of training and deployment can be provided.
-
-    - Predict future values 
-    - Backtest predictions 
+- Work in progress but some testing methods and classes are available.
 
 ## Contributing
 
