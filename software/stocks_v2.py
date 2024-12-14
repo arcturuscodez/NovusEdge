@@ -49,7 +49,7 @@ class StockDataProcessor:
         """
         self.ticker = ticker
         self.stock = yf.Ticker(ticker)
-        self.scaler = MinMaxScaler()
+        #self.scaler = MinMaxScaler()
         self.training = Training()
         
     def get_basic_info(self):
@@ -140,8 +140,9 @@ class StockDataProcessor:
             print(f'Error saving data: {e}')
             return None
         
+    """
     def transform_data(self, data, time_steps):
-        """
+
         Prepares stock data for machine learning by scaling and creating sequences of historical data.
         
         Args:
@@ -150,7 +151,7 @@ class StockDataProcessor:
         
         Returns:
             tuple: Two numpy arrays, x (input data) and y (target data) for machine learning.
-        """
+
         try:
             scaled_data = self.scaler.fit_transform(data[['Close']])
             x, y = [], []
@@ -167,6 +168,7 @@ class StockDataProcessor:
         except Exception as e:
             print(f'Error transforming data: {e}')
             return None, None
+    """
         
     def plot_data(self, data, predictions, end_date, prediction_days):
         """
@@ -232,7 +234,7 @@ class StockDataProcessor:
         if hist_data.empty:
             print(f'No historical data found. Exiting')
         
-        x, y = self.transform_data(hist_data, time_steps) # Transform the data for machine learning
+        x, y = self.training.transform_data(hist_data, time_steps) # Transform the data for machine learning
         
         #####################
         
@@ -241,5 +243,4 @@ class StockDataProcessor:
             model = self.training.train_and_evaluate(x, y)[0]
         if model:
             predictions = self.training.predict_future_prices(model, x[-time_steps:], prediction_days)
-            predictions = self.scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten()
             self.plot_data(hist_data, predictions, end_date, prediction_days)

@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler
 from .models import Models
 
 import numpy as np
@@ -8,6 +9,7 @@ class Training:
     
     def __init__(self):
         self.models = Models()
+        self.scaler = MinMaxScaler()
         
     def metrics(self, y_test, y_pred):
         """
@@ -49,7 +51,35 @@ class Training:
             'RMSE': rmse,
             'R2': r2
         }    
+    
+    def transform_data(self, data, time_steps):
+        """
+        Prepares stock data for machine learning by scaling and creating sequences of historical data.
         
+        Args:
+            data (pd.DataFrame): The stock data to be transformed.
+            time_steps (int): The number of time steps to look back when creating sequences.
+        
+        Returns:
+            tuple: Two numpy arrays, x (input data) and y (target data) for machine learning.
+        """
+        try:
+            scaled_data = self.scaler.fit_transform(data[['Close']])
+            x, y = [], []
+            
+            for i in range(time_steps, len(scaled_data)):
+                x.append(scaled_data[i - time_steps:i, 0])
+                y.append(scaled_data[i, 0])
+            
+            x, y = np.array(x), np.array(y)
+            x = x.reshape(x.shape[0], x.shape[1])
+            
+            print('Data transformed for machine learning.')
+            return x, y
+        except Exception as e:
+            print(f'Error transforming data: {e}')
+            return None, None
+    
     def train_and_evaluate(self, x, y):
         """ 
         Train and evaluate the model.
@@ -118,6 +148,7 @@ class Training:
     def predict_future_prices(self, model, data, prediction_days):
         """
         Predict future stock prices using a trained Random Forest model.
+        Also inverses the scaling to get the actual stock prices.    
         
         Args:
             model (RandomForestRegressor): The trained model.
@@ -136,7 +167,7 @@ class Training:
                 predictions.append(next_pred[0])
                 last_sequence = np.append(last_sequence[:, 1:], [[next_pred[0]]], axis=1)
                 
-            #predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten()
+            predictions = self.scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten()
             print('Stock price predictions generated.')
             return predictions
         
