@@ -1,7 +1,4 @@
-from database import Database
-from security import credentials
-from stocks import StocksManager as sm
-
+"""
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,7 +7,7 @@ import numpy as np
 class Simulator:
     
     def __init__(self):
-        """Set up the class for simulating portfolio performance."""
+    Set up the class for simulating portfolio performance.
         self.portfolio = []
         
         with Database(db=credentials.DB, 
@@ -23,7 +20,7 @@ class Simulator:
                         self.portfolio = self.db.fetch_data('PORTFOLIO')
     
     def monte_carlo_simulation(self, hist_data, days, simulations):
-        """
+
         Monte Carlo simulation for stock price predictions.
 
         This simulation models potential future prices of a stock by repeatedly 
@@ -38,7 +35,7 @@ class Simulator:
 
         Returns:
             list: Simulated end prices after the given period.
-        """
+
         try:
             last_price = hist_data['Close'].iloc[-1]
             daily_returns = hist_data['Close'].pct_change().dropna()
@@ -62,7 +59,7 @@ class Simulator:
             return []
 
     def simulate(self, ticker, days=365, simulations=100, simulation_type='monte_carlo'):
-        """ 
+
         Simulate future performance of a stock using specified simulation type.
 
         Args:
@@ -73,7 +70,7 @@ class Simulator:
 
         Returns:
             list: A list of simulated end prices.
-        """
+
         try:
             hist_data = sm.fetch_testing_data(ticker)
             if hist_data.empty:
@@ -105,3 +102,4 @@ if __name__ == "__main__":
             print(f"{ticker}: Simulated average price after 252 days: {sum(simulated_prices) / len(simulated_prices):.2f}")
             print(f"{ticker}: Simulated price range: {min(simulated_prices):.2f} - {max(simulated_prices):.2f}")
 
+"""
