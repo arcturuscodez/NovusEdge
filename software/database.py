@@ -1,6 +1,5 @@
 from sql import queries as q
 from psycopg2 import OperationalError
-from stocks import StocksDataFetcher
 import psycopg2 as psy
 import traceback
 import utility
@@ -481,6 +480,7 @@ class History(Database):
 class Portfolio(Database):
     
     def __init__(self, connection, cursor):
+        from stocks import StocksDataFetcher
         self.connection = connection
         self.cursor = cursor
         self.stock_fetcher = StocksDataFetcher()

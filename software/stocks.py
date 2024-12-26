@@ -5,8 +5,6 @@ import pandas as pd
 import yfinance as yf
 
 from datetime import datetime, timedelta
-from sklearn.preprocessing import MinMaxScaler
-from icarus.training import Training
 
 class StocksDataFetcher:
     """
@@ -47,6 +45,9 @@ class StockDataProcessor:
         Args:
             ticker (str): The stock ticker symbol (e.g, 'AAPL', 'GOOG')
         """
+        from sklearn.preprocessing import MinMaxScaler
+        from icarus.training import Training
+        
         self.ticker = ticker
         self.stock = yf.Ticker(ticker)
         self.training = Training(model_type=model_type)

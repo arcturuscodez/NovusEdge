@@ -3,7 +3,6 @@ from sql import queries as q
 from options import o
 from security import credentials
 from psycopg2 import OperationalError
-from stocks import StockDataProcessor
 
 class NovusEdge:
     
@@ -47,6 +46,7 @@ class NovusEdge:
                 elif o.InitializeFirmTable:
                     fm.create_firm_rows('Bearhouse Capital')
                 elif o.plotdata:
+                    from stocks import StockDataProcessor
                     parts = o.plotdata.split(':')
                     ticker = str(parts[0]).upper()
                 
@@ -61,9 +61,9 @@ class NovusEdge:
                     # Generate the prediction plot
                     processor.generate_prediction_plot(days=days, time_steps=time_steps, prediction_days=prediction_days)
                     
-                #pm.portfolio_live_data()
-                #fm.update_total_investments()
-                #fm.update_firm_total_value()
+                pm.portfolio_live_data()
+                fm.update_total_investments()
+                fm.update_firm_total_value()
         
         except OperationalError as e:
             print(f'Failed to connect to the database: {e}')
