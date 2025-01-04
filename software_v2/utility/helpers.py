@@ -1,3 +1,5 @@
+import re
+
 def FormatTableData(ColumnName, TableData):
     """
     Format and print table data with dynamic column widths.
@@ -18,3 +20,7 @@ def FormatTableData(ColumnName, TableData):
         print(format_str.format(*formatted_row))
     
     print(f"\n{len(TableData)} rows displayed.")
+    
+def is_valid_email(email: str) -> bool:
+    regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    return re.match(regex, email) is not None

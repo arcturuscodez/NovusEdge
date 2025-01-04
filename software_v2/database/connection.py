@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 from queries import Queries
+from utility import helpers
 
 import psycopg2 as psy
 from psycopg2 import OperationalError
@@ -168,37 +169,35 @@ class DatabaseConnection:
             List: List of fetched rows. Returns None if print_data is True or no data is found.
         """
         try:
-            cols = ', '.join(columns) if columns else '*'
-            query = f'SELECT {cols} FROM {table_name}'
-            values = ()
+            query = Queries.FetchTableDataQuery(table_name, columns, condition)
             if condition and condition_value is not None:
-                query += f'WHERE {condition} = %s'
-                values = (condition_value,)
-            logger.debug(f'Executing query: {query} with values: {values}')
-            self.cursor.execute(query, values)
-            rows = self.cursor.fetchall()
-            if print_data:
-                for row in rows:
-                    print(row)
+                self.cursor.execute(query, (condition_value,))
+            else:
+                self.cursor.execute(query)
+                
+            data = self.cursor.fetchall()
+            columns = [desc[0] for desc in self.cursor.description]
+            
+            if not data:
+                print(f'No data to display from {table_name}')
                 return None
-            logger.info(f'Fetched {len(rows)} records from {table_name}')
-            return rows
+            
+            if print_data:
+                helpers.FormatTableData(columns, data)
+                return None
+            
+            return data
         
         except psy.errors.UndefinedTable as e:
-            logger.error(f"Undefined table error: {e}")
-            raise
+            print(f'A database error occurred when fetching data: {e}')
         except psy.DatabaseError as e:
-            logger.error(f"Database error: {e}")
-            raise
+            print(f'A database error occurred when fetching data: {e}')
         except ValueError as e:
-            logger.error(f"Value error: {e}")
-            raise
+            print(f'Value error: {e}')
         except Exception as e:
-            logger.error(f"An unexpected error occurred while fetching data: {e}")
-            raise
+            print(f'An unexpected error occured: {e}')
         finally:
-            if not print_data:
-                self.close()
+            self.connection.rollback()
 
     def update_table(
         self,
