@@ -4,9 +4,7 @@ from psycopg2 import OperationalError
 
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
-from database.repositories.factory import get_repository
 from database.models import ShareholderModel
-from utility.helpers import FormatTableData
 
 class NovusEdge:
 
@@ -51,9 +49,11 @@ class NovusEdge:
         try:
             with DatabaseConnection(db=self.db, user=self.user, password=self.password, host=self.host, port=self.port, pg_exe=self.pg_exe) as db_conn:
                 if o.PrintTable:
-                    self.handle_print_table(db_conn)
+                    from database.services.other.print_data import handle_print_table
+                    handle_print_table(db_conn)
                 elif o.AddShareholder:
-                    self.handle_add_shareholder(db_conn)
+                    from database.services.add.add_shareholder import handle_add_shareholder
+                    handle_add_shareholder(db_conn)
                 elif o.RemoveShareholder:
                     self.handle_remove_shareholder(db_conn)
                 elif o.EditShareholder:
@@ -63,46 +63,7 @@ class NovusEdge:
             print(f'An error occurred: {e}')
         except Exception as e:
             print(f'An unexpected error occurred: {e}')
-    
-    def handle_print_table(self, db_conn):
-        table_name = str(o.PrintTable).upper()
-        repository = get_repository(table_name, db_conn)
-        if repository:
-            records = repository.fetch_all()
-            if records:
-                if table_name == 'SHAREHOLDERS':
-                    column_names = ['id', 'name', 'ownership', 'investment', 'email', 'shareholder_status']
-                else:
-                    column_names = [field for field in records[0].__dataclass_fields__]
-                
-                table_data = [tuple(getattr(record, field) for field in column_names) for record in records]
 
-                FormatTableData(column_names, table_data)
-            else:
-                print(f"No records found in table '{table_name}'.")
-        else:
-            print(f'Unknown table name: {table_name} or table not found...')
-    
-    def handle_add_shareholder(self, db_conn):
-        parts = o.AddShareholder.split(':')
-        if len(parts) != 4:
-            print("Invalid format for AddShareholder. Expected format: name:ownership:investment:email")
-            return
-        name, ownership, investment, email = parts
-        try:
-            ownership = float(ownership)
-            investment = float(investment)
-        except ValueError:
-            print("Ownership and Investment must be numeric values.")
-            return
-        
-        repository = ShareholderRepository(db_conn)
-        shareholder_id = repository.add_shareholder(name, ownership, investment, email)
-        if shareholder_id:
-            print(f"Successfully added Shareholder with ID: {shareholder_id}")
-        else:
-            print("Failed to add Shareholder.")
-    
     def handle_remove_shareholder(self, db_conn):
         try:
             shareholder_id = int(o.RemoveShareholder)
