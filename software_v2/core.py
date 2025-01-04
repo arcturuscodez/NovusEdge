@@ -49,10 +49,10 @@ class NovusEdge:
         try:
             with DatabaseConnection(db=self.db, user=self.user, password=self.password, host=self.host, port=self.port, pg_exe=self.pg_exe) as db_conn:
                 if o.PrintTable:
-                    from database.services.other.print_data import handle_print_table
+                    from database.services.other import handle_print_table
                     handle_print_table(db_conn)
                 elif o.AddShareholder:
-                    from database.services.add.add_shareholder import handle_add_shareholder
+                    from database.services.add import handle_add_shareholder
                     handle_add_shareholder(db_conn)
                 elif o.RemoveShareholder:
                     self.handle_remove_shareholder(db_conn)

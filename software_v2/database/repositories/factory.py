@@ -1,4 +1,3 @@
-from typing import Optional
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
 

@@ -1,5 +1,3 @@
-# database/repositories/base_repository.py
-
 from typing import List, Optional, Type, TypeVar, Any
 from database.connection import DatabaseConnection
 from database.models import BaseModel

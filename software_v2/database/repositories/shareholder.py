@@ -9,6 +9,7 @@ class ShareholderRepository(BaseRepository):
     """Repository for Shareholder-specific operations."""
 
     def __init__(self, db_conn):
+        """Initialize the repository with the ShareholderModel."""
         super().__init__(db_conn, table_name='shareholders', model=ShareholderModel)
 
     def add_shareholder(self, name: str, ownership: float, investment: float, email: str, shareholder_status: Optional[str] = None) -> Optional[int]:
