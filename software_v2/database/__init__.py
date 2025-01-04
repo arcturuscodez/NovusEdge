@@ -1,5 +1,5 @@
 from .connection import DatabaseConnection
-from .queries import Queries
+from .queries import DatabaseQueries
 from .models import ShareholderModel, FirmModel, TransactionModel, PortfolioModel
 
 __version__ = "0.1.0"
@@ -7,7 +7,7 @@ __author__ = "Sonny Holman"
 
 __all__ = [
     "DatabaseConnection",
-    "Queries",
+    "DatabaseQueries",
     "ShareholderModel",
     "FirmModel",
     "TransactionModel",

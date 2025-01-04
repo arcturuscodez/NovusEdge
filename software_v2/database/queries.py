@@ -1,4 +1,4 @@
-class Queries:
+class DatabaseQueries:
     """A class to store queries for interaction between the user, software and the database."""
     
     def __init__(self):

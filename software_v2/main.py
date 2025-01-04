@@ -1,9 +1,8 @@
-from database import queries
 from options import o
 from security import credentials
 from psycopg2 import OperationalError
 
-from software_v2.database import connection
+from database.connection import DatabaseConnection
 
 class NovusEdge:
 
@@ -16,15 +15,40 @@ class NovusEdge:
         self.port = credentials.PORT
         self.pg_exe = credentials.PG_EXE_PATH
         
+        if self._is_db_option_set():
+            self.database_usage()
+        elif self._is_plot_option_set():   
+            self.plotting_usage()
+        else:
+            print(f'An error occured. No options were set.')
+        
     def _is_db_option_set(self):
-        pass
+        """Check if any database-related option is set."""
+        db_option_dests = [
+            'PrintTable',
+            'AddShareholder',
+            'RemoveShareholder',
+            'EditShareholder',
+            'BuyStock',
+            'SellStock',
+            'Truncate',
+            'InitializeFirmTable'
+        ]
+        return any(getattr(o, dest) not in [None, False] for dest in db_option_dests)
     
     def _is_plot_option_set(self):
-        pass
+        """Check if plotting option is set."""
+        plot_option_dests = [
+            'plotdata'
+        ]
+        return any(getattr(o, dest) not in [None, False] for dest in plot_option_dests)
     
     def database_usage(self):
         try:
-            pass
+            with DatabaseConnection(db=self.db, user=self.user, password=self.password, host=self.host, port=self.port, pg_exe=self.pg_exe) as self.db:
+                if o.PrintTable:
+                    self.db.fetch_data(str(o.PrintTable).upper(), print_data=True)
+
         except OperationalError as e:
             print(f'An error occurred: {e}')
         except Exception as e:

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from database.connection import DatabaseConnection
 from database.models import ShareholderModel
-from database.queries import Queries
+from database.queries import DatabaseQueries
 
 import logging
 
@@ -24,7 +24,7 @@ class ShareholderRepository:
             Optional[int]: The ID of the newly added shareholder, or None if failed.
         """
         try:
-            query, values = Queries.InsertIntoTableQuery(
+            query, values = DatabaseQueries.InsertIntoTableQuery(
                 'SHAREHOLDERS',
                 ['NAME', 'OWNERSHIP', 'INVESTMENT', 'EMAIL'],
                 [shareholder.name, shareholder.ownership, shareholder.investment, shareholder.email]
@@ -54,7 +54,7 @@ class ShareholderRepository:
             Optional[ShareholderModel]: The retrieved shareholder, or None if not found.
         """
         try:
-            query = Queries.FetchTableDataQuery(
+            query = DatabaseQueries.FetchTableDataQuery(
                 table_name='SHAREHOLDERS',
                 columns=['ID', 'NAME', 'OWNERSHIP', 'INVESTMENT', 'EMAIL'],
                 condition_column='id'
@@ -86,7 +86,7 @@ class ShareholderRepository:
         """
         shareholders = []
         try:
-            query = Queries.FetchTableDataQuery(table_name='shareholders')
+            query = DatabaseQueries.FetchTableDataQuery(table_name='shareholders')
             self.db.cursor.execute(query)
             rows = self.db.cursor.fetchall()
             for row in rows:
@@ -121,7 +121,7 @@ class ShareholderRepository:
         try:
             columns = list(kwargs.keys())
             values = list(kwargs.values())
-            query, updated_values = Queries.UpdateTableDataQuery(
+            query, updated_values = DatabaseQueries.UpdateTableDataQuery(
                 table_name='shareholders',
                 columns=columns,
                 values=values,
@@ -148,7 +148,7 @@ class ShareholderRepository:
             bool: True if deletion was successful, False otherwise.
         """
         try:
-            query, values = Queries.DeleteFromTableQuery(
+            query, values = DatabaseQueries.DeleteFromTableQuery(
                 table_name='shareholders',
                 condition_column='id',
                 condition_value=shareholder_id

@@ -5,7 +5,7 @@ import time
 from contextlib import contextmanager
 from typing import Optional
 
-from queries import Queries
+from .queries import DatabaseQueries
 from utility import helpers
 
 import psycopg2 as psy
@@ -74,12 +74,10 @@ class DatabaseConnection:
             if result.returncode == 0:
                 logger.info(f'PostgreSQL server is already running on {self.host}:{self.port}.')
                 return
+            
             logger.info('Attempting to start PostgreSQL server...')
-            subprocess.run(
-                [self.pg_exe],
-                check = True,
-                timeout = 60
-            )
+            subprocess.run(self.pg_exe, check = True, shell = True, timeout = 60)
+            
             logger.info('PostgreSQL server started successfully.')
         except subprocess.CalledProcessError as e:
             logger.error(f'Failed to start PostgreSQL server: {e}')
@@ -128,6 +126,7 @@ class DatabaseConnection:
         
     def __enter__(self) -> 'DatabaseConnection':
         """Enter the runtime context related to this object."""
+        self.start_server()
         return self.connect()
     
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
@@ -169,7 +168,7 @@ class DatabaseConnection:
             List: List of fetched rows. Returns None if print_data is True or no data is found.
         """
         try:
-            query = Queries.FetchTableDataQuery(table_name, columns, condition)
+            query = DatabaseQueries.FetchTableDataQuery(table_name, columns, condition)
             if condition and condition_value is not None:
                 self.cursor.execute(query, (condition_value,))
             else:

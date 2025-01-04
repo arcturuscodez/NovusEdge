@@ -1,7 +1,7 @@
 from typing import List, Optional
 from database.connection import DatabaseConnection
 from database.models import FirmModel
-from database.queries import Queries
+from database.queries import DatabaseQueries
 
 import logging 
 
