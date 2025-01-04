@@ -58,7 +58,6 @@ class NovusEdge:
                     self.handle_remove_shareholder(db_conn)
                 elif o.EditShareholder:
                     self.handle_edit_shareholder(db_conn)
-                # Implement other options similarly
 
         except OperationalError as e:
             print(f'An error occurred: {e}')
@@ -74,7 +73,6 @@ class NovusEdge:
                 if table_name == 'SHAREHOLDERS':
                     column_names = ['id', 'name', 'ownership', 'investment', 'email', 'shareholder_status']
                 else:
-                    # Dynamically get column names if possible
                     column_names = [field for field in records[0].__dataclass_fields__]
                 
                 table_data = [tuple(getattr(record, field) for field in column_names) for record in records]
@@ -120,7 +118,6 @@ class NovusEdge:
             print(f"Failed to remove Shareholder with ID: {shareholder_id}")
     
     def handle_edit_shareholder(self, db_conn):
-        # Example: o.EditShareholder = "id:name:ownership:investment:email"
         parts = o.EditShareholder.split(':')
         if len(parts) != 5:
             print("Invalid format for EditShareholder. Expected format: id:name:ownership:investment:email")

@@ -20,10 +20,20 @@ class BaseRepository:
     def add(self, entity: T) -> Optional[int]:
         """Add a new entity to the database."""
         try:
-            columns = ', '.join(entity.to_dict().keys())
-            placeholders = ', '.join(['%s'] * len(entity.to_dict()))
-            values = tuple(entity.to_dict().values())
-            query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) RETURNING id"
+            data = entity.to_dict()
+            columns = list(data.keys())
+            values = list(data.values())
+
+            # Exclude 'id' if it's None to allow auto-generation
+            if 'id' in columns and data['id'] is None:
+                id_index = columns.index('id')
+                columns.pop(id_index)
+                values.pop(id_index)
+
+            columns_str = ', '.join(columns)
+            placeholders = ', '.join(['%s'] * len(values))
+            query = f"INSERT INTO {self.table_name} ({columns_str}) VALUES ({placeholders}) RETURNING id"
+
             self.db.cursor.execute(query, values)
             entity_id = self.db.cursor.fetchone()[0]
             self.db.connection.commit()
@@ -44,7 +54,7 @@ class BaseRepository:
         except Exception as e:
             logger.error(f"Error fetching all from {self.table_name}: {e}")
             return []
-
+ 
     def delete(self, entity_id: int) -> bool:
         """Delete a record by ID."""
         try:

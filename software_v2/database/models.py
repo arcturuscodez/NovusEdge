@@ -36,7 +36,7 @@ class ShareholderModel(BaseModel):
     """
     id: Optional[int]
     name: str
-    ownership: str
+    ownership: float
     investment: float
     email: str
     shareholder_status: Optional[str]
