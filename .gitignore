@@ -166,3 +166,4 @@ cython_debug/
 *.txt
 security/
 plots/
+redundant/
