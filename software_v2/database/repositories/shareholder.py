@@ -1,5 +1,3 @@
-# database/repositories/shareholder_repository.py
-
 from typing import List, Optional
 from database.repositories.base import BaseRepository
 from database.models import ShareholderModel
