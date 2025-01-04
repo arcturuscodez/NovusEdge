@@ -1,7 +1,6 @@
 from database import Database, Shareholder, Firm, Transactions, Portfolio, History
 from sql import queries as q
 from options import o
-import options
 from security import credentials
 from psycopg2 import OperationalError
 
