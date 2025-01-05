@@ -43,7 +43,8 @@ class BaseRepository:
             return entity_id
         except Exception as e:
             self.db.connection.rollback()
-            logger.error(f"Error adding entity to {self.table_name}: {e}")
+            logger.error(f"Error adding entity to {self.table_name}: {e}", exc_info=True)
+            print("An internal error occurred while adding the entity. Please try again later.")
             return None
 
     def fetch_all(self, columns: Optional[List[str]] = None) -> List[T]:

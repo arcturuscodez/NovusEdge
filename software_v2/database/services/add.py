@@ -1,3 +1,4 @@
+from utility import helpers
 from options import o
 from database.repositories.shareholder import ShareholderRepository
 
@@ -7,6 +8,9 @@ def handle_add_shareholder(db_conn):
         print("Invalid format for AddShareholder. Expected format: name:ownership:investment:email")
         return
     name, ownership, investment, email = parts
+    if not helpers.is_valid_email(email):
+        print("Invalid email address.")
+        return
     try:
         ownership = float(ownership)
         investment = float(investment)
