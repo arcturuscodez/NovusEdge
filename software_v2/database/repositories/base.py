@@ -84,3 +84,12 @@ class BaseRepository:
         
     def update(self):
         pass
+    
+    def truncate(self):
+        pass
+    
+    def initialize(self):
+        pass
+    
+    def verify(self):
+        pass

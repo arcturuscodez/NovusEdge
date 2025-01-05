@@ -5,9 +5,6 @@ import time
 from contextlib import contextmanager
 from typing import Optional
 
-from .queries import DatabaseQueries
-from utility import helpers
-
 import psycopg2 as psy
 from psycopg2 import OperationalError
 
@@ -15,7 +12,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     handlers = [
-        logging.FileHandler("database_connection.log"),
+        logging.FileHandler("connection.log"),
         logging.StreamHandler()
     ]
 )
@@ -99,7 +96,7 @@ class DatabaseConnection:
                     port = self.port
                 )
                 self.cursor = self.connection.cursor()
-                logger.info('Database connection established.')
+                #logger.info('Database connection established.')
                 return self
             except OperationalError as e:
                 attempt += 1
@@ -116,10 +113,10 @@ class DatabaseConnection:
         try:
             if self.cursor:
                 self.cursor.close()
-                logger.info('Database cursor closed.')
+                #logger.info('Database cursor closed.')
             if self.connection:
                 self.connection.close()
-                logger.info('Database connection closed.')
+                #logger.info('Database connection closed.')
         except psy.DatabaseError as e:
             logger.error(f'Error closing database resources: {e}')
             raise
@@ -139,7 +136,7 @@ class DatabaseConnection:
             else:
                 if self.connection:
                     self.connection.commit()
-                    logger.info('Database transaction committed successfully.')
+                    #logger.info('Database transaction committed successfully.')
         except psy.DatabaseError as e:
             logger.error(f'Database error during commit/rollback: {e}')
             raise
