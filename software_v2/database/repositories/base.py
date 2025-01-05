@@ -65,8 +65,11 @@ class BaseRepository:
             logger.error(f"Error deleting from {self.table_name}: {e}")
             return False
 
-    def update(self, entity_id: int, **kwargs) -> bool:
-        """Update a record by ID."""
+    def edit(self, entity_id: int, **kwargs) -> bool:
+        """Edit specific fields of a record by ID."""
+        if not kwargs:
+            logger.warning("No fields provided for update.")
+            return False
         try:
             set_clause = ', '.join([f"{key} = %s" for key in kwargs.keys()])
             values = tuple(kwargs.values()) + (entity_id,)
@@ -76,5 +79,8 @@ class BaseRepository:
             return self.db.cursor.rowcount > 0
         except Exception as e:
             self.db.connection.rollback()
-            logger.error(f"Error updating {self.table_name}: {e}")
+            logger.error(f"Error updating {self.table_name} (ID: {entity_id}): {e}")
             return False
+        
+    def update(self):
+        pass

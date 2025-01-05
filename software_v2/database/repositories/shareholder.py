@@ -47,6 +47,18 @@ class ShareholderRepository(BaseRepository):
         """Delete a shareholder by ID."""
         return super().delete(shareholder_id)
     
-    def update_shareholder(self, shareholder_id: int, name: str, ownership: float, investment: float, email: str) -> bool:
-        """Update a shareholder's details."""
-        return super().update(shareholder_id, name=name, ownership=ownership, investment=investment, email=email)
+    def edit_shareholder(self, shareholder_id: int, **kwargs) -> bool:
+        """
+        Edit a specific field of a shareholder.
+        
+        Args:
+            shareholder_id (int): ID of the shareholder to edit.
+            **kwargs: Key-value pairs of fields to update.
+        
+        Returns:
+            bool: True if edit was successful, False otherwise.
+        """
+        return super().edit(shareholder_id, **kwargs)
+    
+    def update_shareholder(self):
+        pass

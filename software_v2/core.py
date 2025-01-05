@@ -55,56 +55,16 @@ class NovusEdge:
                     from database.services.add import handle_add_shareholder
                     handle_add_shareholder(db_conn)
                 elif o.RemoveShareholder:
-                    self.handle_remove_shareholder(db_conn)
+                    from database.services.remove import handle_remove_shareholder
+                    handle_remove_shareholder(db_conn)
                 elif o.EditShareholder:
-                    self.handle_edit_shareholder(db_conn)
+                    from database.services.edit import handle_edit_shareholder
+                    handle_edit_shareholder(db_conn)
 
         except OperationalError as e:
             print(f'An error occurred: {e}')
         except Exception as e:
             print(f'An unexpected error occurred: {e}')
-
-    def handle_remove_shareholder(self, db_conn):
-        try:
-            shareholder_id = int(o.RemoveShareholder)
-        except ValueError:
-            print("RemoveShareholder requires a numeric ID.")
-            return
-        
-        repository = ShareholderRepository(db_conn)
-        success = repository.delete_shareholder(shareholder_id)
-        if success:
-            print(f"Successfully removed Shareholder with ID: {shareholder_id}")
-        else:
-            print(f"Failed to remove Shareholder with ID: {shareholder_id}")
-    
-    def handle_edit_shareholder(self, db_conn):
-        parts = o.EditShareholder.split(':')
-        if len(parts) != 5:
-            print("Invalid format for EditShareholder. Expected format: id:name:ownership:investment:email")
-            return
-        try:
-            shareholder_id = int(parts[0])
-            name = parts[1]
-            ownership = float(parts[2])
-            investment = float(parts[3])
-            email = parts[4]
-        except ValueError:
-            print("ID must be integer and Ownership & Investment must be numeric.")
-            return
-        
-        repository = ShareholderRepository(db_conn)
-        update_success = repository.update_shareholder(
-            shareholder_id,
-            name=name,
-            ownership=ownership,
-            investment=investment,
-            email=email
-        )
-        if update_success:
-            print(f"Successfully updated Shareholder with ID: {shareholder_id}")
-        else:
-            print(f"Failed to update Shareholder with ID: {shareholder_id}")
 
 if __name__ == '__main__':
     NovusEdge()
