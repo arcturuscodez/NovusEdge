@@ -10,6 +10,8 @@ def handle_print_table(db_conn):
         if records:
             if table_name == 'SHAREHOLDERS':
                 column_names = ['id', 'name', 'ownership', 'investment', 'email', 'shareholder_status']
+            elif table_name == 'TRANSACTIONS':
+                column_names = ['id', 'firm_id', 'ticker', 'shares', 'price_per_share', 'total', 'transaction_type', 'timestamp']
             else:
                 column_names = [field for field in records[0].__dataclass_fields__]
             

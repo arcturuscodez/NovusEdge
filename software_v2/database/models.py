@@ -53,14 +53,18 @@ class FirmModel:
     net_loss: float
     
 @dataclass
-class TransactionModel:
+class TransactionsModel:
+    """ 
+    Model representing an asset transaction.
+    """
     id: Optional[int]
+    firm_id: Optional[int]
     ticker: str # Stock ticker
-    shares: int
-    pps: float # Price per share
-    firm_id: int
+    shares: int # Number of shares
+    price_per_share: float # pps 
+    total: float # total cost
     transaction_type: str # 'buy' or 'sell'
-    timestamp: Optional[str]
+    timestamp: Optional[str] # timestamp of transaction
     
 @dataclass
 class PortfolioModel:
