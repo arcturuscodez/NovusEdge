@@ -3,8 +3,6 @@ from security import credentials
 from psycopg2 import OperationalError
 
 from database.connection import DatabaseConnection
-from database.repositories.shareholder import ShareholderRepository
-from database.models import ShareholderModel
 
 class NovusEdge:
 
@@ -16,10 +14,10 @@ class NovusEdge:
         self.host = credentials.HOST
         self.port = credentials.PORT
         self.pg_exe = credentials.PG_EXE_PATH
-        
+
         if self._is_db_option_set():
             self.database_usage()
-        elif self._is_plot_option_set():   
+        elif self._is_plot_option_set():
             self.plotting_usage()
         else:
             print('An error occurred. No options were set.')

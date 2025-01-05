@@ -2,7 +2,6 @@ import logging
 import subprocess
 import time
 
-from contextlib import contextmanager
 from typing import Optional
 
 import psycopg2 as psy
