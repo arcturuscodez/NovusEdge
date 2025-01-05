@@ -22,11 +22,16 @@ class BaseRepository:
             columns = list(data.keys())
             values = list(data.values())
 
-            # Exclude 'id' if it's None to allow auto-generation
-            if 'id' in columns and data['id'] is None:
-                id_index = columns.index('id')
-                columns.pop(id_index)
-                values.pop(id_index)
+            # Exclude fields with None values to allow the database to assign values.
+            exclusion_fields = [key for key, value in data.items() if value is None]
+            for key in exclusion_fields:
+                if key in columns:
+                    index = columns.index(key)
+                    columns.pop(index)
+                    values.pop(index)
+            
+            if not columns:
+                raise ValueError('No fields provided for insertion. All fields are None or Null.')
 
             columns_str = ', '.join(columns)
             placeholders = ', '.join(['%s'] * len(values))

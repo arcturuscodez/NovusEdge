@@ -34,43 +34,43 @@ class ShareholderModel(BaseModel):
     """
     Model representing a shareholder.
     """
-    id: Optional[int]
     name: str
     ownership: float
     investment: float
     email: str
-    shareholder_status: Optional[str]
+    id: Optional[int] = None
+    shareholder_status: Optional[str] = None
     created: Optional[datetime] = None
 
 @dataclass
-class TransactionsModel:
+class TransactionsModel(BaseModel):
     """ 
     Model representing an asset transaction.
     """
-    id: Optional[int]
     firm_id: Optional[int]
     ticker: str # Stock ticker
     shares: int # Number of shares
     price_per_share: float # pps 
     total: float # total cost
     transaction_type: str # 'buy' or 'sell'
+    id: Optional[int] = None
     timestamp: Optional[datetime] = None
     
 @dataclass
-class FirmModel:
+class FirmModel(BaseModel):
     """ 
     Model representing a firm table.
     """
-    id: Optional[int]
     total_value: float
     total_value_investments: float
     cash_reserve: float
     net_profit: float
     net_loss: float
+    id: Optional[int] = None
     created: Optional[datetime] = None
     
 @dataclass
-class PortfolioModel:
+class PortfolioModel(BaseModel):
     """ 
     Model representing a portfolio of assets.
     """
