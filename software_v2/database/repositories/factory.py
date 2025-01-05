@@ -1,10 +1,14 @@
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transactions import TransactionsRepository
+from database.repositories.firm import FirmRepository
+from database.repositories.portfolio import PortfolioRepository
 
 REPOSITORY_MAP = {
     'SHAREHOLDERS': ShareholderRepository,
-    'TRANSACTIONS': TransactionsRepository
+    'TRANSACTIONS': TransactionsRepository,
+    'FIRM': FirmRepository,
+    'PORTFOLIO': PortfolioRepository
 }
 
 def get_repository(table_name: str, db_conn: DatabaseConnection):

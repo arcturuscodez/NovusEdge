@@ -9,9 +9,47 @@ def handle_print_table(db_conn):
         records = repository.fetch_all()
         if records:
             if table_name == 'SHAREHOLDERS':
-                column_names = ['id', 'name', 'ownership', 'investment', 'email', 'shareholder_status']
+                column_names = ['id',
+                                'name', 
+                                'ownership',
+                                'investment',
+                                'email',
+                                'shareholder_status',
+                                'created']
+                
             elif table_name == 'TRANSACTIONS':
-                column_names = ['id', 'firm_id', 'ticker', 'shares', 'price_per_share', 'total', 'transaction_type', 'timestamp']
+                column_names = ['id',
+                                'firm_id',
+                                'ticker',
+                                'shares',
+                                'price_per_share',
+                                'total', 
+                                'transaction_type',
+                                'timestamp']
+                
+            elif table_name == 'FIRM':    
+                column_names = ['id',
+                                'total_value',
+                                'total_value_investments',
+                                'cash_reserve',
+                                'net_profit',
+                                'net_loss',
+                                'created']
+                
+            elif table_name =='PORTFOLIO':
+                column_names = ['firm_id',
+                                'ticker',
+                                'shares',
+                                'average_purchase_price',
+                                'total_invested',
+                                'realized_profit_loss',
+                                'current_price',
+                                'total_value',
+                                'unrealized_profit_loss',
+                                'dividend_yield_percentage',
+                                'dividend_yield_amount',
+                                'total_dividends_received',
+                                'last_updated']
             else:
                 column_names = [field for field in records[0].__dataclass_fields__]
             
