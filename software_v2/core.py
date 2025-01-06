@@ -58,6 +58,13 @@ class NovusEdge:
                 elif o.EditShareholder:
                     from database.services.edit import handle_edit_shareholder
                     handle_edit_shareholder(db_conn)
+                elif o.BuyTransaction:
+                    pass
+                elif o.SellTransaction:
+                    pass
+                elif o.EditTransaction:
+                    pass
+                
 
         except OperationalError as e:
             print(f'An error occurred: {e}')

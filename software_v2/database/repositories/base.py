@@ -16,7 +16,15 @@ class BaseRepository:
         self.model = model
 
     def add(self, entity: T) -> Optional[int]:
-        """Add a new entity to the database."""
+        """
+        Add a new entity to the database.
+        
+        Args:
+            entity (T): The entity to add.
+
+        Returns:
+            Optional[int]: The ID of the newly added entity, or None if failed.
+        """
         try:
             data = entity.to_dict()
             columns = list(data.keys())
@@ -41,6 +49,7 @@ class BaseRepository:
             entity_id = self.db.cursor.fetchone()[0]
             self.db.connection.commit()
             return entity_id
+        
         except Exception as e:
             self.db.connection.rollback()
             logger.error(f"Error adding entity to {self.table_name}: {e}", exc_info=True)
@@ -55,6 +64,7 @@ class BaseRepository:
             self.db.cursor.execute(query)
             rows = self.db.cursor.fetchall()
             return [self.model(**dict(zip([desc[0] for desc in self.db.cursor.description], row))) for row in rows]
+        
         except Exception as e:
             logger.error(f"Error fetching all from {self.table_name}: {e}")
             return []
@@ -66,6 +76,7 @@ class BaseRepository:
             self.db.cursor.execute(query, (entity_id,))
             self.db.connection.commit()
             return self.db.cursor.rowcount > 0
+        
         except Exception as e:
             self.db.connection.rollback()
             logger.error(f"Error deleting from {self.table_name}: {e}")
@@ -83,6 +94,7 @@ class BaseRepository:
             self.db.cursor.execute(query, values)
             self.db.connection.commit()
             return self.db.cursor.rowcount > 0
+        
         except Exception as e:
             self.db.connection.rollback()
             logger.error(f"Error updating {self.table_name} (ID: {entity_id}): {e}")
