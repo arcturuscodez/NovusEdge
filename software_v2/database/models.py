@@ -64,7 +64,7 @@ class FirmModel(BaseModel):
 @dataclass
 class PortfolioModel(BaseModel):
     """ 
-    Model representing a portfolio of assets.
+    Model representing an asset in the portfolio table.
     """
     firm_id: int
     ticker: str
