@@ -66,8 +66,10 @@ class NovusEdge:
                     pass
         except OperationalError as e:
             print(f'An error occurred: {e}')
+            raise
         except Exception as e:
             print(f'An unexpected error occurred: {e}')
+            raise
 
 if __name__ == '__main__':
     NovusEdge()

@@ -1,7 +1,7 @@
 from utility import helpers
 from options import o
 from database.repositories.shareholder import ShareholderRepository
-from database.repositories.transactions import TransactionsRepository
+from database.services.update import UpdateService
 
 def handle_add_shareholder(db_conn):
     parts = o.AddShareholder.split(':')
@@ -41,10 +41,10 @@ def handle_add_transaction(db_conn):
         print(e)
         return
     
-    repository = TransactionsRepository(db_conn)
-    transaction_id = repository.add_transaction(ticker, shares, pps, transaction_type)
-    if transaction_id:
-        print(f'Successfully added Transaction with ID: {transaction_id}')
+    service = UpdateService(db_conn)
+    success = service.update_portfolio(ticker, shares, pps, transaction_type)
+    if success:
+        print(f'Successfully added Transaction for {transaction_type} of {shares} shares of {ticker}.')
     else:
         print('Failed to add Transaction.')
     

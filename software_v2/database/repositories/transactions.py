@@ -44,21 +44,7 @@ class TransactionsRepository(BaseRepository):
                 price_per_share=pps,
                 transaction_type=transaction_type
             )
-            transaction_id = super().add(new_transaction)
-            if transaction_id and transaction_type.lower() == 'buy':
-                portfolio_repo = PortfolioRepository(self.db)
-                portfolio_repo.add_asset(firm_id, ticker, shares)
-            elif transaction_id and transaction_type.lower() == 'sell':
-                portfolio_repo = PortfolioRepository(self.db)
-                asset = portfolio_repo.get_asset_by_ticker(firm_id, ticker)
-                if asset:
-                    updated_shares = asset.shares - shares
-                    if updated_shares < 0:
-                        logger.error(f'Cannot sell more shares than available: {shares} > {asset.shares}')
-                        return None
-                    portfolio_repo.edit_asset_shares(firm_id, ticker, shares=updated_shares)
-            return transaction_id, super().add(new_transaction)
-        
+            return super().add(new_transaction)
         except Exception as e:
             logger.error(f'Failed to add transaction: {e}')
             return None
