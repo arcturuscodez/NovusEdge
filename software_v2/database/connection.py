@@ -129,13 +129,10 @@ class DatabaseConnection:
         """Exit the runtime context related to this object."""
         try:
             if exc_type:
-                if self.connection:
-                    self.connection.rollback()
-                    logger.info('Database transaction rolled back due to an exception.')
+                self.connection.rollback()
+                logger.info('Database transaction rolled back due to an exception.')
             else:
-                if self.connection:
-                    self.connection.commit()
-                    #logger.info('Database transaction committed successfully.')
+                self.connection.commit()
         except psy.DatabaseError as e:
             logger.error(f'Database error during commit/rollback: {e}')
             raise
