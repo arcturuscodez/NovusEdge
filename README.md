@@ -12,9 +12,10 @@ The software being developed is a portfolio management system for an investment 
 
 The end goal of the software is to use machine learning and artificial intelligence to monitor, simulate and provide feedback on the portfolios provided to the software.
 
-### Version
+### Versions
 
-V0.1.9
+V0.1.9 "Working" Version
+V0.2.0/software_v2 New Testing Version
 
 ## Table of Contents
 - [Installation](#installation)
