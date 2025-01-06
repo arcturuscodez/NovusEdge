@@ -67,7 +67,7 @@ class TransactionsRepository(BaseRepository):
         Returns:
             bool: True if successful, False otherwise.
         """
-        return super().update(transaction_id, **kwargs)
+        return super().edit(transaction_id, **kwargs)
     
     def update_transaction(self):
         pass
