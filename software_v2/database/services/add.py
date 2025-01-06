@@ -1,6 +1,7 @@
 from utility import helpers
 from options import o
 from database.repositories.shareholder import ShareholderRepository
+from database.repositories.transactions import TransactionsRepository
 
 def handle_add_shareholder(db_conn):
     parts = o.AddShareholder.split(':')
@@ -24,4 +25,26 @@ def handle_add_shareholder(db_conn):
         print(f"Successfully added Shareholder with ID: {shareholder_id}")
     else:
         print("Failed to add Shareholder.")
-        
+
+def handle_add_transaction(db_conn):
+    parts = o.AddTransaction.split(':')
+    if len(parts) != 4:
+        print("Invalid format for AddTransaction. Expected format: ticker:shares:pps:transaction_type")
+        return
+    ticker, shares, pps, transaction_type = parts
+    try:
+        shares = int(shares)
+        pps = float(pps)
+        if transaction_type.lower() not in ['buy', 'sell']:
+            raise ValueError("Invalid transaction type. Must be 'buy' or 'sell'.")
+    except ValueError as e:
+        print(e)
+        return
+    
+    repository = TransactionsRepository(db_conn)
+    transaction_id = repository.add_transaction(ticker, shares, pps, transaction_type)
+    if transaction_id:
+        print(f'Successfully added Transaction with ID: {transaction_id}')
+    else:
+        print('Failed to add Transaction.')  
+    

@@ -15,11 +15,12 @@ class TransactionsRepository(BaseRepository):
         """Initialize the repository with the TransactionsModel."""
         super().__init__(db_conn, table_name='transactions', model=TransactionsModel)
         
-    def add_transaction(self, ticker: str, shares: int, pps: float, total: float, transaction_type: str) -> Optional[int]:
+    def add_transaction(self, ticker: str, shares: int, pps: float, transaction_type: str, firm_id: int = 1) -> Optional[int]:
         """ 
         Add a new transaction to the database.
         
         Args:
+            firm_id (int): ID of the firm to add a transaction to.
             ticker (str): Ticker symbol of the asset.
             shares (int): Number of shares.
             pps (float): Price per share.
@@ -35,11 +36,11 @@ class TransactionsRepository(BaseRepository):
         
         try:
             new_transaction = TransactionsModel(
+                firm_id=firm_id,
                 id=None,
                 ticker=ticker,
                 shares=shares,
                 price_per_share=pps,
-                total=total,
                 transaction_type=transaction_type
             )
             return super().add(new_transaction)

@@ -31,6 +31,7 @@ class NovusEdge:
             'EditShareholder',
             'BuyStock',
             'SellStock',
+            'AddTransaction',
             'Truncate',
             'InitializeFirmTable'
         ]
@@ -58,10 +59,9 @@ class NovusEdge:
                 elif o.EditShareholder:
                     from database.services.edit import handle_edit_shareholder
                     handle_edit_shareholder(db_conn)
-                elif o.BuyTransaction:
-                    pass
-                elif o.SellTransaction:
-                    pass
+                elif o.AddTransaction:
+                    from database.services.add import handle_add_transaction
+                    handle_add_transaction(db_conn)
                 elif o.EditTransaction:
                     pass
                 
