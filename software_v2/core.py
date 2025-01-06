@@ -64,8 +64,6 @@ class NovusEdge:
                     handle_add_transaction(db_conn)
                 elif o.EditTransaction:
                     pass
-                
-
         except OperationalError as e:
             print(f'An error occurred: {e}')
         except Exception as e:

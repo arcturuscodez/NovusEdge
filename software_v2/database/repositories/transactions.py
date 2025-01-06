@@ -2,7 +2,6 @@ from typing import List, Optional
 from database.repositories.base import BaseRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.models import TransactionsModel
-from database.services.add import handle_add_asset
 
 import logging
 
