@@ -12,10 +12,7 @@ class ShareholderRepository(BaseRepository):
         """Initialize the repository with the ShareholderModel."""
         super().__init__(db_conn, table_name='shareholders', model=ShareholderModel)
 
-    def add_shareholder(self, name: str, ownership: float, investment: float, email: str, shareholder_status: Optional[str] = None) -> Optional[int]: 
-        
-        # Can shareholder status be removed? Should be handled by the database like timestamp.
-        
+    def add_shareholder(self, name: str, ownership: float, investment: float, email: str) -> Optional[int]:
         """
         Add a new shareholder to the database.
 
@@ -35,7 +32,6 @@ class ShareholderRepository(BaseRepository):
                 ownership=ownership,
                 investment=investment,
                 email=email,
-                shareholder_status=shareholder_status
             )
             return super().add(new_shareholder)
         except Exception as e:

@@ -85,7 +85,7 @@ class BaseRepository:
     def edit(self, entity_id: int, **kwargs) -> bool:
         """Edit specific fields of a record by ID."""
         if not kwargs:
-            logger.warning("No fields provided for update.")
+            logger.warning("No fields provided for editing.")
             return False
         try:
             set_clause = ', '.join([f"{key} = %s" for key in kwargs.keys()])
@@ -100,8 +100,11 @@ class BaseRepository:
             logger.error(f"Error updating {self.table_name} (ID: {entity_id}): {e}")
             return False
         
-    def update(self):
-        pass
+    def update(self, entity_id: int, **kwargs):
+        """Update fields of a record."""
+        if not kwargs:
+            logger.warning('No fields provided for update.')
+            pass
     
     def truncate(self):
         pass
