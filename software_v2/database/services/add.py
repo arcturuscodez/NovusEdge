@@ -46,5 +46,6 @@ def handle_add_transaction(db_conn):
     if transaction_id:
         print(f'Successfully added Transaction with ID: {transaction_id}')
     else:
-        print('Failed to add Transaction.')  
+        print('Failed to add Transaction.')
+    
     

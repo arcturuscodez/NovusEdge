@@ -13,48 +13,51 @@ class PortfolioRepository(BaseRepository):
         """Initialize the repository with the PortfolioModel."""
         super().__init__(db_conn, table_name='portfolio', model=PortfolioModel)
         
-    def add_asset(self, ticker, shares) -> Optional[int]:
+    def add_asset(self, firm_id: int, ticker: str, shares: int) -> bool:
         """ 
         Add a new asset to the portfolio table.
         
         Args:
+            firm_id (int): ID of the firm.
             ticker (str): Ticker symbol of the asset.
             shares (int): Number of shares.
-        Returns:
-            Optional[int]: The id of the newly added asset, or None if failed.
-        """
-        if not ticker or not shares:
-            logger.error('Invalid asset data provided.')
-            return None
         
+        Returns:
+            bool: True if added successfully, False otherwise.
+        """
         try:
+            # Insert fetch live stock data here
             new_asset = PortfolioModel(
-                id=None,
+                firm_id=firm_id,
                 ticker=ticker,
                 shares=shares
             )
-            return super().add(new_asset)
+            return super().add(new_asset) is not None
         except Exception as e:
             logger.error(f'Failed to add asset: {e}')
-            return None
+            return False
     
     def get_all_assets(self) -> List[PortfolioModel]:
         """Retrieve all assets inside the portfolio."""
         return super().fetch_all()
     
+    def get_asset_by_ticker(self, firm_id: int, ticker: str) -> List[PortfolioModel]:
+        """Retrieve a single asset by its ticker symbol."""
+        return super().get(firm_id=firm_id, ticker=ticker)
+    
     def delete_asset(self, asset_id: int) -> bool:
         """Delete an asset by ID."""
         return super().delete(asset_id)
-
-    def edit_asset(self, asset_id: int, **kwargs) -> bool:
-        """
-        Edit a specific field of an asset.
+    
+    def edit_asset_shares(self, firm_id: int, ticker: str, shares: int) -> bool:
+        """ 
+        Update the number of shares for a specific asset.
         
         Args:
-            asset_id (int): ID of the asset to edit.
-            **kwargs: Key-value pairs of fields to update.
-        
+            firm_id (int): ID of the firm.
+            ticker (str): Ticker symbol of the asset.
+            shares (int): New number of shares.
         Returns:
-            bool: True if edit was successful, False otherwise.
+            bool: True if updated successfully, False otherwise.    
         """
-        return super().edit(asset_id, **kwargs)        
+        return super().edit(entity_id=firm_id, ticker=ticker, shares=shares)
