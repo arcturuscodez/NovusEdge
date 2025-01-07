@@ -81,6 +81,13 @@ TRANSACTION_DB_GROUP.add_option('--sell', '--sellstock',
     help='Sell a stock TICKER:SHARES:PPS'
 )
 
+TRANSACTION_DB_GROUP.add_option('-t', '--transaction',
+    dest='AddTransaction',
+    type=str,
+    default=None,
+    metavar='ticker:shares:pps:transaction_type',
+    help='Create a transaction with TICKER:SHARES:PPS:TRANSACTION_TYPE')
+
 # Portfolio Group
 
 # Plotting Group
