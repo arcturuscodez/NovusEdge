@@ -8,7 +8,8 @@ def handle_add_shareholder(db):
     try:
         parts = o.AddShareholder.split(':')
         if len(parts) != 4:
-            print('Invalid number of arguments. Expected 4, got', len(parts))
+            logging.error('Invalid number of arguments. Expected 4, got', len(parts))
+            print('Invalid input format. Please provide the name, ownership, investment, and email separated by colons. name:ownership:investment:email')
             return
 
         name, ownership, investment, email = parts
@@ -19,6 +20,15 @@ def handle_add_shareholder(db):
         try:
             ownership = float(ownership)
             investment = float(investment)
+            
+            if not (0 < ownership <= 100):
+                logging.warning('Ownership must be between 0 and 100.')
+                return
+            
+            if investment < 0:
+                logging.warning('Investment must be a positive number.')
+                return
+            
         except ValueError:
             logging.error('Ownership and investment must be numeric.')
             return
@@ -28,7 +38,7 @@ def handle_add_shareholder(db):
         if shareholder_id:
             logging.info(f'Shareholder with name: {name} added successfully.')
         else:
-            logging.error(f'Failed to add shareholder with {name}.')
+            logging.error(f'Failed to add shareholder with name: {name}.')
     
     except Exception as e:
         logging.error(f'An error occurred handling the adding of a shareholder to the table: {e}')

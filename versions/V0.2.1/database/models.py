@@ -44,15 +44,5 @@ class ShareholderModel(BaseModel):
     ownership: float = 0.0 
     investment: float = 0.0
     email: str = ""
-    status: Optional[str] = 'active'
-    timestamp: Optional[datetime] = field(default_factory=datetime.now)
-    """
-    def __post_init__(self):
-        if self.email and not re.match(r"[^@]+@[^@]+\.[^@]+", self.email):
-            raise ValueError(f"Invalid email format: {self.email}")
-        # Ensure ownership is within 0-100%
-        if not (0.0 <= self.ownership <= 100.0):
-            raise ValueError("Ownership must be between 0.0 and 100.0")
-        # Ensure investment is non-negative
-        if self.investment < 0.0:
-            raise ValueError("Investment cannot be negative")"""
+    shareholder_status: Optional[str] = 'active'
+    created_at: Optional[datetime] = field(default_factory=datetime.now)

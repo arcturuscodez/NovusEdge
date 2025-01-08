@@ -55,6 +55,9 @@ class NovusEdge:
                 if o.PrintTable:
                     from database.services.other import handle_print_table
                     handle_print_table(self.db)
+                elif o.AddShareholder:
+                    from database.services.add import handle_add_shareholder
+                    handle_add_shareholder(self.db)
                     
         except Exception as e:
             raise
