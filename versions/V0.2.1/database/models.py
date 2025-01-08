@@ -33,7 +33,15 @@ class BaseModel:
         """
         fields = ', '.join(f"{key}={value!r}" for key, value in self.to_dict().items())
         return f"{self.__class__.__name__}({fields})"
-    
+
+@dataclass
+class GenericModel(BaseModel):
+    """
+    A generic model to handle any table's data.
+    """
+    id: Optional[int]
+    __dict__: Dict[str, Any]
+
 @dataclass
 class ShareholderModel(BaseModel):
     """

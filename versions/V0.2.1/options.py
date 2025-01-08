@@ -1,10 +1,9 @@
-import sys
 import globals
 import argparse
 
 parser = argparse.ArgumentParser(
-    description='Novus Edge [-option] <command>',
-    epilog=f'Software Name: {globals.NAME} | Version: {globals.VERSION}'
+    description='ArgParse [-option] <command>',
+    epilog=f'Software Name: {globals.NAME} | Version: {globals.VERSION} | Author: {globals.AUTHOR}'
 )
 
 # Option Groups
@@ -13,6 +12,24 @@ parser = argparse.ArgumentParser(
 
 database_options = parser.add_argument_group('Database Options')
 
+## Universal Database Options
+
+database_options.add_argument(
+    '-r', '--remove',
+    dest='Remove',
+    type=int,
+    metavar='table:id',
+    help='Remove a entity from a table by id.'
+)
+
+database_options.add_argument(
+    '-e', '--edit',
+    dest='EditShareholder',
+    type=str,
+    metavar='table:id:key=value',
+    help='Edit a entity in a table by id.'
+)
+
 ## Shareholder Options
 
 database_options.add_argument(
@@ -20,7 +37,24 @@ database_options.add_argument(
     dest='AddShareholder',
     type=str,
     metavar='NAME:OWNERSHIP:INVESTMENT:EMAIL',
-    help='Add a shareholder to the SHAREHOLDER table.')
+    help='Add a shareholder to the SHAREHOLDER table.'
+)
+
+database_options.add_argument(
+    '--rs', '--remove-shareholder',
+    dest='RemoveShareholder',
+    type=int,
+    metavar='ID',
+    help='Remove a shareholder from the SHAREHOLDER table by id.'
+)
+
+database_options.add_argument(
+    '--es', '--edit-shareholder',
+    dest='EditShareholder',
+    type=str,
+    metavar='id:key=value',
+    help='Edit a shareholder in the SHAREHOLDER table by id.'
+)
 
 """ Utility Options """
 

@@ -39,3 +39,7 @@ class ShareholderRepository(BaseRepository):
         except Exception as e:
             logger.error(f'Failed to add shareholder: {e}')
             return None
+        
+    def delete_shareholder(self, id: int) -> bool:
+        """Delete shareholder by id."""
+        return super().delete(id)
