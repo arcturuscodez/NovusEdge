@@ -43,14 +43,15 @@ class BaseRepository:
             placeholders = ', '.join(['%s'] * len(values))
             query = f'INSERT INTO {self.table_name} ({columns_str}) VALUES ({placeholders}) RETURNING {self.primary_keys[0]}'
             
-            self.db.cursor.execute(query, values)
-            entity_id = self.db.cursor.fetchone()[0]
-            self.db.connection.commit()
-            return entity_id
+            with self.db as (connection, cursor):
+                cursor.execute(query, values)
+                entity_id = cursor.fetchone()[0]
+                logging.info(f'Added entity to {self.table_name}: {e}', exc_info=True)
+                return entity_id
 
         except Exception as e:
-            self.db.connection.rollback()
             logging.error(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
+            print("An internal error occurred while adding the entity. Please try again later.")
             return None
         
     def get(self, **kwargs) -> Optional[T]:
@@ -71,15 +72,17 @@ class BaseRepository:
             conditions = ' AND '.join([f"{key} = %s" for key in kwargs.keys()])
             values = list(kwargs.values())
             query = f'SELECT * FROM {self.table_name} WHERE {conditions} LIMIT 1'
-            self.db.cursor.execute(query, values)
-            row = self.db.cursor.fetchone()
             
-            if row:
-                columns = [desc[0] for desc in self.db.cursor.description]
-                data = dict(zip(columns, row))
-                logging.info(f'Fetched entity from {self.table_name} with conditions {kwargs}')
-                return self.model(**data)
-            return None
+            with self.db as (connection, cursor):
+                cursor.execute(query, values)
+                row = cursor.fetchone()
+            
+                if row:
+                    columns = [desc[0] for desc in cursor.description]
+                    data = dict(zip(columns, row))
+                    logging.info(f'Fetched entity from {self.table_name} with conditions {kwargs}')
+                    return self.model(**data)
+                return None
         
         except Exception as e:
             logging.error(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
@@ -121,13 +124,14 @@ class BaseRepository:
                 
             if offset:
                 query += f" OFFSET {offset}"
-                
-            self.db.cursor.execute(query, values)
-            rows = self.db.cursor.fetchall()
-            columns = [desc[0] for desc in self.db.cursor.description]
-            entities = [self.model(**dict(zip(columns, row))) for row in rows]
-            logging.info(f'Fetched {len(entities)} entities from {self.table_name}')
-            return entities
+            
+            with self.db as (connection, cursor):
+                cursor.execute(query, values)
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                entities = [self.model(**dict(zip(columns, row))) for row in rows]
+                logging.info(f'Fetched {len(entities)} entities from {self.table_name}')
+                return entities
     
         except Exception as e:
             logging.error(f'Error fetching entities from {self.table_name}: {e}', exc_info=True)
@@ -160,17 +164,18 @@ class BaseRepository:
                 values.append(entity_id)
             
             query = f"UPDATE {self.table_name} SET {set_clause} WHERE {conditions}"
-            self.db.cursor.execute(query, values)
-            self.db.connection.commit()
-            success = self.db.cursor.rowcount > 0
-            if success: 
-                logging.info(f'Updated entity in {self.table_name} with id: {entity_id}')
-            else:
-                logging.warning(f'No entity found to update in {self.table_name} with id: {entity_id}')
-            return success
+            
+            with self.db as (connection, cursor):
+                cursor.execute(query, values)
+                connection.commit()
+                success = cursor.rowcount > 0
+                if success: 
+                    logging.info(f'Updated entity in {self.table_name} with id: {entity_id}')
+                else:
+                    logging.warning(f'No entity found to update in {self.table_name} with id: {entity_id}')
+                return success
         
         except Exception as e:
-            self.db.connection.rollback()
             logging.error(f'Error updating {self.table_name} with id: {entity_id}: {e}', exc_info=True)
             return False
         
@@ -193,17 +198,18 @@ class BaseRepository:
                 values = [entity_id]
             
             query = f"DELETE FROM {self.table_name} WHERE {conditions}"
-            self.db.cursor.execute(query, values)
-            self.db.connection.commit()
-            success = self.db.cursor.rowcount > 0
-            if success:
-                logging.info(f"Deleted entity from {self.table_name} with id: {entity_id}")
-            else:
-                logging.warning(f"No entity found to delete in {self.table_name} with id: {entity_id}")
-            return success
+            
+            with self.db as (connection, cursor):
+                cursor.execute(query, values)
+                connection.commit()
+                success = cursor.rowcount > 0
+                if success:
+                    logging.info(f"Deleted entity from {self.table_name} with id: {entity_id}")
+                else:
+                    logging.warning(f"No entity found to delete in {self.table_name} with id: {entity_id}")
+                return success
         
         except Exception as e:
-            self.db.connection.rollback()
             logging.error(f'Error deleting from {self.table_name} with id: {entity_id}: {e}', exc_info=True)
             return False
         
@@ -219,12 +225,13 @@ class BaseRepository:
             List[Dict[str, Any]]: The result set as a list of dictionaries.
         """
         try:
-            self.db.cursor.execute(query, params)
-            rows = self.db.cursor.fetchall()
-            columns = [desc[0] for desc in self.db.cursor.description]
-            results = [dict(zip(columns, row)) for row in rows]
-            logging.info(f'Executed raw query on {self.table_name}: {query}')
-            return results
+            with self.db as (connection, cursor):
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                results = [dict(zip(columns, row)) for row in rows]
+                logging.info(f'Executed raw query on {self.table_name}: {query}')
+                return results
         
         except Exception as e:
             logging.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)

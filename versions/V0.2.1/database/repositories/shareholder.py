@@ -8,7 +8,7 @@ class ShareholderRepository(BaseRepository):
     
     def __init__(self, db_conn):
         """Initialize the repository with the ShareholderModel."""
-        super().__init__(db_conn, table_name='shareholders, model=ShareholderModel')
+        super().__init__(db_conn, table_name='shareholders', model=ShareholderModel)
     
     def add_shareholder(self, name: str, ownership: float, investment: float, email: str) -> Optional[int]:
         """ 
@@ -23,4 +23,16 @@ class ShareholderRepository(BaseRepository):
         Returns:
             Optional[int]: The ID of the newly added shareholder, or None if failed.
         """
-        pass
+        try:
+            new_shareholder = ShareholderModel(
+                id=None,
+                name=name,
+                ownership=ownership,
+                investment=investment,
+                email=email
+            )
+            return super().add(new_shareholder)
+
+        except Exception as e:
+            logging.error(f'Failed to add shareholder: {e}')
+            return None

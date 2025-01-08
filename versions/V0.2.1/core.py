@@ -24,6 +24,13 @@ class NovusEdge:
         self.port = NovusEdge.DB_PORT
         self.pg_exe = NovusEdge.PG_EXE
         
+        if self._is_db_option_set():
+            self.database_usage()
+        elif self._is_plot_option_set():
+            pass
+        else:
+            print('An error occurred. No options were set.')
+        
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
         db_option_dests = [
@@ -50,8 +57,12 @@ class NovusEdge:
         try:
             with DatabaseConnection(db=self.db, user=self.user, password=self.password, 
                                     host=self.host, port=self.port, pg_exe=self.pg_exe) as db_conn:
-                pass
+                if o.PrintTable:
+                    from database.services.other import handle_print_table
+                    handle_print_table(db_conn)
+                    
         except Exception as e:
             raise
          
-    
+if __name__ == '__main__':
+    NovusEdge()

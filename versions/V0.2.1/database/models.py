@@ -46,7 +46,7 @@ class ShareholderModel(BaseModel):
     email: str = ""
     status: Optional[str] = 'active'
     timestamp: Optional[datetime] = field(default_factory=datetime.now)
-    
+    """
     def __post_init__(self):
         if self.email and not re.match(r"[^@]+@[^@]+\.[^@]+", self.email):
             raise ValueError(f"Invalid email format: {self.email}")
@@ -55,4 +55,4 @@ class ShareholderModel(BaseModel):
             raise ValueError("Ownership must be between 0.0 and 100.0")
         # Ensure investment is non-negative
         if self.investment < 0.0:
-            raise ValueError("Investment cannot be negative")
+            raise ValueError("Investment cannot be negative")"""
