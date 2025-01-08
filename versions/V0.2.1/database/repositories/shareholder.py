@@ -4,6 +4,8 @@ from database.models import ShareholderModel
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 class ShareholderRepository(BaseRepository):
     """Repository for shareholder-specific operations."""
     
@@ -35,5 +37,5 @@ class ShareholderRepository(BaseRepository):
             return super().add(new_shareholder)
 
         except Exception as e:
-            logging.error(f'Failed to add shareholder: {e}')
+            logger.error(f'Failed to add shareholder: {e}')
             return None

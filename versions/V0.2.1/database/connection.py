@@ -1,13 +1,13 @@
-import logging
-import subprocess
-import time
-
 from typing import Optional, Tuple
 from psycopg2 import pool, OperationalError, DatabaseError
 
+import subprocess
+import time
 import psycopg2 as psy
 
-logging.basicConfig(level=logging.INFO)
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DatabaseConnection:
     """
@@ -59,9 +59,9 @@ class DatabaseConnection:
                 host=self.host,
                 port=self.port
             )
-            logging.info('Connection pool created successfully.')
+            logger.info('Connection pool created successfully.')
         except Exception as e:
-            logging.error(f'Failed to create the connection pool.', exc_info=True)
+            logger.error(f'Failed to create the connection pool.', exc_info=True)
             raise Exception('Failed to create the connection pool.') from e        
         
     def start_server(self) -> None:
@@ -74,36 +74,36 @@ class DatabaseConnection:
                 check=False
             )
             if result.returncode == 0:
-                logging.info(f'PostgreSQL server is already running on {self.host}:{self.port}')
+                logger.info(f'PostgreSQL server is already running on {self.host}:{self.port}')
                 return
             
-            logging.info('Attempting to start PostgreSQL server...')
+            logger.info('Attempting to start PostgreSQL server...')
             subprocess.run(self.pg_exe, check=True, shell=True, timeout=60)
-            logging.info('PostgreSQL server started successfully.')
+            logger.info('PostgreSQL server started successfully.')
         except subprocess.CalledProcessError as e:
-            logging.error(f'Failed to start PostgreSQL server: {e}')
+            logger.error(f'Failed to start PostgreSQL server: {e}')
             raise
         except subprocess.TimeoutExpired as e:
-            logging.error(f'Timed out trying to start PostgreSQL server: {e}')
+            logger.error(f'Timed out trying to start PostgreSQL server: {e}')
             raise
         
     def connect(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """Acquire a connection and cursor from the pool."""
-        logging.info('Attempting to acquire a connection from the pool...')
+        logger.info('Attempting to acquire a connection from the pool...')
         attempt = 0
         while attempt < self.max_retries:
             try:
                 connection = self.pool.getconn()
                 cursor = connection.cursor()
-                logging.info('Connection acquired successfully.')
+                logger.info('Connection acquired successfully.')
                 return connection, cursor
             except OperationalError as e:
                 attempt += 1
-                logging.error(f'Connection attempt {attempt} failed: {e}.')
+                logger.error(f'Connection attempt {attempt} failed: {e}.')
                 if attempt < self.max_retries:
                     time.sleep(self.retry_delay)
                 else:
-                    logging.error('Failed to acquire connection after multiple attempts.')
+                    logger.error('Failed to acquire connection after multiple attempts.')
                     raise Exception('Failed to acquire connection from the pool.') from e
             
     def close(self, connection: psy.extensions.connection, cursor: psy.extensions.cursor) -> None:
@@ -113,9 +113,9 @@ class DatabaseConnection:
                 cursor.close
             if connection:
                 self.pool.putconn(connection)
-                logging.info('Connection returned to the pool.')
+                logger.info('Connection returned to the pool.')
         except DatabaseError as e:
-            logging.error('Error releasing connection back to the pool.')
+            logger.error('Error releasing connection back to the pool.')
             raise
         
     def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]: 
@@ -129,12 +129,12 @@ class DatabaseConnection:
             try:
                 if exc_type:
                     self.connection.rollback()
-                    logging.info('Transaction rolled back due an error.')
+                    logger.info('Transaction rolled back due an error.')
                 else:
                     self.connection.commit()
-                    logging.info('Transaction committed successfully.')
+                    logger.info('Transaction committed successfully.')
             except DatabaseError as e:
-                logging.error('Error during commit/rollback.', exc_info=True)
+                logger.error('Error during commit/rollback.', exc_info=True)
                 raise
             finally:
                 self.close(self.connection, self.cursor)

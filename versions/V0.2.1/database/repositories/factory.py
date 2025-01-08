@@ -1,7 +1,10 @@
-import logging
 from typing import Type, Optional
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RepositoryNotFoundError(Exception):
     """Exception raised when the repository is not found."""
@@ -14,7 +17,7 @@ REPOSITORY_MAP = {
 def register_repository(table_name: str, repository_class: Type):
     """Register a new repository to the REPOSITORY_MAP."""
     REPOSITORY_MAP[table_name.upper()] = repository_class
-    logging.debug(f'Registered repository for table: {table_name.upper()}')
+    logger.debug(f'Registered repository for table: {table_name.upper()}')
     
 def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
     """
@@ -32,8 +35,8 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
     """
     repository_class = REPOSITORY_MAP.get(table_name.upper())
     if repository_class:
-        logging.info(f'Retrieving repository for table: {table_name.upper()}')
+        logger.info(f'Retrieving repository for table: {table_name.upper()}')
         return repository_class(db_conn)
-    logging.info(f"Repository for table '{table_name}' not found.") 
+    logger.info(f"Repository for table '{table_name}' not found.") 
     raise RepositoryNotFoundError(f"Repository for table '{table_name}' not found.")  
     

@@ -2,19 +2,25 @@ from database.connection import DatabaseConnection
 from dotenv import load_dotenv
 from options import o
 
-import logging
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class NovusEdge:
+    """Main class to handle the software's functionality."""
+    
+    logging_level = logging.INFO if o.verbose else logging.WARNING
+    logging.basicConfig(
+        level=logging_level,
+        format='%(levelname)s:%(name)s:%(message)s'
+    )
     
     def __init__(self):
         """Set up the class for software usage."""
         
         load_dotenv()
-        
-        logging_level = logging.INFO if o.verbose else logging.WARNING
-        print(logging_level)
-        logging.basicConfig(level=logging_level, format='%(levelname)s:%(name)s:%(message)s')
         
         self.db = DatabaseConnection(
             db=os.getenv('DB'),

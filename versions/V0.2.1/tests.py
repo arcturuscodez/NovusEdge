@@ -8,6 +8,8 @@ from database.models import ShareholderModel
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()
     
 DB = os.getenv('DB')
@@ -105,7 +107,7 @@ class TestSharehoilderRepository(unittest.TestCase):
         
         mock_add.asset_called_once_with(shareholder)
         self.assertEqual(shareholder_id, 1)
-        logging.info(f'Tested adding shareholder with mocked ID: {shareholder_id}')
+        logger.info(f'Tested adding shareholder with mocked ID: {shareholder_id}')
     
     @patch('database.repositories.shareholder.ShareholderRepository.add')
     def test_add_shareholder_with_invalid_email(self, mock_add):
@@ -124,7 +126,7 @@ class TestSharehoilderRepository(unittest.TestCase):
         
         mock_add.assert_called_once_with(shareholder)
         self.assertIsNone(shareholder_id)
-        logging.info('Tested adding shareholder with invalid email.')
+        logger.info('Tested adding shareholder with invalid email.')
         
 if __name__ == '__main__':
     unittest.main()
