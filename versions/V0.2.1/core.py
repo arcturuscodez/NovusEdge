@@ -2,6 +2,7 @@ from database.connection import DatabaseConnection
 from dotenv import load_dotenv
 from options import o
 
+import logging
 import os
 
 class NovusEdge:
@@ -10,6 +11,10 @@ class NovusEdge:
         """Set up the class for software usage."""
         
         load_dotenv()
+        
+        logging_level = logging.INFO if o.verbose else logging.WARNING
+        print(logging_level)
+        logging.basicConfig(level=logging_level, format='%(levelname)s:%(name)s:%(message)s')
         
         self.db = DatabaseConnection(
             db=os.getenv('DB'),
@@ -26,7 +31,7 @@ class NovusEdge:
             pass
         else:
             print('An error occurred. No options were set.')
-        
+
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
         db_option_dests = [

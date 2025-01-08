@@ -1,9 +1,8 @@
 from typing import List, Optional, Type, TypeVar, Any, Dict, Union
 from database.connection import DatabaseConnection
 from database.models import BaseModel
-import logging
 
-logger = logging.getLogger(__name__)
+import logging
 
 T = TypeVar('T', bound=BaseModel)
 
@@ -47,11 +46,11 @@ class BaseRepository:
             with self.db as (connection, cursor):
                 cursor.execute(query, values)
                 entity_id = cursor.fetchone()[0]
-                logger.info(f'Added entity to {self.table_name} with ID: {entity_id}')
+                logging.info(f'Added entity to {self.table_name} with ID: {entity_id}')
                 return entity_id
 
         except Exception as e:
-            logger.error(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
+            logging.error(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
             print("An internal error occurred while adding the entity. Please try again later.")
             return None
 
@@ -67,7 +66,7 @@ class BaseRepository:
         """
         try:
             if not kwargs:
-                logger.warning('No conditions provided for fetching record.')
+                logging.warning('No conditions provided for fetching record.')
                 return None
             
             conditions = ' AND '.join([f"{key} = %s" for key in kwargs.keys()])
@@ -81,12 +80,12 @@ class BaseRepository:
                 if row:
                     columns = [desc[0] for desc in cursor.description]
                     data = dict(zip(columns, row))
-                    logger.info(f'Fetched entity from {self.table_name} with conditions {kwargs}')
+                    logging.info(f'Fetched entity from {self.table_name} with conditions {kwargs}')
                     return self.model(**data)
                 return None
             
         except Exception as e:
-            logger.error(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
+            logging.error(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
             return None
 
     def get_all(
@@ -131,11 +130,11 @@ class BaseRepository:
                 rows = cursor.fetchall()
                 columns = [desc[0] for desc in cursor.description]
                 entities = [self.model(**dict(zip(columns, row))) for row in rows]
-                logger.info(f'Fetched {len(entities)} entities from {self.table_name}')
+                logging.info(f'Fetched {len(entities)} entities from {self.table_name}')
                 return entities
 
         except Exception as e:
-            logger.error(f'Error fetching entities from {self.table_name}: {e}', exc_info=True)
+            logging.error(f'Error fetching entities from {self.table_name}: {e}', exc_info=True)
             return []
 
     def update(self, entity_id: Union[int, Any], **kwargs) -> bool:
@@ -150,7 +149,7 @@ class BaseRepository:
             bool: True if update successful, False otherwise.
         """
         if not kwargs:
-            logger.warning('No fields provided for update.')
+            logging.warning('No fields provided for update.')
             return False
 
         try:
@@ -170,13 +169,13 @@ class BaseRepository:
                 cursor.execute(query, values)
                 success = cursor.rowcount > 0
                 if success: 
-                    logger.info(f'Updated entity in {self.table_name} with ID: {entity_id}')
+                    logging.info(f'Updated entity in {self.table_name} with ID: {entity_id}')
                 else:
-                    logger.warning(f'No entity found to update in {self.table_name} with ID: {entity_id}')
+                    logging.warning(f'No entity found to update in {self.table_name} with ID: {entity_id}')
                 return success
 
         except Exception as e:
-            logger.error(f'Error updating {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            logging.error(f'Error updating {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
             return False
 
     def delete(self, entity_id: Union[int, Any]) -> bool:
@@ -203,13 +202,13 @@ class BaseRepository:
                 cursor.execute(query, values)
                 success = cursor.rowcount > 0
                 if success:
-                    logger.info(f"Deleted entity from {self.table_name} with ID: {entity_id}")
+                    logging.info(f"Deleted entity from {self.table_name} with ID: {entity_id}")
                 else:
-                    logger.warning(f"No entity found to delete in {self.table_name} with ID: {entity_id}")
+                    logging.warning(f"No entity found to delete in {self.table_name} with ID: {entity_id}")
                 return success
 
         except Exception as e:
-            logger.error(f'Error deleting from {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            logging.error(f'Error deleting from {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
             return False
 
     def execute_raw_query(self, query: str, params: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
@@ -229,9 +228,9 @@ class BaseRepository:
                 rows = cursor.fetchall()
                 columns = [desc[0] for desc in cursor.description]
                 results = [dict(zip(columns, row)) for row in rows]
-                logger.info(f'Executed raw query on {self.table_name}: {query}')
+                logging.info(f'Executed raw query on {self.table_name}: {query}')
                 return results
 
         except Exception as e:
-            logger.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
+            logging.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
             return []

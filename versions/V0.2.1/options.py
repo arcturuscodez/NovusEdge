@@ -29,6 +29,13 @@ UTILITY_GROUP.add_option('--T', '--Truncate',
     metavar='SHAREHOLDERS, FIRM',
     help='Truncate all (or a given) table data perserving formatting, triggers, functions.')
 
+UTILITY_GROUP.add_option('-v', '--verbose',
+    dest='verbose',
+    action='store_true',
+    default=False,
+    help='Enable verbose logging.'
+)
+
 # Shareholder Group
 
 SHAREHOLDER_DB_GROUP.add_option('--AS', '--Add',

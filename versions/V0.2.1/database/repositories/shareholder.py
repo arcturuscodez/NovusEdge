@@ -1,6 +1,7 @@
 from typing import List, Optional
 from database.repositories.base import BaseRepository
 from database.models import ShareholderModel
+
 import logging
 
 class ShareholderRepository(BaseRepository):
