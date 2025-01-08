@@ -6,23 +6,19 @@ import os
 
 class NovusEdge:
     
-    load_dotenv()
-    
-    DB = os.getenv('DB')
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    PG_EXE = os.getenv('PG_EXE')
-    
     def __init__(self):
         """Set up the class for software usage."""
-        self.db = NovusEdge.DB
-        self.user = NovusEdge.DB_USER
-        self.password = NovusEdge.DB_PASSWORD
-        self.host = NovusEdge.DB_HOST
-        self.port = NovusEdge.DB_PORT
-        self.pg_exe = NovusEdge.PG_EXE
+        
+        load_dotenv()
+        
+        self.db = DatabaseConnection(
+            db=os.getenv('DB'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            host=os.getenv('DB_HOST'),
+            port=int(os.getenv('DB_PORT')),
+            pg_exe=os.getenv('PG_EXE')
+        )
         
         if self._is_db_option_set():
             self.database_usage()
@@ -55,11 +51,10 @@ class NovusEdge:
     
     def database_usage(self):
         try:
-            with DatabaseConnection(db=self.db, user=self.user, password=self.password, 
-                                    host=self.host, port=self.port, pg_exe=self.pg_exe) as db_conn:
+            with self.db:
                 if o.PrintTable:
                     from database.services.other import handle_print_table
-                    handle_print_table(db_conn)
+                    handle_print_table(self.db)
                     
         except Exception as e:
             raise

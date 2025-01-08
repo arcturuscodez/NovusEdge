@@ -33,9 +33,11 @@ class DatabaseConnection:
             password (str): The password for the database connection.
             host (str): The host for the database connection.
             port (int): The port for the database connection.
-            pg_exe (str): The path to the PostgreSQL executuable.
-            max_retries (int, optional): _description_. Defaults to 3.
-            retry_delay (int, optional): _description_. Defaults to 5.
+            pg_exe (str): The path to the PostgreSQL executable.
+            max_retries (int, optional): Maximum number of connection retries. Defaults to 3.
+            retry_delay (int, optional): Delay between retries in seconds. Defaults to 5.
+            minconn (int, optional): Minimum number of connections in the pool. Defaults to 1.
+            maxconn (int, optional): Maximum number of connections in the pool. Defaults to 10.
         """
         self.db = db
         self.user = user
@@ -48,16 +50,19 @@ class DatabaseConnection:
         
         self.pg_exe = pg_exe
         
-        self.pool = pool.ThreadedConnectionPool(minconn, maxconn,
-                                                    dbname=self.db,
-                                                    user=self.user,
-                                                    password=self.password,
-                                                    host=self.host,
-                                                    port=self.port)
-        
-        if not self.pool:
-            logging.error('Failed to create the connection pool.')
-            raise Exception('Failed to create the connection pool.')
+        try:
+            self.pool = pool.ThreadedConnectionPool(
+                minconn, maxconn,
+                dbname=self.db,
+                user=self.user,
+                password=self.password,
+                host=self.host,
+                port=self.port
+            )
+            logging.info('Connection pool created successfully.')
+        except Exception as e:
+            logging.error(f'Failed to create the connection pool.', exc_info=True)
+            raise Exception('Failed to create the connection pool.') from e        
         
     def start_server(self) -> None:
         """Start the PostgreSQL server."""
@@ -114,22 +119,25 @@ class DatabaseConnection:
             raise
         
     def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]: 
+        """Enter the runtime context for the connection."""
         self.start_server()
-        return self.connect()
+        self.connection, self.cursor = self.connect()
+        return self.connection, self.cursor
     
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
-        connection, cursor = None, None
-        try:
-            connection, cursor = self.connect()
-            if exc_type:
-                connection.rollback()
-                logging.info('Transaction rolled back due to an error.')
-            else:
-                connection.commit()
-                logging.info('Transaction committed successfully.')
-        except DatabaseError as e:
-            logging.error('Error during commit/rollback.')
-            raise
-        finally:
-            if connection and cursor:
-                self.close(connection, cursor)
+        if self.connection and self.cursor:
+            try:
+                if exc_type:
+                    self.connection.rollback()
+                    logging.info('Transaction rolled back due an error.')
+                else:
+                    self.connection.commit()
+                    logging.info('Transaction committed successfully.')
+            except DatabaseError as e:
+                logging.error('Error during commit/rollback.', exc_info=True)
+                raise
+            finally:
+                self.close(self.connection, self.cursor)
+                self.connection = None
+                self.cursor = None
+                
