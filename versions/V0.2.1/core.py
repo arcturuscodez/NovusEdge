@@ -1,6 +1,6 @@
 from database.connection import DatabaseConnection
 from dotenv import load_dotenv
-from options import o
+from options import args
 
 import os
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class NovusEdge:
     """Main class to handle the software's functionality."""
     
-    logging_level = logging.INFO if o.verbose else logging.WARNING
+    logging_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(
         level=logging_level,
         format='%(levelname)s:%(name)s:%(message)s'
@@ -41,32 +41,25 @@ class NovusEdge:
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
         db_option_dests = [
-            'PrintTable',
+            'table',
             'AddShareholder',
-            'RemoveShareholder',
-            'EditShareholder',
-            'BuyStock',
-            'SellStock',
-            'AddTransaction',
-            'Truncate',
-            'InitializeFirmTable'
         ]
-        return any(getattr(o, dest) not in [None, False] for dest in db_option_dests)
+        return any(getattr(args, dest) not in [None, False] for dest in db_option_dests)
     
     def _is_plot_option_set(self):
         """Check if plotting option is set."""
         plot_option_dests = [
             'plotdata'
         ]
-        return any(getattr(o, dest) not in [None, False] for dest in plot_option_dests)
+        return any(getattr(args, dest) not in [None, False] for dest in plot_option_dests)
     
     def database_usage(self):
         try:
             with self.db:
-                if o.PrintTable:
+                if args.table:
                     from database.services.other import handle_print_table
                     handle_print_table(self.db)
-                elif o.AddShareholder:
+                elif args.AddShareholder:
                     from database.services.add import handle_add_shareholder
                     handle_add_shareholder(self.db)
                     

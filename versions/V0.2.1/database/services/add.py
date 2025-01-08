@@ -1,4 +1,4 @@
-from options import o
+from options import args
 from utility import is_valid_email
 from database.repositories.shareholder import ShareholderRepository
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def handle_add_shareholder(db):
     try:
-        parts = o.AddShareholder.split(':')
+        parts = args.AddShareholder.split(':')
         if len(parts) != 4:
             logger.error('Invalid number of arguments. Expected 4, got', len(parts))
             print('Invalid input format. Please provide the name, ownership, investment, and email separated by colons. name:ownership:investment:email')

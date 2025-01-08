@@ -37,6 +37,6 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
     if repository_class:
         logger.info(f'Retrieving repository for table: {table_name.upper()}')
         return repository_class(db_conn)
-    logger.info(f"Repository for table '{table_name}' not found.") 
-    raise RepositoryNotFoundError(f"Repository for table '{table_name}' not found.")  
-    
+    else:
+        logger.error(f"Repository for table '{table_name}' not found.") 
+        raise RepositoryNotFoundError(f"Repository for table '{table_name}' not found.")

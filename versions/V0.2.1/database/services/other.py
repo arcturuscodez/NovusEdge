@@ -1,9 +1,9 @@
 from utility import FormatTableData
 from database.repositories.factory import get_repository
-from options import o
+from options import args
 
 def handle_print_table(db_conn):
-    table_name = str(o.PrintTable).upper()
+    table_name = str(args.table).upper()
     repository = get_repository(table_name, db_conn)
     if repository:
         records = repository.get_all()
