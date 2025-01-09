@@ -3,7 +3,7 @@ from database.repositories.factory import get_repository
 from options import args
 
 def handle_print_table(db_conn):
-    table_name = str(args.table).upper()
+    table_name = str(args.PrintTable).upper()
     repository = get_repository(table_name, db_conn)
     if repository:
         records = repository.get_all()

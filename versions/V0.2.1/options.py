@@ -15,11 +15,19 @@ database_options = parser.add_argument_group('Database Options')
 ## Universal Database Options
 
 database_options.add_argument(
+    '-t', '--table',
+    dest='table',
+    type=str,
+    metavar='SHAREHOLDER',
+    help='Print the specified table to the terminal.'
+)
+
+database_options.add_argument(
     '-r', '--remove',
     dest='Remove',
     type=int,
-    metavar='table:id',
-    help='Remove a entity from a table by id.'
+    metavar='-t <table> -r <id>',
+    help='Remove an entity from a table by id.'
 )
 
 database_options.add_argument(
@@ -61,8 +69,8 @@ database_options.add_argument(
 utility_options = parser.add_argument_group('Utility Options')
 
 utility_options.add_argument(
-    '-t', '--table',
-    dest='table',
+    '--pt', '--print-table',
+    dest='PrintTable',
     type=str,
     metavar='SHAREHOLDER',
     help='Print the specified table to the terminal.'
