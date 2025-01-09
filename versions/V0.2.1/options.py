@@ -26,7 +26,7 @@ database_options.add_argument(
     '-r', '--remove',
     dest='Remove',
     type=int,
-    metavar='-t <table> -r <id>',
+    metavar='-r <id> (-t <table>)',
     help='Remove an entity from a table by id.'
 )
 
@@ -34,7 +34,7 @@ database_options.add_argument(
     '-e', '--edit',
     dest='EditShareholder',
     type=str,
-    metavar='table:id:key=value',
+    metavar='-e <id>:key=value (-t <table>)',
     help='Edit a entity in a table by id.'
 )
 
