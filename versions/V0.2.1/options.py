@@ -88,5 +88,4 @@ utility_options.add_argument(
 
 plotting_options = parser.add_argument_group('Plotting Options')
 
-
 args = parser.parse_args()

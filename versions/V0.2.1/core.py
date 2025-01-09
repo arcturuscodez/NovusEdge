@@ -40,7 +40,7 @@ class NovusEdge:
         elif self._is_plot_option_set():
             pass
         else:
-            print('An error occurred. No options were set.')
+            print('No valid context for options was provided, please use -h to view valid options and uses.')
 
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
@@ -56,7 +56,7 @@ class NovusEdge:
         plot_option_dests = [
             'plotdata'
         ]
-        return any(getattr(args, dest) not in [None, False] for dest in plot_option_dests)
+        return any(getattr(args, dest, False) not in [None, False] for dest in plot_option_dests)
     
     def database_usage(self):
         try:
@@ -70,8 +70,14 @@ class NovusEdge:
                 elif args.Remove:
                     from database.services.delete import handle_delete_by_id
                     handle_delete_by_id(self.db)
+                elif args.table and not args.Remove and not args.AddShareholder:
+                    logger.error('No specific action provided for the table operation.')
+        
+        except AttributeError as e:
+            logger.error(f'Argument parsing error: {e}')
                     
         except Exception as e:
+            logger.error(f'An unexpected error occurred: {e}')
             raise
          
 if __name__ == '__main__':
