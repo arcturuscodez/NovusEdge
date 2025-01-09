@@ -6,7 +6,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def handle_add_entity(db):
+    """
+    Handle the addition of an entity to a table in the database.
+
+    Args:
+        db (object): The database connection object.
+    """
+    try:
+        parts = args.AddEntity.split(':')
+        
+    except Exception as e:
+        logger.error(f'An error occurred handling the adding of an entity to the table: {e}')
+        raise
+        
 def handle_add_shareholder(db):
+    """
+    Handle the addition of a shareholder to the shareholders table.
+
+    Args:
+        db (object): The database connection object.
+    """
     try:
         parts = args.AddShareholder.split(':')
         if len(parts) != 4:

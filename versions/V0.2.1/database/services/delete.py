@@ -9,6 +9,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 def handle_delete_by_id(db):
+    """
+    Handle the deletion of an entity from a table by ID.
+
+    Args:
+        db (object): The database connection object.
+    """
     try:
         if not args.table:
             logger.error('Table name not provided.')
@@ -16,8 +22,8 @@ def handle_delete_by_id(db):
             return
         
         repository = GenericRepository(db, args.table)
-        repository.delete(args.Remove)
-        logger.info(f'Entity with id: {args.Remove} from table: {args.table} deleted sucessfully.')
+        repository.delete(args.remove)
+        logger.info(f'Entity with id: {args.remove} from table: {args.table} deleted sucessfully.')
     
     except RepositoryNotFoundError as e:
         logger.error(f'Repository not found error: {e}')

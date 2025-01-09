@@ -67,10 +67,10 @@ class NovusEdge:
                 elif args.AddShareholder:
                     from database.services.add import handle_add_shareholder
                     handle_add_shareholder(self.db)
-                elif args.Remove:
+                elif args.remove:
                     from database.services.delete import handle_delete_by_id
                     handle_delete_by_id(self.db)
-                elif args.table and not args.Remove and not args.AddShareholder:
+                elif args.table and not args.remove and not args.AddShareholder:
                     logger.error('No specific action provided for the table operation.')
         
         except AttributeError as e:
