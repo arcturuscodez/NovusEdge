@@ -1,7 +1,3 @@
-# Bearhouse Capital
-
-<img src="software\img\logo.png" alt="Project Logo" width="200"/>
-
 # Software Name
 
 NovusEdge
@@ -10,7 +6,11 @@ NovusEdge
 
 The software being developed is a portfolio management system for an investment firm, designed to manage and track stock transactions, portfolio performance, and live market data. It allows users to execute buy transactions, update portfolio information with live stock prices, calculate unrealized profits and losses, and track dividend yields. The system interacts with a database to store transaction records, portfolio details, and firm financial information, and leverages external stock data sources for real-time price and dividend updates.
 
-The end goal of the software is to use machine learning and artificial intelligence to monitor, simulate and provide feedback on the portfolios provided to the software.
+The end goal of the software is to use machine learning and artificial intelligence to monitor, simulate and provide feedback on the portfolios provided to the software by the Chief Investment Officer of Bearhouse Capital.
+
+### Bearhouse Capital
+
+<img src="software\img\logo.png" alt="Project Logo" width="200"/>
 
 ### Versions
 
