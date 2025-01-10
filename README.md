@@ -12,7 +12,7 @@ The end goal of the software is to use machine learning and artificial intellige
 
 Bearhouse Capital is an investment firm owned by the author of the software.
 
-<img src="software\img\logo.png" alt="Project Logo" width="200"/>
+<img src="config\img\image.png" alt="Project Logo" width="200"/>
 
 ### Versions
 
