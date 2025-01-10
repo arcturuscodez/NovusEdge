@@ -12,7 +12,7 @@ The end goal of the software is to use machine learning and artificial intellige
 
 Bearhouse Capital is an investment firm owned by the author of the software.
 
-<img src="config\img\image.png" alt="Project Logo" width="200"/>
+<img src="config/img/image.png" alt="Project Logo" width="200"/>
 
 ### Versions
 
@@ -38,7 +38,7 @@ Bearhouse Capital is an investment firm owned by the author of the software.
 
 ## Features Working/Planned ('V0.2.1')
 
-- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the file [info.md](versions/V0.2.1/database/info.md) file.
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the [info.md](versions/V0.2.1/database/info.md) file in the database module.
 
 ### Database & Tables
 
