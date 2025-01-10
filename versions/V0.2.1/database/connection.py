@@ -39,6 +39,10 @@ class DatabaseConnection:
             minconn (int, optional): Minimum number of connections in the pool. Defaults to 1.
             maxconn (int, optional): Maximum number of connections in the pool. Defaults to 10.
         """
+        if not user:
+            logger.error('Database user is not provided.')
+            raise ValueError('Database user is required.')
+        
         self.db = db
         self.user = user
         self.password = password
@@ -62,7 +66,8 @@ class DatabaseConnection:
             logger.info('Connection pool created successfully.')
             
         except Exception as e:
-            logger.error(f'Failed to create the connection pool.', exc_info=True)
+            self.pool = None
+            logger.error(f'Failed to create the connection pool: {e}', exc_info=True)
         
     def start_server(self) -> None:
         """Start the PostgreSQL server."""
@@ -87,6 +92,13 @@ class DatabaseConnection:
             logger.error(f'Timed out trying to start PostgreSQL server: {e}')
             raise
         
+    def stop_server(self) -> None:
+        """Stop the PostgreSQL server."""
+        try:
+            pass
+        except Exception as e:
+            print(f'Failed to stop PostgreSQL server: {e}')
+        
     def connect(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """Acquire a connection and cursor from the pool."""
         logger.info('Attempting to acquire a connection from the pool...')
@@ -96,6 +108,7 @@ class DatabaseConnection:
                 connection = self.pool.getconn()
                 cursor = connection.cursor()
                 logger.info('Connection acquired successfully.')
+                logger.info(f'Connection to DB: {self.db} on {self.host}:{self.port} with role {self.user}')
                 return connection, cursor
             except OperationalError as e:
                 attempt += 1

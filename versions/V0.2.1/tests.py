@@ -9,8 +9,8 @@ from database.models import ShareholderModel
 import logging
 
 logger = logging.getLogger(__name__)
-
-load_dotenv()
+dotenv_path = os.path.abspath('config/.env')
+load_dotenv(verbose=True, dotenv_path=dotenv_path)
     
 DB = os.getenv('DB')
 DB_USER = os.getenv('DB_USER').lower()
