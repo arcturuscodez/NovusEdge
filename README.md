@@ -36,46 +36,19 @@ Bearhouse Capital is an investment firm owned by the author of the software.
 5. Anaconda
 6. Cuda
 
-## Features
+## Features Working/Planned ('V0.2.1')
+
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the file [info.md](versions/V0.2.1/database/info.md) file.
 
 ### Database & Tables
 
-1. All tables are viewable through the use of --ST "tablename".
-2. All tables can have their data fetched using the fetch_data method.
+1. All tables are viewable through built-in options
 
 #### Shareholders
 
 1. Add shareholders.
 2. Remove shareholders.
 3. Edit shareholders.
-
-#### Transactions
-
-1. Buy transactions.
-2. Sell transactions.
-
-#### Portfolio
-
-1. Transactions update the portfolio table based on selling or buying.
-2. The portfolio table updates relevant columns during usage of the software
-3. The portfolio table can be retrieved for further use.
-
-#### Firm
-
-1. Updates relevant columns regularly depending on actions occurring with other tables.
-    - TOTAL_VALUE
-    - TOTAL_VALUE_INVESTMENTS
-    - CASH_RESERVE
-
-#### History
-
-Note: Currently unimplemented
-
-### Machine Learning, Artificial Intelligence and Data Science Features
-
-Icarus is the name of a package that will be used further in this program for various predictions and analysis of stocks and the overall market.
-
-- Work in progress but some testing methods and classes are available.
 
 ## Contributing
 
