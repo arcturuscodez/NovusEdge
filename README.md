@@ -1,16 +1,16 @@
 # Software Name
 
-NovusEdge
+NovusEdge - Investment Firm Management Software
 
 ## Description
 
-The software being developed is a portfolio management system for an investment firm, designed to manage and track stock transactions, portfolio performance, and live market data. It allows users to execute buy transactions, update portfolio information with live stock prices, calculate unrealized profits and losses, and track dividend yields. The system interacts with a database to store transaction records, portfolio details, and firm financial information, and leverages external stock data sources for real-time price and dividend updates.
+NovusEdge is an all around investment management software designed for investment firms to manage stock transactions, track portfolio performance, and monitor live market data. It provides users with the ability to execute buy transactions, update portfolio information with real-time stock prices, calculate unrealized profits and losses, and track dividend yields.
 
-The end goal of the software is to use machine learning and artificial intelligence to monitor, simulate and provide feedback on the portfolios provided to the software by the Chief Investment Officer of Bearhouse Capital.
+The system integrates with a database to store transaction records, portfolio details, and firm financial information. It also leverages external stock data sources to provide live updates on stock prices and dividends. The long-term goal is to enhance the system with machine learning and AI capabilities to simulate, monitor, and provide feedback on the portfolios managed by Bearhouse Capital’s Chief Investment Officer.
 
 ### Bearhouse Capital
 
-Bearhouse Capital is an investment firm owned by the author of the software.
+Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.1), with several features being tested and refined.
 
 <img src="img\image.png" alt="Project Logo" width="200"/>
 
@@ -30,19 +30,21 @@ Bearhouse Capital is an investment firm owned by the author of the software.
 ### Requried Software, Libraries, Etc...
 
 1. Python 3.10
-2. NumPy
-3. yfinance
-4. psycog2
-5. Anaconda
-6. Cuda
+2. psycog2
 
-## Features Working/Planned ('V0.2.1')
+## Features Working ('V0.2.1')
 
-- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the [info.md](versions/V0.2.1/database/info.md) file in the database module.
+### General
 
-### Database & Tables
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the [Database Information Documentation](versions/V0.2.1/database/info.md) file in the database module.
 
-1. All tables are viewable through built-in options
+### Universal
+
+- Entries in tables can be deleted universally by the universal "delete_by_id" method.
+
+### Tables
+
+- All tables are viewable through built-in options
 
 #### Shareholders
 
@@ -56,7 +58,7 @@ Sonny Holman (Developer)
 
 ## License
 
-All rights reserved.
+All rights reserved. Please refer to the LICENSE file for more details on usage and distribution.
 
 ## Contact
 
