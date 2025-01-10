@@ -14,7 +14,7 @@ database_options = parser.add_argument_group('Database Options')
 
 ## Universal Database Options
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '-t', '--table',
     dest='table',
     type=str,
@@ -22,7 +22,7 @@ database_options.add_argument(
     help='Print the specified table to the terminal.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Untested
     '-a', '--add',
     dest='add',
     type=str,
@@ -30,7 +30,7 @@ database_options.add_argument(
     help='Add an entity to a table. Requires exact key-value pairs.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '-r', '--remove',
     dest='remove',
     type=int,
@@ -38,9 +38,9 @@ database_options.add_argument(
     help='Remove an entity from a table by id.'
 )
 
-database_options.add_argument(
-    '-e', '--edit',
-    dest='edit',
+database_options.add_argument( # Untested
+    '-u', '--update',
+    dest='update',
     type=str,
     metavar='<id>:key=value (-t <table>)',
     help='Edit a entity in a table by id.'
@@ -48,7 +48,7 @@ database_options.add_argument(
 
 ## Shareholder Options
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '--as', '--add-shareholder',
     dest='AddShareholder',
     type=str,
@@ -56,7 +56,7 @@ database_options.add_argument(
     help='Add a shareholder to the SHAREHOLDER table.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '--rs', '--remove-shareholder',
     dest='RemoveShareholder',
     type=int,
@@ -64,7 +64,7 @@ database_options.add_argument(
     help='Remove a shareholder from the SHAREHOLDER table by id.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '--us', '--update-shareholder',
     dest='UpdateShareholder',
     type=str,
@@ -76,7 +76,7 @@ database_options.add_argument(
 
 utility_options = parser.add_argument_group('Utility Options')
 
-utility_options.add_argument(
+utility_options.add_argument( # Functional 
     '--pt', '--print-table',
     dest='PrintTable',
     type=str,
@@ -84,7 +84,7 @@ utility_options.add_argument(
     help='Print the specified table to the terminal.'
 )
 
-utility_options.add_argument(
+utility_options.add_argument( # Functional
     '-v', '--verbose',
     dest='verbose',
     action='store_true',
