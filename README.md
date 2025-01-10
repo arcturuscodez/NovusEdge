@@ -32,11 +32,11 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 1. Python 3.10
 2. psycog2
 
-## Features Working ('V0.2.1')
+## Working Features ('V0.2.1')
 
 ### General
 
-- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through the [Database Information Documentation](versions/V0.2.1/database/info.md) file in the database module.
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](versions/V0.2.1/database/info.md).
 
 ### Universal
 
@@ -46,7 +46,7 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 
 - All tables are viewable through built-in options
 
-#### Shareholders
+### Shareholders
 
 1. Add shareholders.
 2. Remove shareholders.
