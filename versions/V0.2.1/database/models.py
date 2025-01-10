@@ -54,3 +54,24 @@ class ShareholderModel(BaseModel):
     email: str = ""
     shareholder_status: Optional[str] = 'active'
     created_at: Optional[datetime] = field(default_factory=datetime.now)
+    
+@dataclass
+class TransactionModel(BaseModel):
+    """ 
+    Dataclass model to represent a transaction.
+    """
+    pass
+
+@dataclass
+class PortfolioModel(BaseModel):
+    """ 
+    Dataclass model to represent a portfolio"
+    """
+    pass
+
+@dataclass
+class FirmModel(BaseModel):
+    """ 
+    Dataclass model to represent a firms data.
+    """
+    pass
