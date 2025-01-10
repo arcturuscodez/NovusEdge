@@ -64,8 +64,8 @@ database_options.add_argument(
 )
 
 database_options.add_argument(
-    '--es', '--edit-shareholder',
-    dest='EditShareholder',
+    '--us', '--update-shareholder',
+    dest='UpdateShareholder',
     type=str,
     metavar='id:key=value',
     help='Edit a shareholder in the SHAREHOLDER table by id.'

@@ -47,7 +47,7 @@ class NovusEdge:
         db_option_dests = [
             'PrintTable',
             'AddShareholder',
-            'EditShareholder',
+            'UpdateShareholder',
             'Remove'
         ]
         return any(getattr(args, dest) not in [None, False] for dest in db_option_dests)
@@ -68,7 +68,7 @@ class NovusEdge:
                 elif args.AddShareholder:
                     from database.services.add import handle_add_shareholder
                     handle_add_shareholder(self.db)
-                elif args.EditShareholder:
+                elif args.UpdateShareholder:
                     from database.services.update import handle_update_shareholder
                     handle_update_shareholder(self.db)
                 elif args.remove:

@@ -28,7 +28,7 @@ def handle_update_shareholder(db):
         db (object): THe database connection object.
     """    
     try:
-        parts = args.EditShareholder.split(':')
+        parts = args.UpdateShareholder.split(':')
         
         logger.debug('Parts:', parts)
         
