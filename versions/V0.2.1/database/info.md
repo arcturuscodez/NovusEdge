@@ -91,7 +91,33 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
 
 ### Models (`models.py`)
 
-...
+The `models.py` file defines the data structures used within the **NovusEdge** application. Utilizing Python's `dataclasses`, this module provides a clear and concise way to represent the various entities that the application manages. These models serve as the foundation for data manipulation and interaction through the repository pattern.
+
+#### Overview of Models
+
+1. **BaseModel**
+    - A flexible base class that provides common functionality to all other models.
+    - **Methods:**
+        - `to_dict()`: Converts the model instance attributes to a dictionary.
+        - `from_dict(data)`: Creates an instance of the model from a dictionary.
+        - `__repr__()`: Provides a custom string representation for debugging purposes.
+
+2. **GenericModel**
+    - Inherits from [BaseModel](http://_vscodecontentref_/0) and provides a generic structure to handle any table's data.
+    - **Attributes:**
+        - [id](http://_vscodecontentref_/1): Optional identifier for the record.
+        - [__dict__](http://_vscodecontentref_/2): Stores arbitrary key-value pairs representing the table's columns.
+
+3. **ShareholderModel**
+    - Represents a shareholder entity within the application.
+    - **Attributes:**
+        - [id](http://_vscodecontentref_/3): Unique identifier for the shareholder.
+        - [name](http://_vscodecontentref_/4): Name of the shareholder.
+        - [ownership](http://_vscodecontentref_/5): Percentage of ownership held by the shareholder.
+        - [investment](http://_vscodecontentref_/6): Total investment made by the shareholder.
+        - [email](http://_vscodecontentref_/7): Contact email of the shareholder.
+        - [shareholder_status](http://_vscodecontentref_/8): Current status of the shareholder (e.g., active, inactive).
+        - [created_at](http://_vscodecontentref_/9): Timestamp of when the shareholder record was created.
 
 ### Benefits of Using the Repository Pattern
 
