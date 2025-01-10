@@ -14,8 +14,7 @@ The end goal of the software is to use machine learning and artificial intellige
 
 ### Versions
 
-V0.1.9 "Working" Version
-V0.2.0/software_v2 New Testing Version
+- This is the WORK-IN-PROGRESS branch for V0.2.1, the version is as of this update not working fully and mainly for testing.
 
 ## Table of Contents
 - [Installation](#installation)

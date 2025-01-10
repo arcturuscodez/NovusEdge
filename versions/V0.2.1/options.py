@@ -18,7 +18,7 @@ database_options.add_argument(
     '-t', '--table',
     dest='table',
     type=str,
-    metavar='SHAREHOLDER',
+    metavar='<tablename>',
     help='Print the specified table to the terminal.'
 )
 
@@ -27,6 +27,7 @@ database_options.add_argument(
     dest='add',
     type=str,
     metavar='(-t <table>):key=value',
+    help='Add an entity to a table. Requires exact key-value pairs.'
 )
 
 database_options.add_argument(
