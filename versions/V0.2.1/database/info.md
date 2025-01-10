@@ -116,4 +116,4 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
 
 - The repository pattern centralizes error handling related to data access, ensuring consistent responses to failures.
 
-- By implementing the repository pattern, NovusEdge achieves a modular and scalable architecture, enhancing the application's robustness and facilitating future enhancements.
+#### By implementing the repository pattern, NovusEdge achieves a modular and scalable architecture, enhancing the application's robustness and facilitating future enhancements.
