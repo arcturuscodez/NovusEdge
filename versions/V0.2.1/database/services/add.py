@@ -29,6 +29,7 @@ def handle_add_shareholder(db):
     """
     try:
         parts = args.AddShareholder.split(':')
+        logger.debug('Parts:', parts)
         if len(parts) != 4:
             logger.error('Invalid number of arguments. Expected 4, got', len(parts))
             print('Invalid input format. Please provide the name, ownership, investment, and email separated by colons. name:ownership:investment:email')

@@ -60,9 +60,9 @@ class DatabaseConnection:
                 port=self.port
             )
             logger.info('Connection pool created successfully.')
+            
         except Exception as e:
             logger.error(f'Failed to create the connection pool.', exc_info=True)
-            raise Exception('Failed to create the connection pool.') from e        
         
     def start_server(self) -> None:
         """Start the PostgreSQL server."""

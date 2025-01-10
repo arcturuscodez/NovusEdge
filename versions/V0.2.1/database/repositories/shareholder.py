@@ -39,3 +39,21 @@ class ShareholderRepository(BaseRepository):
         except Exception as e:
             logger.error(f'Failed to add shareholder: {e}')
             return None
+        
+    def delete_shareholder(self, id: int) -> bool:
+        """
+        Delete a shareholder by id.
+        
+        Args:
+            id (int): The id of the shareholder to delete.
+        """
+        return super().delete(id)
+    
+    def update_shareholder(self, id: int, **kwargs: dict) -> bool:
+        """
+        Update a shareholder's information.
+        
+        Args:
+            id (int): The id of the shareholder to update.
+        """
+        return super().update(id, **kwargs)

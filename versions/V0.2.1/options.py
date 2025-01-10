@@ -33,7 +33,7 @@ database_options.add_argument(
     '-r', '--remove',
     dest='remove',
     type=int,
-    metavar='(-t <table>)',
+    metavar='<id> (-t <table>)',
     help='Remove an entity from a table by id.'
 )
 
