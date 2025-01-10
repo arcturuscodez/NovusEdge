@@ -4,6 +4,7 @@ import os
 from database.connection import DatabaseConnection
 from dotenv import load_dotenv
 from database.repositories.shareholder import ShareholderRepository
+from database.services.delete import handle_delete_by_id
 from database.models import ShareholderModel
 
 import logging
@@ -128,5 +129,81 @@ class TestSharehoilderRepository(unittest.TestCase):
         self.assertIsNone(shareholder_id)
         logger.info('Tested adding shareholder with invalid email.')
         
+    @patch('database.repositories.shareholder.ShareholderRepository.delete')
+    def test_delete_shareholder(self, mock_delete):
+        mock_delete.return_value = True
+        shareholder_id = 3
+        
+        result = self.repository.delete(shareholder_id)
+
+        mock_delete.assert_called_once_with(shareholder_id)
+        self.assertTrue(result)
+        logger.info('Tested deleting shareholder by ID.')
+        
+    @patch('database.repositories.shareholder.ShareholderRepository.delete')
+    def test_delete_shareholder_invalid_id(self, mock_delete):
+        mock_delete.return_value = False
+        shareholder_id = 0
+        
+        result = self.repository.delete(shareholder_id)
+        
+        mock_delete.assert_called_once_with(shareholder_id)
+        self.assertFalse(result)
+        logger.info('Tested deleting shareholder with invalid ID.')
+
+class TestUniversalCRUD(unittest.TestCase):
+    
+    def setUp(self):
+            
+        self.db = DB
+        self.user = DB_USER
+        self.password = DB_PASSWORD
+        self.host = DB_HOST
+        self.port = int(DB_PORT) if DB_PORT else 5432  # Default PostgreSQL port
+        self.pg_exe = PG_EXE
+        self.db_connection = DatabaseConnection(
+            db=self.db,
+            user=self.user,
+            password=self.password, 
+            host=self.host,
+            port=self.port,
+            pg_exe=self.pg_exe
+        )
+        
+        self.connection, self.cursor = self.db_connection.connect()
+        self.connection.autocommit = False
+        
+    def tearDown(self):
+        if self.connection:
+            self.connection.rollback()
+            self.cursor.close()
+            self.db_connection.pool.putconn(self.connection)
+        
+        if self.db_connection.pool:
+            self.db_connection.pool.closeall()
+    
+    @patch('database.services.delete.GenericRepository', autospec=True)
+    @patch('database.services.delete.args', autospec=True)
+    def test_universal_delete(self, mock_args, mock_generic_repo):
+        """ 
+        Test deleting a shareholder with valid ID and table.
+        """
+        # Configure the mock args
+        mock_args.table = 'SHAREHOLDERS'
+        mock_args.remove = 4
+        
+        # Configure the mock repository instance
+        mock_repo_instance = mock_generic_repo.return_value
+        mock_repo_instance.delete.return_value = True
+        
+        # Call the function under test
+        result = handle_delete_by_id(self.db_connection)
+        
+        # Assertions to ensure the delete method was called correctly
+        mock_repo_instance.delete.assert_called_once_with(4)
+        self.assertTrue(result)
+        
+        logger.info('Tested deleting shareholder by ID.')
+    
 if __name__ == '__main__':
     unittest.main()

@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound=BaseModel)
 
 class BaseRepository:
-    """Base repository providing common CRUD operations."""
+    """
+    Base repository providing common CRUD operations.
+    """
 
     def __init__(
         self,

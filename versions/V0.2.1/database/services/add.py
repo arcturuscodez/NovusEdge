@@ -1,5 +1,6 @@
 from options import args
 from utility import is_valid_email
+from database.repositories.generic import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 
 import logging
@@ -14,8 +15,31 @@ def handle_add_entity(db):
         db (object): The database connection object.
     """
     try:
-        parts = args.AddEntity.split(':')
+        if not args.table:
+            logger.error('Table name not provided.')
+            print('Error: Table name is required for entity addition')
+            return
         
+        if not args.add:
+            logger.error('Entity not provided.')
+            print('Error: Entity is required for entity addition')
+            return
+        
+        key_values = args.add.split(':')
+        data = {}
+        for kv in key_values:
+            key, value = kv.split('=')
+            data[key] = value
+        
+        repository = GenericRepository(db, args.table)
+        entity_id = repository.add(data)
+        if entity_id:
+            logger.info(f'Entity added to table: {args.table} with id: {entity_id}.')
+            print(f'Entity added successfully with id: {entity_id}.')
+        else:
+            logger.error(f'Failed to add entity to table: {args.table}.')
+            print('Failed to add entity.')
+                
     except Exception as e:
         logger.error(f'An error occurred handling the adding of an entity to the table: {e}')
         raise
@@ -60,6 +84,7 @@ def handle_add_shareholder(db):
         shareholder_id = repository.add_shareholder(name, ownership, investment, email)
         if shareholder_id:
             logger.info(f'Shareholder with name: {name} added successfully.')
+            print(f'Shareholder with name: {name} added successfully as id: {shareholder_id}.')
         else:
             logger.error(f'Failed to add shareholder with name: {name}.')
     

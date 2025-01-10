@@ -48,7 +48,7 @@ class NovusEdge:
             'PrintTable',
             'AddShareholder',
             'UpdateShareholder',
-            'Remove'
+            'remove'
         ]
         return any(getattr(args, dest) not in [None, False] for dest in db_option_dests)
     
