@@ -60,14 +60,20 @@ class TransactionModel(BaseModel):
     """ 
     Dataclass model to represent a transaction.
     """
-    pass
+    id: Optional[int] = None
+    ticker: str = ""
+    shares: float = 0.0
+    price_per_share: float = 0.0
+    total_value: Optional[float] = None
+    transaction_type: str = ""
+    created_at: Optional[datetime] = field(default_factory=datetime.now)
 
 @dataclass
 class PortfolioModel(BaseModel):
     """ 
     Dataclass model to represent a portfolio"
     """
-    pass
+    id: Optional[int] = None
 
 @dataclass
 class FirmModel(BaseModel):
