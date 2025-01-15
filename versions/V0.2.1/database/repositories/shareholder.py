@@ -55,5 +55,6 @@ class ShareholderRepository(BaseRepository):
         
         Args:
             id (int): The id of the shareholder to update.
+            kwargs (dict): The updated information for the shareholder.
         """
         return super().update(id, **kwargs)
