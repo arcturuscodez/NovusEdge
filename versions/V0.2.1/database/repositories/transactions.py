@@ -25,6 +25,7 @@ class TransactionRepository(BaseRepository):
         """
         try:
             if transaction_type.lower() not in 'buy' or 'sell':
+                logger.error(f'Transaction type must be either "buy" or "sell". Detected: {transaction_type}')
                 raise ValueError('Transaction type must be either "buy" or "sell".')
             
             new_transaction = TransactionModel(
