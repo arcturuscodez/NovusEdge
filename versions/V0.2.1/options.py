@@ -77,7 +77,7 @@ database_options.add_argument( # Functional
 database_options.add_argument(
     '--at', '--add-transaction',
     type=str,
-    metavar='TICKER:SHARES:PPS:TRANSACTION_TYPE'
+    metavar='TICKER:SHARES:PPS:TRANSACTION_TYPE',
     help='Add a transaction to the TRANSACTIONS table.'
 )
 
