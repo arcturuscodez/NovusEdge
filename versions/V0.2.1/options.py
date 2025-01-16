@@ -72,6 +72,15 @@ database_options.add_argument( # Functional
     help='Edit a shareholder in the SHAREHOLDER table by id.'
 )
 
+## Transaction Options
+
+database_options.add_argument(
+    '--at', '--add-transaction',
+    type=str,
+    metavar='TICKER:SHARES:PPS:TRANSACTION_TYPE'
+    help='Add a transaction to the TRANSACTIONS table.'
+)
+
 """ Utility Options """
 
 utility_options = parser.add_argument_group('Utility Options')
