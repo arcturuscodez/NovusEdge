@@ -27,8 +27,13 @@ def handle_delete_by_id(db) -> bool:
         
         repository = GenericRepository(db, args.table)
         result = repository.delete(args.remove)
-        logger.info(f'Entity with id: {args.remove} from table: {args.table} deleted sucessfully.')
-        return result
+        if result:
+            logger.info(f'Entity with id: {args.remove} from table: {args.table} deleted sucessfully.')
+            print(f'Entity with id: {args.remove} from table: {args.table} deleted sucessfully.')
+            return result
+        else:
+            print('Failed to delete entity.')
+            return False
         
     except RepositoryNotFoundError as e:
         logger.error(f'Repository not found error: {e}')
