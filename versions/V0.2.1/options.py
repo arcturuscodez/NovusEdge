@@ -74,12 +74,28 @@ database_options.add_argument( # Functional
 
 ## Transaction Options
 
-database_options.add_argument(
+database_options.add_argument( # Functional
     '--at', '--add-transaction',
     dest='AddTransaction',
     type=str,
     metavar='TICKER:SHARES:PPS:TRANSACTION_TYPE',
     help='Add a transaction to the TRANSACTIONS table.'
+)
+
+database_options.add_argument( # Untested/Nonfunctional
+    '--rt', '--remove-transaction',
+    dest='RemoveTransaction',
+    type=int,
+    metavar='ID',
+    help='Remove a transaction from the TRANSACTIONS table by id.'
+)
+
+database_options.add_argument( # Untested/Nonfunctional
+    '--ut', '--update-transaction',
+    dest='UpdateTransaction',
+    type=str,
+    metavar='id:key=value',
+    help='Edit a transaction in the TRANSACTIONS table by id.'
 )
 
 """ Utility Options """
