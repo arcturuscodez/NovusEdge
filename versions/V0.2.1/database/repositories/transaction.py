@@ -23,11 +23,7 @@ class TransactionRepository(BaseRepository):
             price_per_share (float): The price per individual asset/shares.
             transaction_type (str): The type of transaction (buy/sell).
         """
-        try:
-            if transaction_type.lower() not in 'buy' or 'sell':
-                logger.error(f'Transaction type must be either "buy" or "sell". Detected: {transaction_type}')
-                raise ValueError('Transaction type must be either "buy" or "sell".')
-            
+        try: 
             new_transaction = TransactionModel(
                 id=None,
                 ticker=ticker,

@@ -2,6 +2,7 @@ from options import args
 from utility import is_valid_email
 from database.repositories.generic import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
+from database.repositories.transaction import TransactionRepository
 
 import logging
 
@@ -90,4 +91,37 @@ def handle_add_shareholder(db):
     
     except Exception as e:
         logger.error(f'An error occurred handling the adding of a shareholder to the table: {e}')
+        raise
+    
+def handle_add_transaction(db):
+    """ 
+    Handle the addition of a transaction to the transactions table.
+    
+    Args:
+        db (object): The database connection object.
+    """
+    try:
+        parts = args.AddTransaction.split(':')
+        logger.debug('Parts:', parts)
+        if len(parts) != 4:
+            logger.error('Invalid number of arguments. Expected 4, got', len(parts))
+            print('Invalid input format. Please provide the ticker, shares, price_per_share, and transaction_type separated by colons. ticker:shares:price_per_share:transaction_type')
+            return
+        
+        ticker, shares, price_per_share, transaction_type = parts
+        
+        if not (transaction_type.lower() in ['buy', 'sell']):
+            logger.warning('Transaction type must be either "buy" or "sell".')
+            return
+        
+        repository = TransactionRepository(db)
+        transaction_id = repository.add_transaction(ticker, shares, price_per_share, transaction_type)
+        if transaction_id:
+            logger.info(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully.')
+            print(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully as id: {transaction_id}.')
+        else:
+            logger.error(f'Failed to add transaction of ticker: {ticker}.')
+        
+    except Exception as e:
+        logger.error(f'An error occurred handling the adding of a transaction to the table: {e}')
         raise
