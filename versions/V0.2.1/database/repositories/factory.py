@@ -1,6 +1,7 @@
 from typing import Type, Optional
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
+from database.repositories.transaction import TransactionRepository
 
 import logging
 
@@ -11,7 +12,8 @@ class RepositoryNotFoundError(Exception):
     pass
 
 REPOSITORY_MAP = {
-    'SHAREHOLDERS': ShareholderRepository
+    'SHAREHOLDERS': ShareholderRepository,
+    'TRANSACTIONS': TransactionRepository
 }
 
 def register_repository(table_name: str, repository_class: Type):
