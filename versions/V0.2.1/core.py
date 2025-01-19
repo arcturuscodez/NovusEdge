@@ -47,6 +47,7 @@ class NovusEdge:
         db_option_dests = [
             'PrintTable',
             'AddShareholder',
+            'AddTransaction',
             'UpdateShareholder',
             'remove'
         ]
