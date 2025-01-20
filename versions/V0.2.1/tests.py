@@ -1,11 +1,13 @@
 import unittest
-from unittest.mock import patch, MagicMock
 import os
+from unittest.mock import patch, MagicMock
 from database.connection import DatabaseConnection
-from dotenv import load_dotenv
 from database.repositories.shareholder import ShareholderRepository
+from database.repositories.transaction import TransactionRepository
+from database.models import ShareholderModel, TransactionModel
+
+from dotenv import load_dotenv
 from database.services.delete import handle_delete_by_id
-from database.models import ShareholderModel
 
 import logging
 
@@ -150,6 +152,69 @@ class TestSharehoilderRepository(unittest.TestCase):
         mock_delete.assert_called_once_with(shareholder_id)
         self.assertFalse(result)
         logger.info('Tested deleting shareholder with invalid ID.')
+
+class TestTransactionRepository(unittest.TestCase):
+    
+    def setUp(self):
+            
+        self.db = DB
+        self.user = DB_USER
+        self.password = DB_PASSWORD
+        self.host = DB_HOST
+        self.port = int(DB_PORT) if DB_PORT else 5432  # Default PostgreSQL port
+        self.pg_exe = PG_EXE
+        self.db_connection = DatabaseConnection(
+            db=self.db,
+            user=self.user,
+            password=self.password, 
+            host=self.host,
+            port=self.port,
+            pg_exe=self.pg_exe
+        )
+        
+        self.repository = TransactionRepository(self.db_connection)
+        
+        self.connection, self.cursor = self.db_connection.connect()
+        self.connection.autocommit = False
+        
+    def tearDown(self):
+        if self.connection:
+            self.connection.rollback()
+            self.cursor.close()
+            self.db_connection.pool.putconn(self.connection)
+        
+        if self.db_connection.pool:
+            self.db_connection.pool.closeall()
+            
+    @patch('database.repositories.transaction.TransactionRepository.add')
+    def test_add_transaction_buy(self, mock_add):
+        mock_add.return_value = 1
+        transaction = TransactionModel(
+            ticker='AAPL',
+            price_per_share=100.0,
+            shares=10.0,
+            transaction_type='buy'
+        )
+        transaction_id = self.repository.add(transaction)
+        
+        mock_add.assert_called_once_with(transaction)
+        self.assertEqual(transaction_id, 1)
+        logger.info('Tested adding a buy transaction.')
+        
+    @patch('database.repositories.transaction.TransactionRepository.add')
+    def test_add_transaction_sell(self, mock_add):
+        mock_add.return_value = 1
+        transaction = TransactionModel(
+            ticker='AAPL',
+            price_per_share=100.0,
+            shares=10.0,
+            transaction_type='sell'
+        )
+        transaction_id = self.repository.add(transaction)
+        
+        mock_add.assert_called_once_with(transaction)
+        self.assertEqual(transaction_id, 1)
+        logger.info('Tested adding a sell transaction.')
 
 class TestUniversalCRUD(unittest.TestCase):
     
