@@ -75,6 +75,9 @@ class NovusEdge:
                 elif args.UpdateShareholder:
                     from database.services.update import handle_update_shareholder
                     handle_update_shareholder(self.db)
+                elif args.UpdateTransaction:
+                    from database.services.update import handle_update_transaction
+                    handle_update_transaction(self.db)
                 elif args.remove:
                     from database.services.delete import handle_delete_by_id
                     handle_delete_by_id(self.db)

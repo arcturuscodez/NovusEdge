@@ -2,6 +2,7 @@ from options import args
 from utility import is_valid_email
 from database.repositories.generic import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
+from database.repositories.transaction import TransactionRepository
 
 import logging
 
@@ -22,10 +23,10 @@ def handle_update_entity(db):
     
 def handle_update_shareholder(db):
     """
-    Handle the updating of a shareholder's information in the shareholders table.
+    Handle the updating of a shareholder's information in the SHAREHOLDERS table.
     
     Args:
-        db (object): THe database connection object.
+        db (object): The database connection object.
     """    
     try:
         parts = args.UpdateShareholder.split(':')
@@ -93,4 +94,78 @@ def handle_update_shareholder(db):
         
     except Exception as e:
         logger.error(f'An error occurred handling the updating of a shareholders values in the table: {e}')
+        raise
+    
+def handle_update_transaction(db):
+    """
+    Handle the updating of a transaction in the TRANSACTIONS table.
+    
+    Args:
+        db (object): The database connection object.
+    """
+    try:
+        parts = args.UpdateTransaction.split(':')
+
+        logger.debug('Parts:', parts)
+        
+        if len(parts) != 2:
+            print(
+                'Invalid format for EditTransaction.\n'
+                'Expected format: id:key=value\n'
+                'Example: 2:shares=50'
+            )
+            return
+        try:
+            transaction_id = int(parts[0])
+        except ValueError:
+            print('Transaction ID must be an integer.')
+            return
+        
+        key_value = parts[1]
+        if '=' not in key_value:
+            print('Invalid format for key=value pair.')
+            return
+        
+        key, value = key_value.split('=', 1)
+        key = key.strip().lower()
+        value = value.strip()
+        
+        allowed_fields = {
+            'ticker': str,
+            'shares': float,
+            'price_per_share': float,
+            'transaction_type': str
+        }
+        
+        if key not in allowed_fields:
+            print(f"Unknown field: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}.")
+            return
+        
+        try:
+            if allowed_fields[key] == float:
+                value = float(value)
+            elif allowed_fields[key] == int:
+                value = int(value)
+            elif allowed_fields[key] == str:
+                if key == 'transaction_type' and value.lower() not in ['buy', 'sell']:
+                    print('Invalid transaction type. Must be either "buy" or "sell".')
+                    return
+                
+        except ValueError:
+            print(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}.")
+            return
+        
+        repository = TransactionRepository(db)
+        try:
+            success = repository.update_transaction(transaction_id, **{key: value})
+            if success:
+                print('Transaction updated successfully.')
+            else:
+                print('Failed to update transaction.')
+            
+        except Exception as e:
+            print(f'An unexpected error occurred updating transaction rows: {e}')
+            
+    except Exception as e:
+        logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
