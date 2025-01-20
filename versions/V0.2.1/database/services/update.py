@@ -8,14 +8,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def handle_update_entity(db):
+def handle_update_entity(db) -> bool:
     """
     Handle the updating of an entity in a table in the database.
 
     Args:
         db (object): The database connection object.
+        
+    Returns:
+        bool: True if the entity was updated successfully, False otherwise.
     """
     try:
+        
+        if not args.table:
+            logger.error('Table name not provided.')
+            print('Error: Table name is required for update')
+            return
+        
         parts = args.update.lower().split(':')
         
         logger.debug('Parts:', parts)
@@ -67,7 +76,7 @@ def handle_update_entity(db):
             print(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}.")
             return
         
-        repository = GenericRepository(db)
+        repository = GenericRepository(db, args.table)
         try:
             success = repository.update(entity_id, **{key: value})
             if success:
@@ -149,6 +158,7 @@ def handle_update_shareholder(db):
                 print('Shareholder updated successfully.')
             else:
                 print('Failed to update shareholder.')
+                return False
                 
         except Exception as e:
             print(f'An unexpected error occurred updating shareholder rows: {e}')
