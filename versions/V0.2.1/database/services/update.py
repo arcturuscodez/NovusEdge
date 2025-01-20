@@ -16,7 +16,68 @@ def handle_update_entity(db):
         db (object): The database connection object.
     """
     try:
-        pass
+        parts = args.update.lower().split(':')
+        
+        logger.debug('Parts:', parts)
+        
+        if len(parts) != 2:
+            print(
+                'Invalid format for update.\n'
+                'Expected format: table:id:key=value\n'
+                'Example: shareholders:2:investment=1500'
+            )
+            return
+        try:
+            entity_id = int(parts[0])
+        except ValueError:
+            print('Entity ID must be an integer.')
+            return
+        
+        key_value = parts[1]
+        if '=' not in key_value:
+            print('Invalid format for key=value pair.')
+            return
+        
+        key, value = key_value.split('=', 1)
+        key = key.strip().lower()
+        value = value.strip()
+        
+        allowed_fields = {
+            # this will somehow need to be either automatically assigned to the correct repository or some other method, maybe use models to dictate the allowed fields
+        }
+        
+        if key not in allowed_fields:
+            print(f"Unknown field: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}.")
+            return
+        
+        try:
+            if allowed_fields[key] == float:
+                value = float(value)
+            elif allowed_fields[key] == int:
+                value = int(value)
+            elif allowed_fields[key] == str:
+                if key == 'email' and not is_valid_email(value):
+                    print('Invalid email address.')
+                    return
+                if key == 'transaction_type' and value.lower() not in ['buy', 'sell']:
+                    print('Invalid transaction type. Must be either "buy" or "sell".')
+                    return
+                
+        except ValueError:
+            print(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}.")
+            return
+        
+        repository = GenericRepository(db)
+        try:
+            success = repository.update(entity_id, **{key: value})
+            if success:
+                print(f'Entity: {entity_id} updated with {key} and {value} successfully.')
+            else:
+                print(f'Failed to update entity: {entity_id}.')
+                
+        except Exception as e:
+            print(f'An unexpected error occurred updating entity rows: {e}')
+                
     except Exception as e:
         logger.error(f'An error occurred handling the updating of an entity in the table: {e}')
         raise
