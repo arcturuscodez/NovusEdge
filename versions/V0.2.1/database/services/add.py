@@ -139,8 +139,6 @@ def handle_add_transaction(db):
         
         # Update PORTFOLIO table.
         if transaction_id:
-            logger.info('Transaction type: %s of ticker: %s, shares: %s at price: %s added successfully as id: %d.', 
-                        transaction_type, ticker, shares, price_per_share, transaction_id)
             print(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully as id: {transaction_id}.')
             
             success = portfolio_repo.add_or_update_asset(
@@ -151,14 +149,11 @@ def handle_add_transaction(db):
             )
             if success:
                 logger.info('Portfolio updated successfully for ticker: %s.', ticker)
-                print(f'Portfolio updated successfully for ticker: {ticker}.')
             else:
-                logger.error('Failed to update portfolio for ticker: %s.', ticker)
-                print(f'Failed to update portfolio for ticker: {ticker}.')
+                logger.warning('Failed to update portfolio for ticker: %s.', ticker)
         else:
-            logger.error('Failed to add transaction of ticker: %s.', ticker)
-            print(f'Failed to add transaction of ticker: {ticker}.')
+            logger.warning('Failed to add transaction of ticker: %s.', ticker)
                    
     except Exception as e:
-        logger.error('An error occurred handling the adding of a transaction to the table: %s', e)
+        logger.warning('An error occurred handling the adding of a transaction to the table: %s', e)
         raise
