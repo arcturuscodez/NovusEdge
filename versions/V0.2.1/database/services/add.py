@@ -126,15 +126,22 @@ def handle_add_transaction(db):
             print('Shares and price_per_share must be valid decimal numbers.')
             return
         
+        portfolio_repo = PortfolioRepository(db)
+        
+        if transaction_type.lower() == 'sell':
+            asset = portfolio_repo.get_asset_by_ticker(ticker)
+            if asset.total_shares < shares:
+                logger.warning('Attempted to sell %s shares of %s, but only %s available.', shares, ticker, asset.total_shares)
+                return
+        
         transaction_repo = TransactionRepository(db)
         transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
         
+        # Update PORTFOLIO table.
         if transaction_id:
             logger.info('Transaction type: %s of ticker: %s, shares: %s at price: %s added successfully as id: %d.', 
                         transaction_type, ticker, shares, price_per_share, transaction_id)
             print(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully as id: {transaction_id}.')
-            
-            portfolio_repo = PortfolioRepository(db)
             
             success = portfolio_repo.add_or_update_asset(
                 ticker=ticker,
