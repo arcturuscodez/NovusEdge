@@ -215,6 +215,22 @@ class TestTransactionRepository(unittest.TestCase):
         mock_add.assert_called_once_with(transaction)
         self.assertEqual(transaction_id, 1)
         logger.info('Tested adding a sell transaction.')
+        
+    @patch('database.repositories.transaction.TransactionRepository.delete')
+    def test_delete_transaction_valid_id(self, mock_delete):
+        mock_delete.return_value = True
+        transaction_id = 2
+        result = self.repository.delete(transaction_id)
+        self.assertTrue(result)
+        logger.info('Tested deleting transaction by ID.')
+        
+    @patch('database.repositories.transaction.TransactionRepository.delete')
+    def test_delete_transaction_invalid_id(self, mock_delete):
+        mock_delete.return_value = False
+        transaction_id = 0
+        result = self.repository.delete(transaction_id)
+        self.assertFalse(result)
+        logger.info('Tested deleting transaction with invalid ID.')
 
 class TestUniversalCRUD(unittest.TestCase):
     
