@@ -26,12 +26,12 @@ class PortfolioRepository(BaseRepository):
         try:
             asset = self.get(ticker=ticker)
             if asset:
-                new_shares = asset.shares + shares
+                new_shares = asset.total_shares + shares
                 if new_shares < 0:
                     logger.warning('Insufficient shares to sell.')
                     return False
                 
-                update_fields = {'shares': new_shares}
+                update_fields = {'total_shares': new_shares}
                 update_fields.update(kwargs)
                 return self.update(asset.id, **update_fields) 
             else:
@@ -39,7 +39,7 @@ class PortfolioRepository(BaseRepository):
                     id=None,
                     ticker=ticker,
                     total_shares=shares,
-                    total_invested=total_invested
+                    total_invested=total_invested,
                     **kwargs 
                 )   
                 return self.add(new_asset) is not None
