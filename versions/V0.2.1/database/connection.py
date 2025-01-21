@@ -140,7 +140,7 @@ class DatabaseConnection:
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         if self.connection and self.cursor:
             try:
-                if exc_type:
+                if exc_type or exc_value or exc_traceback:
                     self.connection.rollback()
                     logger.info('Transaction rolled back due an error.')
                 else:

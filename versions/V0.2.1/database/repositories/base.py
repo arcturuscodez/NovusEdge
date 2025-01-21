@@ -58,7 +58,7 @@ class BaseRepository:
             print("An internal error occurred while adding the entity. Please try again later.")
             return None
 
-    def get(self, **kwargs) -> Optional[T]:
+    def get_entity(self, **kwargs) -> Optional[T]:
         """ 
         Retrieve a single entity based on provided filters.
 

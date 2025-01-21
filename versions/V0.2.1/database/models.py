@@ -80,9 +80,10 @@ class PortfolioModel(BaseModel):
     current_price: Optional[float] = None
     total_value: Optional[float] = None # Total value of currently owned asset shares
     unrealized_profit_loss: Optional[float] = None # Unrealized profit or loss on the asset
+    realized_profit_loss: Optional[float] = None # Realized profit or loss on the asset
     dividend_yield: Optional[float] = None # Dividend yield of the asset (percentage)
     dividend_yield_cash: Optional[float] = None # Dividend yield in cash
-    updated_at: Optional[datetime] = field(default_factory=datetime.now) # Portfolio entry last updated date
+    created_at: Optional[datetime] = field(default_factory=datetime.now) # Portfolio entry last updated date
 
 @dataclass
 class FirmModel(BaseModel):
