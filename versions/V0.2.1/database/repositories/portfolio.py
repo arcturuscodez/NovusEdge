@@ -13,13 +13,14 @@ class PortfolioRepository(BaseRepository):
         """Initialize the repository with the PortfolioModel."""
         super().__init__(db_conn, table_name='portfolio', model=PortfolioModel)
         
-    def add_or_update_asset(self, ticker: str, shares: float, **kwargs) -> bool:
+    def add_or_update_asset(self, ticker: str, shares: float, total_invested: float, **kwargs) -> bool:
         """ 
         Add a new asset or update existing asset's shares and other fields in the PORTFOLIO table.
         
         Args:
             ticker (str): Ticker symbol of the asset.
             shares (float): The number of asset/shares to add/remove or update.
+            total_invested (float): The total amount invested in the asset.
             **kwargs: Additional fields to update in the asset. (e.g., current_price, dividend_yield, etc...)
         """
         try:
@@ -37,8 +38,9 @@ class PortfolioRepository(BaseRepository):
                 new_asset = PortfolioModel(
                     id=None,
                     ticker=ticker,
-                    shares=shares,
-                    **kwargs
+                    total_shares=shares,
+                    total_invested=total_invested
+                    **kwargs 
                 )   
                 return self.add(new_asset) is not None
             
