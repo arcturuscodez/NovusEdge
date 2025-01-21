@@ -13,13 +13,14 @@ class PortfolioRepository(BaseRepository):
         """Initialize the repository with the PortfolioModel."""
         super().__init__(db_conn, table_name='portfolio', model=PortfolioModel)
         
-    def add_or_update_asset(self, ticker: str, shares: float) -> bool:
+    def add_or_update_asset(self, ticker: str, shares: float, **kwargs) -> bool:
         """ 
-        Add a new asset or update existing asset's shares in the PORTFOLIO table.
+        Add a new asset or update existing asset's shares and other fields in the PORTFOLIO table.
         
         Args:
             ticker (str): Ticker symbol of the asset.
-            shares (float): The acquired number of asset/shares.
+            shares (float): The number of asset/shares to add/remove or update.
+            **kwargs: Additional fields to update in the asset. (e.g., current_price, dividend_yield, etc...)
         """
         try:
             asset = self.get(ticker=ticker)
@@ -28,15 +29,38 @@ class PortfolioRepository(BaseRepository):
                 if new_shares < 0:
                     logger.warning('Insufficient shares to sell.')
                     return False
-                return self.update(asset.id, shares=new_shares)
+                
+                update_fields = {'shares': new_shares}
+                update_fields.update(kwargs)
+                return self.update(asset.id, **update_fields) 
             else:
                 new_asset = PortfolioModel(
                     id=None,
                     ticker=ticker,
-                    shares=shares
-                )
+                    shares=shares,
+                    **kwargs
+                )   
                 return self.add(new_asset) is not None
-    
+            
         except Exception as e:
-            logger.error(f'Failed to add/update asset: {e}')
+            logger.error(f'Failed to add or update asset: {e}')
             return False
+                    
+    def delete_asset(self, id: int) -> bool:
+        """ 
+        Delete an asset by id.
+        
+        Args:
+            id (int): The id of the asset to delete.
+        """
+        return super().delete(id)
+    
+    def get_asset(self, id: int) -> Optional[PortfolioModel]:
+        """ 
+        Retrieve an asset by id.
+        
+        Args:
+            id (int): The id of the asset to retrieve.    
+        """
+        return super().get(id=id)
+        

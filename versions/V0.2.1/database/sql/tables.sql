@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS SHAREHOLDERS (
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create the TRANSACTIONS table.
 CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     ID SERIAL PRIMARY KEY,
     TICKER VARCHAR(10) NOT NULL,
@@ -19,4 +20,18 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (SHARES * PRICE_PER_SHARE) STORED,
     TRANSACTION_TYPE VARCHAR(10) NOT NULL CHECK (TRANSACTION_TYPE IN ('buy', 'sell')),
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the PORTFOLIO table.
+CREATE TABLE IF NOT EXISTS PORTFOLIO (
+    ID SERIAL PRIMARY KEY,                                                                              -- Entry ID
+    TICKER VARCHAR(10) NOT NULL UNIQUE,                                                                 -- Unique asset ticker
+    TOTAL_SHARES NUMERIC(10, 2) CHECK (TOTAL_SHARES > 0),                                               -- Total owned shares of the asset
+    TOTAL_INVESTED NUMERIC(20, 2) CHECK(TOTAL_INVESTED >= 0),                                           -- The total invested in the asset
+    CURRENT_PRICE NUMERIC(15, 2) CHECK(CURRENT_PRICE >= 0),                                             -- The current price of 1 of the asset
+    TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_SHARES * CURRENT_PRICE) STORED,               -- The total value of all owned shares of the asset
+    UNREALIZED_PROFIT_LOSS NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_VALUE - TOTAL_INVESTED) STORED,    -- The unrealized profit or loss of the asset
+    DIVIDEND_YIELD REAL DEFAULT 0 CHECK(DIVIDEND_YIELD >= 0),                                           -- The dividend yield of the asset (percentage)
+    DIVIDEND_YIELD_CASH NUMERIC(20, 2) GENERATED ALWAYS AS ((DIVIDEND_YIELD / 100) * CURRENT_VALUE),    -- The dividend yield in cash value (yield / 100) * current value
+    UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                      -- The last time the asset was updated       
 );
