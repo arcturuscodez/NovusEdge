@@ -22,5 +22,14 @@ def FormatTableData(ColumnName, TableData):
     print(f"\n{len(TableData)} rows displayed.")
     
 def is_valid_email(email: str) -> bool:
+    """
+    Check if the email is valid.
+
+    Args:
+        email (str): The email to validate.
+
+    Returns:
+        bool: True if the email is valid, False otherwise.
+    """
     regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     return re.match(regex, email) is not None
