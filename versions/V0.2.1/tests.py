@@ -240,7 +240,7 @@ class TestUniversalCRUD(unittest.TestCase):
         self.user = DB_USER
         self.password = DB_PASSWORD
         self.host = DB_HOST
-        self.port = int(DB_PORT) if DB_PORT else 5432  # Default PostgreSQL port
+        self.port = int(DB_PORT) if DB_PORT else 5432
         self.pg_exe = PG_EXE
         self.db_connection = DatabaseConnection(
             db=self.db,
@@ -269,21 +269,13 @@ class TestUniversalCRUD(unittest.TestCase):
         """ 
         Test deleting a shareholder with valid ID and table.
         """
-        # Configure the mock args
         mock_args.table = 'SHAREHOLDERS'
         mock_args.remove = 4
-        
-        # Configure the mock repository instance
         mock_repo_instance = mock_generic_repo.return_value
         mock_repo_instance.delete.return_value = True
-        
-        # Call the function under test
         result = handle_delete_by_id(self.db_connection)
-        
-        # Assertions to ensure the delete method was called correctly
         mock_repo_instance.delete.assert_called_once_with(4)
         self.assertTrue(result)
-        
         logger.info('Tested deleting shareholder by ID.')
     
 if __name__ == '__main__':
