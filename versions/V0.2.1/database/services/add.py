@@ -41,8 +41,7 @@ def handle_add_entity(db):
             logger.info(f'Entity added to table: {args.table} with id: {entity_id}.')
             print(f'Entity added successfully with id: {entity_id}.')
         else:
-            logger.error(f'Failed to add entity to table: {args.table}.')
-            print('Failed to add entity.')
+            logger.warning(f'Failed to add entity to table: {args.table}.')
                 
     except Exception as e:
         logger.error(f'An error occurred handling the adding of an entity to the table: {e}')
@@ -59,8 +58,7 @@ def handle_add_shareholder(db):
         parts = args.AddShareholder.split(':')
         logger.debug('Parts:', parts)
         if len(parts) != 4:
-            logger.error('Invalid number of arguments. Expected 4, got', len(parts))
-            print('Invalid input format. Please provide the name, ownership, investment, and email separated by colons. name:ownership:investment:email')
+            logger.warning('Invalid input format. Please provide the name, ownership, investment, and email separated by colons. name:ownership:investment:email')
             return
 
         name, ownership, investment, email = parts
@@ -90,10 +88,10 @@ def handle_add_shareholder(db):
             logger.info(f'Shareholder with name: {name} added successfully.')
             print(f'Shareholder with name: {name} added successfully as id: {shareholder_id}.')
         else:
-            logger.error(f'Failed to add shareholder with name: {name}.')
+            logger.warning(f'Failed to add shareholder with name: {name}.')
     
     except Exception as e:
-        logger.error(f'An error occurred handling the adding of a shareholder to the table: {e}')
+        logger.warning(f'An error occurred handling the adding of a shareholder to the table: {e}')
         raise
     
 def handle_add_transaction(db):
@@ -115,15 +113,13 @@ def handle_add_transaction(db):
         
         if not (transaction_type.lower() in ['buy', 'sell']):
             logger.warning('Transaction type must be either "buy" or "sell".')
-            print('Transaction type must be either "buy" or "sell".')
             return
         
         try:
             shares = Decimal(shares_str)
             price_per_share = Decimal(price_per_share_str)
         except InvalidOperation:
-            logger.error('Shares and price_per_share must be valid decimal numbers.')
-            print('Shares and price_per_share must be valid decimal numbers.')
+            logger.warning('Shares and price_per_share must be valid decimal numbers.')
             return
         
         portfolio_repo = PortfolioRepository(db)
