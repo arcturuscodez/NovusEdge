@@ -131,10 +131,9 @@ def handle_add_transaction(db):
         transaction_repo = TransactionRepository(db)
         transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
         
-        # Update PORTFOLIO table.
-        if transaction_id:
+        if transaction_id: 
             print(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully as id: {transaction_id}.')
-            
+            # Update the portfolio table for ticker, shares, price per share. Use transaction type to determine whether to add or remove shares.
             success = portfolio_repo.add_or_update_asset(
                 ticker=ticker,
                 shares=shares if transaction_type.lower() == 'buy' else -shares,

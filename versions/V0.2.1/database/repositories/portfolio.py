@@ -14,7 +14,7 @@ class PortfolioRepository(BaseRepository):
         """Initialize the repository with the PortfolioModel."""
         super().__init__(db_conn, table_name='portfolio', model=PortfolioModel)
         
-    def add_or_update_asset(self, ticker: str, shares: Decimal, price_per_share: Decimal, transaction_type: str, **kwargs) -> bool:
+    def add_or_update_asset(self, ticker: str, shares: Decimal, price_per_share: Decimal, transaction_type: str) -> bool:
         """ 
         Add a new asset or update existing asset's shares and other fields in the PORTFOLIO table.
         
@@ -23,7 +23,6 @@ class PortfolioRepository(BaseRepository):
             shares (Decimal): The number of asset/shares to add/remove or update.
             price_per_share (Decimal): The price per share of the asset.
             transaction_type (str): Type of transaction ('buy' or 'sell').
-            **kwargs: Additional fields to update in the asset.
         """
         try:
             asset = self.get_asset_by_ticker(ticker)
@@ -50,15 +49,6 @@ class PortfolioRepository(BaseRepository):
                     realized_pl = (price_per_share - avg_cost_per_share) * abs(shares)
                     update_fields['realized_profit_loss'] = asset.realized_profit_loss + realized_pl
                     update_fields['total_invested'] = asset.total_invested - (avg_cost_per_share * abs(shares))
-
-                for key, value in kwargs.items():
-                    if hasattr(PortfolioModel, key):
-                        if key in ['current_price', 'dividend_yield']:
-                            update_fields[key] = Decimal(str(value))
-                        else:
-                            update_fields[key] = value
-                    else:
-                        logger.warning(f'Attempted to update non-existent field: {key}')
                         
                 success = self.update(asset.id, **update_fields)
                 if success:
@@ -75,7 +65,6 @@ class PortfolioRepository(BaseRepository):
                     total_shares=shares,
                     total_invested=shares * price_per_share,
                     realized_profit_loss=Decimal('0.00'),
-                    **kwargs
                 )
                 success = self.add(new_asset) is not None
                 if success:
