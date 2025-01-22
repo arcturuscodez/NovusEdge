@@ -20,13 +20,11 @@ def handle_add_entity(db):
     """
     try:
         if not args.table:
-            logger.error('Table name not provided.')
-            print('Error: Table name is required for entity addition')
+            logger.warning('Warning: Table name not provided.')
             return
         
         if not args.add:
-            logger.error('Entity not provided.')
-            print('Error: Entity is required for entity addition')
+            logger.warning('Entity not provided.')
             return
         
         key_values = args.add.split(':')
