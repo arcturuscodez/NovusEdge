@@ -48,6 +48,7 @@ class NovusEdge:
             'PrintTable',
             'AddShareholder',
             'AddTransaction',
+            'AddFirm',
             'UpdateShareholder',
             'remove'
         ]
@@ -72,6 +73,9 @@ class NovusEdge:
                 elif args.AddTransaction:
                     from database.services.add import handle_add_transaction
                     handle_add_transaction(self.db)
+                elif args.AddFirm:
+                    from database.services.add import handle_add_firm
+                    handle_add_firm(self.db)
                 elif args.UpdateShareholder:
                     from database.services.update import handle_update_shareholder
                     handle_update_shareholder(self.db)

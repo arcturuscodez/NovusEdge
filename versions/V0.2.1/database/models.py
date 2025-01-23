@@ -89,15 +89,13 @@ class FirmModel(BaseModel):
     """ 
     Dataclass model to represent a firms financial data.
     """
-    id: Optional[int] = None # Firm ID
-    capital: float = 0.0 # Total capital of the firm
-    assets: float = 0.0 # Total assets of the firm
-    cash: float = 0.0 # Total cash reserve of the firm
-    profit: Optional[float] = None # Total profit of the firm
-    loss: Optional[float] = None # Total loss of the firm
-    expenses: Optional[float] = None # Total expenses of the firm
-    revenue: Optional[float] = None
-    liabilities: Optional[float] = None # Total liabilities of the firm
-    equity: Optional[float] = None # Total equity of the firm
-    firm_name: Optional[str] = None # Name of the firm
-    created_at: Optional[datetime] = field(default_factory=datetime.now) # Firm data created at date    
+    id: Optional[int] = None
+    capital: float = 0.0
+    assets: float = 0.0
+    cash: float = 0.0
+    profit_loss: float = 0.0
+    expenses: float = 0.0
+    revenue: float = 0.0
+    liabilities: float = 0.0
+    firm_name: str = ""
+    created_at: Optional[datetime] = field(default_factory=datetime.now)

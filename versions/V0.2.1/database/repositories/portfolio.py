@@ -45,7 +45,7 @@ class PortfolioRepository(BaseRepository):
                 if transaction_type.lower() == 'buy':
                     update_fields['total_invested'] = asset.total_invested + (shares * price_per_share)
                 elif transaction_type.lower() == 'sell':
-                    avg_cost_per_share = asset.total_invested / asset.total_shares
+                    avg_cost_per_share = asset.total_invested / asset.total_shares # Should maybe be in the table.
                     realized_pl = (price_per_share - avg_cost_per_share) * abs(shares)
                     update_fields['realized_profit_loss'] = asset.realized_profit_loss + realized_pl
                     update_fields['total_invested'] = asset.total_invested - (avg_cost_per_share * abs(shares))

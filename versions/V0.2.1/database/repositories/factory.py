@@ -3,6 +3,7 @@ from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
+from database.repositories.firm import FirmRepository
 
 import logging
 
@@ -15,7 +16,8 @@ class RepositoryNotFoundError(Exception):
 REPOSITORY_MAP = {
     'SHAREHOLDERS': ShareholderRepository,
     'TRANSACTIONS': TransactionRepository,
-    'PORTFOLIO': PortfolioRepository
+    'PORTFOLIO': PortfolioRepository,
+    'FIRM': FirmRepository
 }
 
 def register_repository(table_name: str, repository_class: Type):

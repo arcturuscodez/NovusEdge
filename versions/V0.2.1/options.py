@@ -98,6 +98,16 @@ database_options.add_argument( # Untested/Nonfunctional
     help='Edit a transaction in the TRANSACTIONS table by id.'
 )
 
+## Firm Options
+
+database_options.add_argument(
+    '--af', '--AddFirm',
+    dest='AddFirm',
+    type=str,
+    metavar='<firmname>',
+    help='Add a new firm with the specified name. Other fields are set to default values.'
+)
+
 """ Utility Options """
 
 utility_options = parser.add_argument_group('Utility Options')

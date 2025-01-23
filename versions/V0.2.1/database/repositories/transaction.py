@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from database.repositories.base import BaseRepository
 from database.models import TransactionModel
 

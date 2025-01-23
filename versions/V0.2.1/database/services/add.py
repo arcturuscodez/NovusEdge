@@ -5,6 +5,7 @@ from database.repositories.generic import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
+from database.repositories.firm import FirmRepository
 
 from decimal import Decimal, InvalidOperation
 
@@ -150,4 +151,40 @@ def handle_add_transaction(db):
                    
     except Exception as e:
         logger.warning('An error occurred handling the adding of a transaction to the table: %s', e)
+        raise
+    
+def handle_add_firm(db):
+    """
+    Handle the addition of a new firm with default values.
+    
+    The firm name is provided via the '--af <firmname>' command-line option.
+    All other fields in the FIRM table are set to their default values.
+    
+    Args:
+        db: Database connection/session.
+    """
+    try:
+        firm_name = args.AddFirm
+        if not firm_name:
+            logger.warning('Firm name not provided. Use the --af <firmname> option.')
+            return
+        
+        if not str(firm_name):
+            logger.warning('Firm name must be a string.')
+            return
+
+        firm_repo = FirmRepository(db)
+
+        firm_id = firm_repo.add_firm(firm_name=firm_name)
+
+        if firm_id:
+            logger.info(f'Firm "{firm_name}" added successfully with ID: {firm_id}.')
+            print(f'Firm "{firm_name}" added successfully with ID: {firm_id}.')
+        else:
+            logger.warning('Failed to add firm.')
+            print('Error: Failed to add firm.')
+
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the firm: {e}')
+        print('An unexpected error occurred while adding the firm.')
         raise

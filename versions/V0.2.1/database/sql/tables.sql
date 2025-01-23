@@ -39,15 +39,13 @@ CREATE TABLE IF NOT EXISTS PORTFOLIO (
 -- Create the FIRM table.
 CREATE TABLE IF NOT EXISTS FIRM (
     ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
-    CAPITAL (20, 2) NOT NULL CHECK (CAPITAL > 0),                                                                               -- The total cumulative capital of the firm
-    ASSETS NUMERIC(20, 2) DEFAULT 0 CHECK (ASSETS > 0),                                                                         -- The total cumulative invested capital of the firm in assets
-    CASH NUMERIC(20, 2) DEFAULT 0 CHECK (CASH > 0),                                                                             -- The total cash reserve of the firm
-    PROFIT NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total profit of the firm
-    LOSS NUMERIC(20, 2) DEFAULT 0,                                                                                              -- The total loss of the firm
+    CAPITAL NUMERIC(20, 2) NOT NULL,                                                                                            -- The total cumulative capital of the firm
+    ASSETS NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total cumulative invested capital of the firm in assets
+    CASH NUMERIC(20, 2) DEFAULT 0,                                                                                              -- The total cash reserve of the firm
+    PROFIT_LOSS NUMERIC(20, 2) DEFAULT 0,                                                                                       -- The total profit or loss of the firm
     EXPENSES NUMERIC(20, 2) DEFAULT 0,                                                                                          -- The total expenses of the firm
     REVENUE NUMERIC(20, 2) DEFAULT 0,                                                                                           -- The total revenue of the firm
     LIABILITIES NUMERIC(20, 2) DEFAULT 0,                                                                                       -- The total liabilities of the firm
-    EQUITY NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total equity of the firm
     FIRM_NAME VARCHAR(255) NOT NULL UNIQUE,                                                                                     -- The name of the firm
-    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the firm was created                                         
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the firm was created
 );

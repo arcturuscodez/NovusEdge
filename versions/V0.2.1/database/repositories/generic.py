@@ -1,4 +1,3 @@
-from typing import Optional, Any, Dict
 from database.repositories.base import BaseRepository
 from database.models import GenericModel
 from database.connection import DatabaseConnection
