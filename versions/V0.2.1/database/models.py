@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Any, Dict
-import re
 
 @dataclass
 class BaseModel:
@@ -88,6 +87,17 @@ class PortfolioModel(BaseModel):
 @dataclass
 class FirmModel(BaseModel):
     """ 
-    Dataclass model to represent a firms data.
+    Dataclass model to represent a firms financial data.
     """
-    pass
+    id: Optional[int] = None # Firm ID
+    capital: float = 0.0 # Total capital of the firm
+    assets: float = 0.0 # Total assets of the firm
+    cash: float = 0.0 # Total cash reserve of the firm
+    profit: Optional[float] = None # Total profit of the firm
+    loss: Optional[float] = None # Total loss of the firm
+    expenses: Optional[float] = None # Total expenses of the firm
+    revenue: Optional[float] = None
+    liabilities: Optional[float] = None # Total liabilities of the firm
+    equity: Optional[float] = None # Total equity of the firm
+    firm_name: Optional[str] = None # Name of the firm
+    created_at: Optional[datetime] = field(default_factory=datetime.now) # Firm data created at date    

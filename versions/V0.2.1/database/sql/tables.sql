@@ -35,3 +35,19 @@ CREATE TABLE IF NOT EXISTS PORTFOLIO (
     DIVIDEND_YIELD_CASH NUMERIC(20, 2) GENERATED ALWAYS AS ((DIVIDEND_YIELD / 100) * (TOTAL_SHARES * CURRENT_PRICE)) STORED,    -- The dividend yield in cash value
     UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The last time the asset was updated       
 );
+
+-- Create the FIRM table.
+CREATE TABLE IF NOT EXISTS FIRM (
+    ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
+    CAPITAL (20, 2) NOT NULL CHECK (CAPITAL > 0),                                                                               -- The total cumulative capital of the firm
+    ASSETS NUMERIC(20, 2) DEFAULT 0 CHECK (ASSETS > 0),                                                                         -- The total cumulative invested capital of the firm in assets
+    CASH NUMERIC(20, 2) DEFAULT 0 CHECK (CASH > 0),                                                                             -- The total cash reserve of the firm
+    PROFIT NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total profit of the firm
+    LOSS NUMERIC(20, 2) DEFAULT 0,                                                                                              -- The total loss of the firm
+    EXPENSES NUMERIC(20, 2) DEFAULT 0,                                                                                          -- The total expenses of the firm
+    REVENUE NUMERIC(20, 2) DEFAULT 0,                                                                                           -- The total revenue of the firm
+    LIABILITIES NUMERIC(20, 2) DEFAULT 0,                                                                                       -- The total liabilities of the firm
+    EQUITY NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total equity of the firm
+    FIRM_NAME VARCHAR(255) NOT NULL UNIQUE,                                                                                     -- The name of the firm
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the firm was created                                         
+);
