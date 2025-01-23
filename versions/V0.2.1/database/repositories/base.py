@@ -54,8 +54,8 @@ class BaseRepository:
                 return entity_id
 
         except Exception as e:
-            logger.error(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
-            print("An internal error occurred while adding the entity. Please try again later.")
+            logger.warning(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
+            connection.rollback()
             return None
 
     def get_entity(self, **kwargs) -> Optional[T]:
@@ -89,7 +89,8 @@ class BaseRepository:
                 return None
             
         except Exception as e:
-            logger.error(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
+            logger.warning(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
+            connection.rollback()
             return None
 
     def get_all(
@@ -139,6 +140,7 @@ class BaseRepository:
 
         except Exception as e:
             logger.error(f'Error fetching entities from {self.table_name}: {e}', exc_info=True)
+            connection.rollback()
             return []
 
     def update(self, entity_id: Union[int, Any], **kwargs) -> bool:
@@ -180,6 +182,7 @@ class BaseRepository:
 
         except Exception as e:
             logger.error(f'Error updating {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            connection.rollback()
             return False
 
     def delete(self, entity_id: Union[int, Any]) -> bool:
@@ -213,6 +216,7 @@ class BaseRepository:
 
         except Exception as e:
             logger.error(f'Error deleting from {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            connection.rollback()
             return False
 
     def execute_raw_query(self, query: str, params: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
@@ -237,4 +241,5 @@ class BaseRepository:
 
         except Exception as e:
             logger.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
+            connection.rollback()
             return []

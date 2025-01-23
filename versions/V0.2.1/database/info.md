@@ -18,7 +18,7 @@ class BaseRepository:
         # Implementation for adding an entity
         pass
 
-    def get(self, **kwargs) -> Optional[T]:
+    def get_entity(self, **kwargs) -> Optional[T]:
         # Implementation for retrieving a single entity
         pass
 

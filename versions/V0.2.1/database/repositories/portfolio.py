@@ -92,4 +92,3 @@ class PortfolioRepository(BaseRepository):
             id (int): The id of the asset to retrieve.    
         """
         return super().get_entity(ticker=ticker)
-        

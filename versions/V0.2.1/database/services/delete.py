@@ -1,3 +1,4 @@
+"""Service module for handling the deletion of an entity from a table."""
 from options import args
 from psycopg2.errors import UndefinedTable
 from database.repositories.factory import RepositoryNotFoundError

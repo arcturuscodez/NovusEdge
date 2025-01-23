@@ -1,3 +1,4 @@
+"""Service module for handling miscellaneous operations such as printing table data."""
 from utility import FormatTableData
 from database.repositories.factory import get_repository
 from options import args
