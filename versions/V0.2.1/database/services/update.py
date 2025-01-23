@@ -4,6 +4,10 @@ from utility import is_valid_email
 from database.repositories.generic import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
+from database.repositories.portfolio import PortfolioRepository
+from database.repositories.firm import FirmRepository
+
+from icarus.retriever import AssetRetriever
 
 import logging
 
@@ -241,3 +245,34 @@ def handle_update_transaction(db):
     except Exception as e:
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
+    
+def handle_update_portfolio(db):
+    """ 
+    Handle the updating of the fields CURRENT_PRICE and DIVIDEND_YIELD using live data.
+    """
+    try:
+        portfolio_repo = PortfolioRepository(db)
+        assets = portfolio_repo.get_all()
+        
+        for asset in assets:
+            retriever = AssetRetriever(ticker=asset.ticker)
+            
+            # Retrieve Latest Closing Price
+            latest_price = retriever.get_latest_closing_price()
+            if latest_price is not None:
+                portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
+                logging.info(f'Latest Closing Price for {asset.ticker}: {latest_price}')
+            else:
+                logger.warning(f'Could not retrieve latest closing price for {asset.ticker}')
+                
+            dividends = retriever.get_dividend_info()
+            if dividends is not None and not dividends.empty:
+                latest_dividend = dividends['Dividends'].iloc[-1]
+                dividend_yield = (latest_dividend / latest_price) * 100
+                portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield)
+                logger.info(f'Dividend Yield for {asset.ticker}: {dividend_yield:.2f}%')
+            else:
+                logger.info(f'No dividend information available for {asset.ticker}')
+                
+    except Exception as e:
+        logger.error(f'An error occurred updating the portfolio: {e}')

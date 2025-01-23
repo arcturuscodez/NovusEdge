@@ -84,6 +84,16 @@ class PortfolioRepository(BaseRepository):
         """
         return super().delete(id)
     
+    def update_asset(self, id: int, **kwargs) -> bool:
+        """ 
+        Update an asset by id.
+        
+        Args:
+            id (int): The id of the asset to update.
+            **kwargs: The fields to update.
+        """
+        return super().update(id, **kwargs)
+    
     def get_asset_by_ticker(self, ticker: str) -> Optional[PortfolioModel]:
         """ 
         Retrieve an asset by id.

@@ -31,9 +31,10 @@ CREATE TABLE IF NOT EXISTS PORTFOLIO (
     CURRENT_PRICE NUMERIC(15, 2) CHECK (CURRENT_PRICE >= 0),                                                                    -- The current price of 1 of the asset
     TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_SHARES * CURRENT_PRICE) STORED,                                       -- The total value of all owned shares of the asset
     UNREALIZED_PROFIT_LOSS NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_SHARES * CURRENT_PRICE - TOTAL_INVESTED) STORED,           -- The unrealized profit or loss of the asset
+    REALIZED_PROFIT_LOSS NUMERIC(20, 2) DEFAULT 0,                                                                              -- The realized profit or loss of the asset
     DIVIDEND_YIELD REAL DEFAULT 0 CHECK (DIVIDEND_YIELD >= 0),                                                                  -- The dividend yield of the asset (percentage)
     DIVIDEND_YIELD_CASH NUMERIC(20, 2) GENERATED ALWAYS AS ((DIVIDEND_YIELD / 100) * (TOTAL_SHARES * CURRENT_PRICE)) STORED,    -- The dividend yield in cash value
-    UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The last time the asset was updated       
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The last time the asset was updated       
 );
 
 -- Create the FIRM table.

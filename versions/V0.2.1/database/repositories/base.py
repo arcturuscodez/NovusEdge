@@ -1,3 +1,5 @@
+import numbers
+
 from typing import List, Optional, Type, TypeVar, Any, Dict, Union
 from database.connection import DatabaseConnection
 from database.models import BaseModel
@@ -160,7 +162,7 @@ class BaseRepository:
 
         try:
             set_clause = ', '.join([f"{key} = %s" for key in kwargs.keys()])
-            values = list(kwargs.values())
+            values = [float(value) if isinstance(value, numbers.Number) else value for value in kwargs.values()]
 
             if isinstance(entity_id, tuple):
                 conditions = ' AND '.join([f"{pk} = %s" for pk in self.primary_keys])
