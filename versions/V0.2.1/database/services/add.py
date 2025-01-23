@@ -87,6 +87,16 @@ def handle_add_shareholder(db):
         if shareholder_id:
             logger.info(f'Shareholder with name: {name} added successfully.')
             print(f'Shareholder with name: {name} added successfully as id: {shareholder_id}.')
+            
+            # Update the FIRM table with the new shareholder's investment
+            firm_repo = FirmRepository(db)
+            firm_id = 1 # Replace with appropriate firm ID
+            success = firm_repo.update_firm(firm_id, CASH=investment)
+            if success:
+                logger.info(f'Firm\'s CASH updated successfully with investment: {investment}.')
+            else:
+                logger.warning('Failed to update firm\'s CASH.')
+            
         else:
             logger.warning(f'Failed to add shareholder with name: {name}.')
     
