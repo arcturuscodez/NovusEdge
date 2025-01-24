@@ -1,19 +1,12 @@
 from database.connection import DatabaseConnection
-from dotenv import load_dotenv
 from options import args
 
 import os
+from dotenv import load_dotenv
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-dotenv_path = os.path.abspath('config/.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(verbose=True, dotenv_path=dotenv_path)
-    logger.info(f'.env file loaded from {dotenv_path}')
-else:
-    logger.error(f'.env file not found at {dotenv_path}')
 
 class NovusEdge:
     """Main class to handle the software's functionality."""
@@ -24,15 +17,17 @@ class NovusEdge:
         format='%(levelname)s:%(name)s:%(message)s'
     )
     
+    load_dotenv()
+    
     def __init__(self):
         """Set up the class for software usage."""
         
         self.db = DatabaseConnection(
-            db=os.getenv('DB'),
+            db=os.getenv('DB_NAME'),
             user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
+            password=os.getenv('DB_PASS'),
             host=os.getenv('DB_HOST'),
-            port=int(os.getenv('DB_PORT')),
+            port=os.getenv('DB_PORT'),
             pg_exe=os.getenv('PG_EXE')
         )
         if self._is_db_option_set():

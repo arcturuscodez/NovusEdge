@@ -14,7 +14,8 @@ class DatabaseConnection:
     A class to represent a connection to a PostgreSQL database.
     """
     
-    def __init__(self, db: str,
+    def __init__(self,
+                 db: str,
                  user: str,
                  password: str,
                  host: str,
@@ -39,9 +40,6 @@ class DatabaseConnection:
             minconn (int, optional): Minimum number of connections in the pool. Defaults to 1.
             maxconn (int, optional): Maximum number of connections in the pool. Defaults to 10.
         """
-        if not user:
-            logger.error('Database user is not provided.')
-            raise ValueError('Database user is required.')
         
         self.db = db
         self.user = user

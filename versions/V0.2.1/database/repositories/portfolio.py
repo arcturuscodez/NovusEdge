@@ -26,55 +26,54 @@ class PortfolioRepository(BaseRepository):
         """
         try:
             asset = self.get_asset_by_ticker(ticker)
-            if asset:
-                new_shares = asset.total_shares + shares
+            is_buy = transaction_type == 'buy'
+            
+            if asset: 
+                new_shares = asset.total_shares + (shares if is_buy else -shares)
+                
                 if new_shares < 0:
-                    logger.warning(f'Insufficient shares of {ticker} to sell. Current shares {asset.total_shares}')
+                    logger.warning(f'Insufficient shares to sell: {shares} requested, {asset.total_shares} available.')
                     return False
-                elif new_shares == 0:
-                    success = self.delete_asset(asset.id)
-                    if success:
-                        logger.info(f'All shares of {ticker} sold. Portfolio entry deleted.')
+                
+                update_fields = {
+                    'total_shares': new_shares,
+                    'total_invested': asset.total_invested + (shares * price_per_share if is_buy else 0),
+                    'realized_profit_loss': asset.realized_profit_loss + (
+                        0 if is_buy else (price_per_share - (asset.total_invested / asset.total_shares)) * abs(shares)
+                    ),
+                }
+                
+                if new_shares == 0:
+                    if self.delete_asset(asset.id):
+                        logger.info(f'All shares of {ticker} sold. Entry deleted.')
                         return True
-                    else:
-                        logger.error(f'Failed to delete portfolio entry for {ticker}.')
-                        return False
-                
-                update_fields = {'total_shares': new_shares}
-                
-                if transaction_type.lower() == 'buy':
-                    update_fields['total_invested'] = asset.total_invested + (shares * price_per_share)
-                elif transaction_type.lower() == 'sell':
-                    avg_cost_per_share = asset.total_invested / asset.total_shares # Should maybe be in the table.
-                    realized_pl = (price_per_share - avg_cost_per_share) * abs(shares)
-                    update_fields['realized_profit_loss'] = asset.realized_profit_loss + realized_pl
-                    update_fields['total_invested'] = asset.total_invested - (avg_cost_per_share * abs(shares))
-                        
-                success = self.update(asset.id, **update_fields)
-                if success:
-                    logger.info(f'Asset {ticker} updated successfully.')
-                return success
-            else:
-                if transaction_type.lower() == 'sell':
-                    logger.warning(f'No shares of {ticker} to sell.')
+                    
+                    logger.warning(f'Failed to delete {ticker} from portfolio.')
                     return False
                 
+                success = self.update(asset.id, **update_fields)
+                logger.info(f'Asset {ticker} {"updated" if success else "update failed"}.')
+                return success
+        
+            if is_buy:
                 new_asset = PortfolioModel(
-                    id = None,
+                    id=None, 
                     ticker=ticker,
                     total_shares=shares,
                     total_invested=shares * price_per_share,
                     realized_profit_loss=Decimal('0.00'),
                 )
                 success = self.add(new_asset) is not None
-                if success:
-                    logger.info(f'Asset {ticker} added successfully.')
+                logger.info(f'Asset {ticker} added successfully.' if success else f'Failed to add {ticker}.')
                 return success
             
-        except (InvalidOperation, ValueError) as e:
-            logger.error(f'Invalid numerical value provided: {e}.')
+            logger.warning(f'No shares of {ticker} to sell.')
             return False
-                    
+        
+        except (InvalidOperation, ValueError) as e:
+            logger.error(f'Invalid numerical value: {e}')
+            return False
+        
     def delete_asset(self, id: int) -> bool:
         """ 
         Delete an asset by id.

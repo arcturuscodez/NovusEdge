@@ -50,3 +50,8 @@ CREATE TABLE IF NOT EXISTS FIRM (
     FIRM_NAME VARCHAR(255) NOT NULL UNIQUE,                                                                                     -- The name of the firm
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the firm was created
 );
+
+CREATE TABLE IF NOT EXISTS TASK_METADATA (
+    TASK_NAME TEXT PRIMARY KEY,
+    LAST_RUN TIMESTAMP
+);

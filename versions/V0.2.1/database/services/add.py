@@ -112,55 +112,57 @@ def handle_add_transaction(db):
         db (object): The database connection object.
     """
     try:
-        parts = args.AddTransaction.split(':')
-        logger.info('Parts:', parts)
-        if len(parts) != 4:
-            logger.error('Invalid number of arguments. Expected 4, got %d', len(parts))
-            print('Invalid input format. Please provide the ticker, shares, price_per_share, and transaction_type separated by colons. ticker:shares:price_per_share:transaction_type')
+        def parse_transaction_args(args):
+            try:
+                parts = args.AddTransaction.split(':')
+                if len(parts) != 4:
+                    raise ValueError('Invalid format. Expected ticker:shares:price_per_share:transaction_type.')
+                ticker, shares, price_per_share, transaction_type = parts
+                return ticker, Decimal(shares), Decimal(price_per_share), transaction_type.lower()
+            except (ValueError, InvalidOperation):
+                raise ValueError('Invalid input values. Ensure shares and price_per_share are numbers.')
+        
+        try:
+            ticker, shares, price_per_share, transaction_type = parse_transaction_args(args)
+        except ValueError as e:
+            logger.error(e)
             return
         
-        ticker, shares_str, price_per_share_str, transaction_type = parts
-        
-        if not (transaction_type.lower() in ['buy', 'sell']):
+        if transaction_type not in ['buy', 'sell']:
             logger.warning('Transaction type must be either "buy" or "sell".')
             return
         
-        try:
-            shares = Decimal(shares_str)
-            price_per_share = Decimal(price_per_share_str)
-        except InvalidOperation:
-            logger.warning('Shares and price_per_share must be valid decimal numbers.')
+        portfolio_repo = PortfolioRepository(db)
+        transaction_repo = TransactionRepository(db)
+        
+        if transaction_type == 'sell':
+            asset = portfolio_repo.get_asset_by_ticker(ticker)
+            if not asset or asset.total_shares < shares:
+                logger.warning(f'Insufficient shares to sell: {shares} requested, {asset.total_shares if asset else 0} available.')
+                return
+            
+        # Add transaction
+        transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
+        if not transaction_id:
+            logger.warning(f'Failed to add transaction for {ticker}.')
             return
         
-        portfolio_repo = PortfolioRepository(db)
+        print(f'Transaction added: {transaction_type} {ticker}, {shares} shares at {price_per_share}, ID: {transaction_id}')
         
-        if transaction_type.lower() == 'sell':
-            asset = portfolio_repo.get_asset_by_ticker(ticker)
-            if asset.total_shares < shares:
-                logger.warning('Attempted to sell %s shares of %s, but only %s available.', shares, ticker, asset.total_shares)
-                return
-        
-        transaction_repo = TransactionRepository(db)
-        transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
-        
-        if transaction_id: 
-            print(f'Transaction type: {transaction_type} of ticker: {ticker}, shares: {shares} at price: {price_per_share} added successfully as id: {transaction_id}.')
-            # Update the portfolio table for ticker, shares, price per share. Use transaction type to determine whether to add or remove shares.
-            success = portfolio_repo.add_or_update_asset(
-                ticker=ticker,
-                shares=shares if transaction_type.lower() == 'buy' else -shares,
-                price_per_share=price_per_share,
-                transaction_type=transaction_type.lower()
-            )
-            if success:
-                logger.info('Portfolio updated successfully for ticker: %s.', ticker)
-            else:
-                logger.warning('Failed to update portfolio for ticker: %s.', ticker)
+        # Update portfolio
+        success = portfolio_repo.add_or_update_asset(
+            ticker=ticker,
+            shares=shares if transaction_type == 'buy' else -shares,
+            price_per_share=price_per_share,
+            transaction_type=transaction_type
+        )
+        if not success:
+            logger.warning(f'Failed to update portfolio for ticker: {ticker}.')
         else:
-            logger.warning('Failed to add transaction of ticker: %s.', ticker)
-                   
+            logger.info(f'Portfolio updated successfully for ticker: {ticker}.')
+            
     except Exception as e:
-        logger.warning('An error occurred handling the adding of a transaction to the table: %s', e)
+        logger.warning(f'Error handling transaction: {e}')
         raise
     
 def handle_add_firm(db):
