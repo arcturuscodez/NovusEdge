@@ -1,10 +1,8 @@
-from typing import Optional, Tuple
+from typing import Tuple
 from psycopg2 import pool, OperationalError, DatabaseError
-
 import subprocess
 import time
 import psycopg2 as psy
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -46,11 +44,9 @@ class DatabaseConnection:
         self.password = password
         self.host = host
         self.port = port
-        
+        self.pg_exe = pg_exe
         self.max_retries = max_retries
         self.retry_delay = retry_delay
-        
-        self.pg_exe = pg_exe
         
         try:
             self.pool = pool.ThreadedConnectionPool(
@@ -62,7 +58,6 @@ class DatabaseConnection:
                 port=self.port
             )
             logger.info('Connection pool created successfully.')
-            
         except Exception as e:
             self.pool = None
             logger.error(f'Failed to create the connection pool: {e}', exc_info=True)
@@ -93,9 +88,14 @@ class DatabaseConnection:
     def stop_server(self) -> None:
         """Stop the PostgreSQL server."""
         try:
-            pass
-        except Exception as e:
-            print(f'Failed to stop PostgreSQL server: {e}')
+            subprocess.run(['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], check=True, timeout=30)
+            logger.info('PostgreSQL server stopped successfully.')
+        except subprocess.CalledProcessError as e:
+            logger.error(f'Failed to stop PostgreSQL server: {e.output.decode()}')
+            raise RuntimeError("Failed to stop PostgreSQL server") from e
+        except subprocess.TimeoutExpired as e:
+            logger.error(f'Timed out while trying to stop PostgreSQL server: {e}')
+            raise RuntimeError("Timed out stopping PostgreSQL server") from e
         
     def connect(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """Acquire a connection and cursor from the pool."""
@@ -121,12 +121,12 @@ class DatabaseConnection:
         """Release the connection and cursor back to the pool."""
         try:
             if cursor:
-                cursor.close
+                cursor.close()
             if connection:
                 self.pool.putconn(connection)
                 logger.info('Connection returned to the pool.')
         except DatabaseError as e:
-            logger.error('Error releasing connection back to the pool.')
+            logger.error('Error releasing connection back to the pool.', exc_info=True)
             raise
         
     def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]: 
@@ -140,7 +140,7 @@ class DatabaseConnection:
             try:
                 if exc_type or exc_value or exc_traceback:
                     self.connection.rollback()
-                    logger.info('Transaction rolled back due an error.')
+                    logger.info('Transaction rolled back due to an error.')
                 else:
                     self.connection.commit()
                     logger.info('Transaction committed successfully.')
@@ -151,4 +151,3 @@ class DatabaseConnection:
                 self.close(self.connection, self.cursor)
                 self.connection = None
                 self.cursor = None
-                

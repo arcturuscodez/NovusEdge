@@ -22,14 +22,17 @@ class NovusEdge:
     def __init__(self):
         """Set up the class for software usage."""
         
-        self.db = DatabaseConnection(
-            db=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASS'),
-            host=os.getenv('DB_HOST'),
-            port=os.getenv('DB_PORT'),
-            pg_exe=os.getenv('PG_EXE')
-        )
+        self.db_params = {
+            'db': os.getenv('DB_NAME'),
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASS'),
+            'host': os.getenv('DB_HOST'),
+            'port': int(os.getenv('DB_PORT')),
+            'pg_exe': os.getenv('PG_EXE')
+        }
+        
+        self.db = DatabaseConnection(**self.db_params)
+        
         if self._is_db_option_set():
             self.database_usage()
         elif self._is_plot_option_set():
@@ -83,8 +86,8 @@ class NovusEdge:
                 elif args.table and not args.remove and not args.AddShareholder:
                     logger.error('No specific action provided for the table operation.')
 
-                from database.services.update import handle_update_portfolio
-                handle_update_portfolio(self.db)
+                from database.services.other import handle_daily_update
+                handle_daily_update(self.db_params)
             
         except AttributeError as e:
             logger.error(f'Argument parsing error: {e}')
