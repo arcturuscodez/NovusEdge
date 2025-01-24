@@ -62,41 +62,6 @@ class DatabaseConnection:
             self.pool = None
             logger.error(f'Failed to create the connection pool: {e}', exc_info=True)
         
-    def start_server(self) -> None:
-        """Start the PostgreSQL server."""
-        try:
-            result = subprocess.run(
-                ['pg_isready', '-h', self.host, '-p', str(self.port)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False
-            )
-            if result.returncode == 0:
-                logger.info(f'PostgreSQL server is already running on {self.host}:{self.port}')
-                return
-            
-            logger.info('Attempting to start PostgreSQL server...')
-            subprocess.run(self.pg_exe, check=True, shell=True, timeout=60)
-            logger.info('PostgreSQL server started successfully.')
-        except subprocess.CalledProcessError as e:
-            logger.error(f'Failed to start PostgreSQL server: {e}')
-            raise
-        except subprocess.TimeoutExpired as e:
-            logger.error(f'Timed out trying to start PostgreSQL server: {e}')
-            raise
-        
-    def stop_server(self) -> None:
-        """Stop the PostgreSQL server."""
-        try:
-            subprocess.run(['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], check=True, timeout=30)
-            logger.info('PostgreSQL server stopped successfully.')
-        except subprocess.CalledProcessError as e:
-            logger.error(f'Failed to stop PostgreSQL server: {e.output.decode()}')
-            raise RuntimeError("Failed to stop PostgreSQL server") from e
-        except subprocess.TimeoutExpired as e:
-            logger.error(f'Timed out while trying to stop PostgreSQL server: {e}')
-            raise RuntimeError("Timed out stopping PostgreSQL server") from e
-        
     def connect(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """Acquire a connection and cursor from the pool."""
         logger.info('Attempting to acquire a connection from the pool...')
@@ -131,7 +96,6 @@ class DatabaseConnection:
         
     def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]: 
         """Enter the runtime context for the connection."""
-        self.start_server()
         self.connection, self.cursor = self.connect()
         return self.connection, self.cursor
     
@@ -151,3 +115,38 @@ class DatabaseConnection:
                 self.close(self.connection, self.cursor)
                 self.connection = None
                 self.cursor = None
+         
+    def start_server(self) -> None:
+        """Start the PostgreSQL server."""
+        try:
+            result = subprocess.run(
+                ['pg_isready', '-h', self.host, '-p', str(self.port)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False
+            )
+            if result.returncode == 0:
+                logger.info(f'PostgreSQL server is already running on {self.host}:{self.port}')
+                return
+            
+            logger.info('Attempting to start PostgreSQL server...')
+            subprocess.run(f'pg_ctl start -D "{self.pg_exe}"', check=True, shell=True, timeout=60)
+            logger.info('PostgreSQL server started successfully.')
+        except subprocess.CalledProcessError as e:
+            logger.error(f'Failed to start PostgreSQL server: {e}')
+            raise
+        except subprocess.TimeoutExpired as e:
+            logger.error(f'Timed out trying to start PostgreSQL server: {e}')
+            raise
+        
+    def stop_server(self) -> None:
+        """Stop the PostgreSQL server."""
+        try:
+            subprocess.run(['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], check=True, timeout=30)
+            logger.info('PostgreSQL server stopped successfully.')
+        except subprocess.CalledProcessError as e:
+            logger.error(f'Failed to stop PostgreSQL server: {e.output.decode()}')
+            raise RuntimeError("Failed to stop PostgreSQL server") from e
+        except subprocess.TimeoutExpired as e:
+            logger.error(f'Timed out while trying to stop PostgreSQL server: {e}')
+            raise RuntimeError("Timed out stopping PostgreSQL server") from e

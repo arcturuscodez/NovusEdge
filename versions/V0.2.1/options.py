@@ -14,6 +14,22 @@ database_options = parser.add_argument_group('Database Options')
 
 ## Universal Database Options
 
+database_options.add_argument(
+    '-start', '--start_server',
+    dest='StartServer',
+    action='store_true',
+    default=False,
+    help='Start the PostgreSQL server.'
+)
+
+database_options.add_argument(
+    '-stop', '--stop_server',
+    dest='StopServer',
+    action='store_true',
+    default=False,
+    help='Stop the PostgreSQL server.'
+) 
+
 database_options.add_argument( # Functional
     '-t', '--table',
     dest='table',
