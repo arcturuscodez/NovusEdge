@@ -4,9 +4,9 @@ from database.repositories.factory import get_repository
 from options import args
 from datetime import datetime, timedelta
 
-def handle_print_table(db_conn):
+def handle_print_table(db):
     table_name = str(args.PrintTable).upper()
-    repository = get_repository(table_name, db_conn)
+    repository = get_repository(table_name, db)
     if repository:
         records = repository.get_all()
         if records:
