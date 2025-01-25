@@ -1,11 +1,10 @@
 from typing import Tuple
 from psycopg2 import pool, OperationalError, DatabaseError, InterfaceError
-from collections import deque
 import subprocess
 import time
 import psycopg2 as psy
-
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,10 @@ class DatabaseConnection:
                 port=self.port
             )
             logger.info('Connection pool created successfully.')
-            
+        
+        except OperationalError as e:
+            logger.error(f'Operational error creating connection pool: {e}', exc_info=True)
+            raise
         except Exception as e:
             logger.warning(f'Error creating connection pool: {e}', exc_info=True)
             raise
@@ -77,8 +79,11 @@ class DatabaseConnection:
                 logger.error(f'Connection attempt {attempts} failed: {e}. Retrying in {delay} seconds.')
                 time.sleep(delay)
                 delay *= 2
+            except DatabaseError as e:
+                logger.error(f'Database error acquiring connection: {e}', exc_info=True)
+                raise
             except Exception as e:
-                logger.error(f'Error acquiring connection: {e}', exc_info=True)
+                logger.error(f'Unexpected error acquiring connection: {e}', exc_info=True)
                 raise
         
         logger.error(f'Failed to acquire connection after {attempts} attempts.')
@@ -89,11 +94,20 @@ class DatabaseConnection:
         Check if PostgreSQL server is running.
         """
         try:
+            env = os.environ.copy()
+            env['DB_PASS'] = self.password
+            
             result = subprocess.run(
-                ['pg_isready', '-h', self.host, '-p', str(self.port)],
+                ['pg_isready',
+                 '-h', self.host,
+                 '-p', str(self.port),
+                 '-U', self.user,
+                 '-d', self.db
+                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=10
+                timeout=10,
+                env=env
             )
             is_running = result.returncode == 0
             if is_running:
@@ -101,9 +115,9 @@ class DatabaseConnection:
             else:
                 logger.warning('PostgreSQL server is not running.')
             return is_running
-
+        
         except subprocess.TimeoutExpired:
-            logger.warning('Timeout while checking server status.')
+            logger.warnings('Timeout while checking PostgreSQL server status.')
             return False
     
     def start_server(self) -> None:
@@ -113,8 +127,12 @@ class DatabaseConnection:
         if not self._check_server_status():
             try:
                 logger.warning('Attempting to start PostgreSQL server...')
-                subprocess.run(f'pg_ctl start -D "{self.pg_exe}"', shell=True, check=True, timeout=10)
-                logger.warning('PostgreSQL server started successfully.')
+                
+                env = os.environ.copy()
+                env['DB_PASS'] = self.password
+                
+                subprocess.run(['pg_ctl', 'start', '-D', self.pg_exe], check=True, timeout=30)
+                logger.info('PostgreSQL server started successfully.')
             
             except subprocess.CalledProcessError as e:
                 logger.error(f'Error starting PostgreSQL server: {e}', exc_info=True)
@@ -123,7 +141,7 @@ class DatabaseConnection:
             except subprocess.TimeoutExpired:
                 logger.error('Timeout while starting PostgreSQL server.')
                 raise RuntimeError('Timeout while starting PostgreSQL server.')
-            
+    
     def close(self, connection: psy.extensions.connection, cursor: psy.extensions.cursor) -> None:
         """
         Close the connection and cursor and return them to the pool.
@@ -142,7 +160,7 @@ class DatabaseConnection:
         except DatabaseError as e:
             logger.error(f'Error closing connection: {e}', exc_info=True)
             raise
-        
+    
     def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """
         Enter the runtime context for the database connection.
