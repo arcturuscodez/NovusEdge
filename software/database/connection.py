@@ -1,15 +1,17 @@
 from typing import Tuple
-from psycopg2 import pool, OperationalError, DatabaseError
+from psycopg2 import pool, OperationalError, DatabaseError, InterfaceError
+from collections import deque
 import subprocess
 import time
 import psycopg2 as psy
+
 import logging
 
 logger = logging.getLogger(__name__)
 
 class DatabaseConnection:
     """
-    A class to represent a connection to a PostgreSQL database.
+    A class to manage connections to a PostgreSQL database.
     """
     
     def __init__(self,
@@ -20,24 +22,11 @@ class DatabaseConnection:
                  port: int,
                  pg_exe: str,
                  max_retries: int = 3,
-                 retry_delay: int = 5,
-                 minconn: int = 1,
-                 maxconn: int = 10):
-        """
-        Initialize the Connection class
-
-        Args:
-            db (str): The name of the database.
-            user (str): The user for the database connection.
-            password (str): The password for the database connection.
-            host (str): The host for the database connection.
-            port (int): The port for the database connection.
-            pg_exe (str): The path to the PostgreSQL executable.
-            max_retries (int, optional): Maximum number of connection retries. Defaults to 3.
-            retry_delay (int, optional): Delay between retries in seconds. Defaults to 5.
-            minconn (int, optional): Minimum number of connections in the pool. Defaults to 1.
-            maxconn (int, optional): Maximum number of connections in the pool. Defaults to 10.
-        """
+                 initial_retry_delay: int = 5,
+                 min_conn: int = 1,
+                 max_conn: int = 10,
+                 max_pool_size: int = 20
+                ):
         
         self.db = db
         self.user = user
@@ -46,11 +35,18 @@ class DatabaseConnection:
         self.port = port
         self.pg_exe = pg_exe
         self.max_retries = max_retries
-        self.retry_delay = retry_delay
+        self.initial_retry_delay = initial_retry_delay
+        self.min_conn = min_conn
+        self.max_conn = max_conn
+        self.max_pool_size = max_pool_size
+        
+        if not self._check_server_status():
+            self.start_server()
+            time.sleep(5)
         
         try:
             self.pool = pool.ThreadedConnectionPool(
-                minconn, maxconn,
+                min_conn, max_conn,
                 dbname=self.db,
                 user=self.user,
                 password=self.password,
@@ -58,86 +54,135 @@ class DatabaseConnection:
                 port=self.port
             )
             logger.info('Connection pool created successfully.')
+            
         except Exception as e:
-            self.pool = None
-            logger.error(f'Failed to create the connection pool: {e}', exc_info=True)
+            logger.warning(f'Error creating connection pool: {e}', exc_info=True)
+            raise
         
     def connect(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
-        """Acquire a connection and cursor from the pool."""
-        logger.info('Attempting to acquire a connection from the pool...')
-        attempt = 0
-        while attempt < self.max_retries:
+        """
+        Acquire a connection and cursor from the pool with retry logic.
+        """
+        attempts = 0
+        delay = self.initial_retry_delay
+        while attempts < self.max_retries:
             try:
                 connection = self.pool.getconn()
                 cursor = connection.cursor()
-                logger.info('Connection acquired successfully.')
-                logger.info(f'Connection to DB: {self.db} on {self.host}:{self.port} with role {self.user}')
+                logger.info(f'Connection acquired successfully for DB: {self.db} on {self.host}:{self.port}')
                 return connection, cursor
-            except OperationalError as e:
-                attempt += 1
-                logger.error(f'Connection attempt {attempt} failed: {e}.')
-                if attempt < self.max_retries:
-                    time.sleep(self.retry_delay)
-                else:
-                    logger.error('Failed to acquire connection after multiple attempts.')
-                    raise Exception('Failed to acquire connection from the pool.') from e
+            
+            except (OperationalError, InterfaceError) as e:
+                attempts += 1
+                logger.error(f'Connection attempt {attempts} failed: {e}. Retrying in {delay} seconds.')
+                time.sleep(delay)
+                delay *= 2
+            except Exception as e:
+                logger.error(f'Error acquiring connection: {e}', exc_info=True)
+                raise
+        
+        logger.error(f'Failed to acquire connection after {attempts} attempts.')
+        raise Exception('Failed to acquire connection from the pool.')
+    
+    def _check_server_status(self) -> bool:
+        """
+        Check if PostgreSQL server is running.
+        """
+        try:
+            result = subprocess.run(
+                ['pg_isready', '-h', self.host, '-p', str(self.port)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=10
+            )
+            is_running = result.returncode == 0
+            if is_running:
+                logger.info('PostgreSQL server is running.')
+            else:
+                logger.warning('PostgreSQL server is not running.')
+            return is_running
+
+        except subprocess.TimeoutExpired:
+            logger.warning('Timeout while checking server status.')
+            return False
+    
+    def start_server(self) -> None:
+        """ 
+        Start the PostgreSQL server.
+        """
+        if not self._check_server_status():
+            try:
+                logger.warning('Attempting to start PostgreSQL server...')
+                subprocess.run(f'pg_ctl start -D "{self.pg_exe}"', shell=True, check=True, timeout=10)
+                logger.warning('PostgreSQL server started successfully.')
+            
+            except subprocess.CalledProcessError as e:
+                logger.error(f'Error starting PostgreSQL server: {e}', exc_info=True)
+                raise RuntimeError('Error starting PostgreSQL server.')
+            
+            except subprocess.TimeoutExpired:
+                logger.error('Timeout while starting PostgreSQL server.')
+                raise RuntimeError('Timeout while starting PostgreSQL server.')
             
     def close(self, connection: psy.extensions.connection, cursor: psy.extensions.cursor) -> None:
-        """Release the connection and cursor back to the pool."""
+        """
+        Close the connection and cursor and return them to the pool.
+
+        Args:
+            connection (psy.extensions.connection): connection object to be closed.
+            cursor (psy.extensions.cursor): cursor object to be closed.
+        """
         try:
             if cursor:
                 cursor.close()
             if connection:
                 self.pool.putconn(connection)
                 logger.info('Connection returned to the pool.')
+        
         except DatabaseError as e:
-            logger.error('Error releasing connection back to the pool.', exc_info=True)
+            logger.error(f'Error closing connection: {e}', exc_info=True)
             raise
         
-    def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]: 
-        """Enter the runtime context for the connection."""
+    def __enter__(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
+        """
+        Enter the runtime context for the database connection.
+
+        Returns:
+            Tuple[psy.extensions.connection, psy.extensions.cursor]: The connection and cursor objects.
+        """
         self.connection, self.cursor = self.connect()
         return self.connection, self.cursor
     
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
+        """ 
+        Exit the runtime context for the database connection.
+        """
         if self.connection and self.cursor:
             try:
-                if exc_type or exc_value or exc_traceback:
+                if exc_type:
                     self.connection.rollback()
                     logger.info('Transaction rolled back due to an error.')
-                else:
+                else: 
                     self.connection.commit()
                     logger.info('Transaction committed successfully.')
+            
             except DatabaseError as e:
-                logger.error('Error during commit/rollback.', exc_info=True)
-                raise
+                logger.error(f'Error committing transaction: {e}', exc_info=True)
+                
             finally:
                 self.close(self.connection, self.cursor)
                 self.connection = None
                 self.cursor = None
-         
-    def start_server(self) -> None:
-        """Start the PostgreSQL server."""
-        try:
-            result = subprocess.run(
-                ['pg_isready', '-h', self.host, '-p', str(self.port)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False
-            )
-            if result.returncode == 0:
-                logger.info(f'PostgreSQL server is already running on {self.host}:{self.port}')
-                return
-            
-            logger.info('Attempting to start PostgreSQL server...')
-            subprocess.run(f'pg_ctl start -D "{self.pg_exe}"', check=True, shell=True, timeout=60)
-            logger.info('PostgreSQL server started successfully.')
-        except subprocess.CalledProcessError as e:
-            logger.error(f'Failed to start PostgreSQL server: {e}')
-            raise
-        except subprocess.TimeoutExpired as e:
-            logger.error(f'Timed out trying to start PostgreSQL server: {e}')
-            raise
+                
+    def adjust_pool_size(self, new_size: int) -> None:
+        """ 
+        Adjust the size of the connection pool.
+        """
+        if new_size > self.max_pool_size:
+            new_size = self.max_pool_size
+        self.pool.minconn = min(self.min_conn, new_size)
+        self.pool.maxconn = new_size
+        logger.info(f'Connection pool size adjusted to {new_size}.')
         
     def stop_server(self) -> None:
         """Stop the PostgreSQL server."""
@@ -147,6 +192,6 @@ class DatabaseConnection:
         except subprocess.CalledProcessError as e:
             logger.error(f'Failed to stop PostgreSQL server: {e.output.decode()}')
             raise RuntimeError("Failed to stop PostgreSQL server") from e
-        except subprocess.TimeoutExpired as e:
-            logger.error(f'Timed out while trying to stop PostgreSQL server: {e}')
-            raise RuntimeError("Timed out stopping PostgreSQL server") from e
+        except subprocess.TimeoutExpired:
+            logger.error('Timed out while trying to stop PostgreSQL server.')
+            raise RuntimeError("Timed out stopping PostgreSQL server")

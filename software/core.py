@@ -43,6 +43,7 @@ class NovusEdge:
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
         db_option_dests = [
+            'StopServer',
             'PrintTable',
             'AddShareholder',
             'AddTransaction',
@@ -83,6 +84,8 @@ class NovusEdge:
                 elif args.remove:
                     from database.services.delete import handle_delete_by_id
                     handle_delete_by_id(self.db)
+                elif args.StopServer:
+                    self.db.stop_server()
                 elif args.table and not args.remove and not args.AddShareholder:
                     logger.error('No specific action provided for the table operation.')
 
