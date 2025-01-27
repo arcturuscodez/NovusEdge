@@ -150,16 +150,24 @@ def handle_add_transaction(db):
         print(f'Transaction added: {transaction_type} {ticker}, {shares} shares at {price_per_share}, ID: {transaction_id}')
         
         # Update portfolio
-        success = portfolio_repo.add_or_update_asset(
+        portfolio_success = portfolio_repo.add_or_update_asset(
             ticker=ticker,
             shares=shares if transaction_type == 'buy' else -shares,
             price_per_share=price_per_share,
             transaction_type=transaction_type
         )
-        if not success:
+        if not portfolio_success:
             logger.warning(f'Failed to update portfolio for ticker: {ticker}.')
         else:
             logger.info(f'Portfolio updated successfully for ticker: {ticker}.')
+            
+        # Update firm
+        
+        firm_success = True # Replace with appropriate firm update logic
+        if not firm_success:
+            logger.warning(f'Failed to update firm for transaction: {transaction_id}.')
+        else:
+            logger.info(f'Firm updated successfully for transaction: {transaction_id}.')
             
     except Exception as e:
         logger.warning(f'Error handling transaction: {e}')

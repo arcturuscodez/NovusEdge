@@ -6,7 +6,10 @@
 
 ## Firm Table
 
-- [ ] Add functionality for the CAPITAL and ASSETS column.
+- [ ] ASSET needs to be the sum of the TOTAL_VALUE column in the portfolio table.
+
+- [ ] CAPITAL column is simply CASH + ASSET
+
 - [ ] Add functionality for the PROFIT_LOSS column.
 - [ ] Add CRUD service connections to the expenses, revenue, and liabilities. 
 - [ ] Expenses should subtract from the profit_loss column (bank account costs x amount per year)
