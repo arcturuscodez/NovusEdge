@@ -48,8 +48,7 @@ def handle_daily_update(db: DatabaseConnection):
     Args:
         db (dict): The database connection parameters.
     """
-    connection = db.get_connection()
-    cursor = db.get_cursor(connection)
+    connection, cursor = db.get_connection_and_cursor()
     
     task_name = 'update_portfolio'
     try:

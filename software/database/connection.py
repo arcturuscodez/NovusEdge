@@ -38,7 +38,7 @@ class DatabaseConnection:
         self.min_conn = min_conn
         self.max_conn = max_conn
         self.max_pool_size = max_pool_size
-        
+
         if not self._check_server_status():
             self.start_server()
             time.sleep(5)
@@ -57,6 +57,7 @@ class DatabaseConnection:
         except OperationalError as e:
             logger.error(f'Operational error creating connection pool: {e}', exc_info=True)
             raise
+        
         except Exception as e:
             logger.warning(f'Error creating connection pool: {e}', exc_info=True)
             raise
@@ -79,9 +80,11 @@ class DatabaseConnection:
                 logger.error(f'Connection attempt {attempts} failed: {e}. Retrying in {delay} seconds.')
                 time.sleep(delay)
                 delay *= 2
+                
             except DatabaseError as e:
                 logger.error(f'Database error acquiring connection: {e}', exc_info=True)
                 raise
+            
             except Exception as e:
                 logger.error(f'Unexpected error acquiring connection: {e}', exc_info=True)
                 raise
@@ -117,7 +120,7 @@ class DatabaseConnection:
             return is_running
         
         except subprocess.TimeoutExpired:
-            logger.warnings('Timeout while checking PostgreSQL server status.')
+            logger.warning('Timeout while checking PostgreSQL server status.')
             return False
     
     def start_server(self) -> None:
@@ -214,34 +217,31 @@ class DatabaseConnection:
             logger.error('Timed out while trying to stop PostgreSQL server.')
             raise RuntimeError("Timed out stopping PostgreSQL server")
 
-    def get_connection(self) -> psy.extensions.connection:
+    def manual_rollback(self, connection: psy.extensions.connection, error_msg: str = None) -> None:
+        """
+        Manually rollback a transaction on the provided connection.
+        """
+        try:
+            connection.rollback()
+            logger.info('Transaction rolled back successfully.')
+            if error_msg:
+                logger.error(error_msg)
+            
+        except DatabaseError as e:
+            logger.error(f'Error rolling back transaction: {e}', exc_info=True)
+            raise
+    
+    def get_connection_and_cursor(self) -> Tuple[psy.extensions.connection, psy.extensions.cursor]:
         """ 
-        Retrieve a connection from the pool.
-        
-        Returns:
-            psy.exentions.connection: A connection object.
+        Get a connection and cursor from the pool.
         """
         try:
             connection = self.pool.getconn()
-            logger.info(f'Connection extended and acquired successfully for DB: {self.db}')
-            return connection
-        
-        except DatabaseError as e:
-            logger.error(f'Error acquiring connection: {e}', exc_info=True)
-            raise
-        
-    def get_cursor(self, connection: psy.extensions.connection) -> psy.extensions.cursor:
-        """
-        Retrieve a cursor from the given connection.
-        
-        Returns:
-            psy.extensions.cursor: A cursor object.
-        """
-        try:
+            logger.info(f'Connection extended successfully for DB: {self.db} on {self.host}:{self.port}')
             cursor = connection.cursor()
-            return cursor
+            return connection, cursor
         
         except DatabaseError as e:
-            logger.error(f'Error acquiring cursor: {e}', exc_info=True)
+            logger.error(f'Error extending connection: {e}', exc_info=True)
             raise
     
