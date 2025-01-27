@@ -1,0 +1,21 @@
+# TODO List
+
+## Portfolio Table
+
+- [ ] Double check PORTFOLIO dividend yield calculation (ensure it is monthly, yearly, or quarterly)
+
+## Firm Table
+
+- [ ] Add functionality for the CAPITAL and ASSETS column.
+- [ ] Add functionality for the PROFIT_LOSS column.
+- [ ] Add CRUD service connections to the expenses, revenue, and liabilities. 
+- [ ] Expenses should subtract from the profit_loss column (bank account costs x amount per year)
+
+## Database Connection
+
+- [ ] Test new methods (manual rollback etc..)
+- [ ] Improvements to connection handling, better understand pooling
+
+## Icarus Stock AI
+
+- [ ] Add functionality for analysis of stocks in PORTFOLIO table.
