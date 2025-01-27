@@ -213,3 +213,35 @@ class DatabaseConnection:
         except subprocess.TimeoutExpired:
             logger.error('Timed out while trying to stop PostgreSQL server.')
             raise RuntimeError("Timed out stopping PostgreSQL server")
+
+    def get_connection(self) -> psy.extensions.connection:
+        """ 
+        Retrieve a connection from the pool.
+        
+        Returns:
+            psy.exentions.connection: A connection object.
+        """
+        try:
+            connection = self.pool.getconn()
+            logger.info(f'Connection extended and acquired successfully for DB: {self.db}')
+            return connection
+        
+        except DatabaseError as e:
+            logger.error(f'Error acquiring connection: {e}', exc_info=True)
+            raise
+        
+    def get_cursor(self, connection: psy.extensions.connection) -> psy.extensions.cursor:
+        """
+        Retrieve a cursor from the given connection.
+        
+        Returns:
+            psy.extensions.cursor: A cursor object.
+        """
+        try:
+            cursor = connection.cursor()
+            return cursor
+        
+        except DatabaseError as e:
+            logger.error(f'Error acquiring cursor: {e}', exc_info=True)
+            raise
+    

@@ -41,14 +41,16 @@ def handle_print_table(db):
     else:
         print(f'Unknown table name: {table_name} or table not found.')
         
-def handle_daily_update(db):
+def handle_daily_update(db: DatabaseConnection):
     """
     Run the update portfolio task once a day.
     
     Args:
         db (dict): The database connection parameters.
     """
-    connection, cursor = db.connect()
+    connection = db.get_connection()
+    cursor = db.get_cursor(connection)
+    
     task_name = 'update_portfolio'
     try:
         cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
@@ -75,5 +77,3 @@ def handle_daily_update(db):
         logger.error(f'Error during daily update: {e}', exc_info=True)
         connection.rollback()
         print(f'Error during daily update: {e}')
-    finally:
-        db.close(connection, cursor)
