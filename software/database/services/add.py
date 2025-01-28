@@ -202,7 +202,6 @@ def handle_add_firm(db):
             print(f'Firm "{firm_name}" added successfully with ID: {firm_id}.')
         else:
             logger.warning('Failed to add firm.')
-            print('Error: Failed to add firm.')
 
     except Exception as e:
         logger.error(f'An unexpected error occurred while adding the firm: {e}')
