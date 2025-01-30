@@ -89,8 +89,9 @@ class NovusEdge:
                 elif args.table and not args.remove and not args.AddShareholder:
                     logger.error('No specific action provided for the table operation.')
 
-                from database.services.other import handle_daily_update
+                from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
                 handle_daily_update(self.db)
+                handle_update_portfolio_assets_data(self.db)
             
         except AttributeError as e:
             logger.error(f'Argument parsing error: {e}')

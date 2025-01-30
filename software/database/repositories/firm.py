@@ -54,7 +54,7 @@ class FirmRepository(BaseRepository):
         Returns:
             Optional[FirmModel]: The firm entity, or None if not found.
         """
-        return super().get_entity(id)
+        return super().get_entity(id=id)
     
     def update_firm(self, id: int, **kwargs: dict) -> bool:
         """

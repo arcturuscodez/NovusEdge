@@ -134,6 +134,7 @@ def handle_add_transaction(db):
         
         portfolio_repo = PortfolioRepository(db)
         transaction_repo = TransactionRepository(db)
+        firm_repo = FirmRepository(db)
         
         if transaction_type == 'sell':
             asset = portfolio_repo.get_asset_by_ticker(ticker)
@@ -163,7 +164,11 @@ def handle_add_transaction(db):
             
         # Update firm
         
-        firm_success = True # Replace with appropriate firm update logic
+        firm = firm_repo.get_firm(id=1)
+        firm_success = firm_repo.update_firm(
+            1,
+            CASH=firm.cash + (shares * price_per_share if transaction_type == 'sell' else -shares * price_per_share)
+            )
         if not firm_success:
             logger.warning(f'Failed to update firm for transaction: {transaction_id}.')
         else:

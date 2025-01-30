@@ -6,6 +6,9 @@ from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
+from datetime import datetime, timedelta
+
+from database.connection import DatabaseConnection
 
 from icarus.retriever import AssetRetriever
 
@@ -246,7 +249,7 @@ def handle_update_transaction(db):
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
     
-def handle_update_portfolio(db):
+def handle_update_portfolio_live_data(db):
     """ 
     Handle the updating of the fields CURRENT_PRICE and DIVIDEND_YIELD using live data.
     """
@@ -276,3 +279,62 @@ def handle_update_portfolio(db):
                 
     except Exception as e:
         logger.error(f'An error occurred updating the portfolio: {e}')
+
+def handle_update_portfolio_assets_data(db):
+    """ 
+    Handle the updating of the ASSETS fields using PORTFOLIO TOTAL_VALUE column.
+    """
+    try:
+        portfolio_repo = PortfolioRepository(db)
+        firm_repo = FirmRepository(db)
+        
+        assets = portfolio_repo.get_all()
+        total_assets_value = sum(asset.total_value for asset in assets if asset.total_value is not None)
+        
+        firm = firm_repo.get_firm(1)
+        if firm:
+            firm_success = firm_repo.update_firm(1, assets=total_assets_value)
+            if firm_success:
+                logger.info(f'Firm assets updated successfully: {total_assets_value}')
+            else:
+                logger.warning('Failed to update firm assets column.')
+        else:
+            logger.warning('Firm not found.')
+            
+    except Exception as e:
+        logger.error(f'An error occurred updating the firm assets column: {e}')
+        raise
+
+def handle_daily_update(db: DatabaseConnection):
+    """
+    Run the update portfolio task once a day.
+    
+    Args:
+        db (dict): The database connection parameters.
+    """
+    connection, cursor = db.get_connection_and_cursor()
+    
+    task_name = 'update_portfolio'
+    try:
+        cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
+        row = cursor.fetchone()
+        now = datetime.now()
+        
+        if row and (now - row[0] < timedelta(days=1)):
+            logger.info('Live asset data update already run today. Skipping.')
+            return
+        
+        handle_update_portfolio_live_data((connection, cursor))
+        
+        if row:
+            cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
+        else:
+            cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
+        
+        connection.commit()
+        logger.warning('Portfolio updated successfully.')
+    
+    except Exception as e:
+        logger.error(f'Error during daily update: {e}', exc_info=True)
+        connection.rollback()
+        print(f'Error during daily update: {e}')
