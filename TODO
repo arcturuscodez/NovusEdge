@@ -8,7 +8,7 @@
 
 - [ ] ASSET needs to be the sum of the TOTAL_VALUE column in the portfolio table.
 
-- [ ] CAPITAL column is simply CASH + ASSET ############## DONE
+- [X] CAPITAL column is simply CASH + ASSET
 
 - [ ] Add functionality for the PROFIT_LOSS column.
 - [ ] Add CRUD service connections to the expenses, revenue, and liabilities. 
