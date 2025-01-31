@@ -1,24 +1,54 @@
 # TODO List
 
+LEGEND : 
+
+X = Done, Tested and fully functional.
+? = Implemented, Untested and prone to errors.
+sx = Lightly implemented or templated, Untested and likely non-functional or entirely missing implementation.
+st = Just started working on it.
+
+## General
+
+- [ ] Do a full code review and ensure that services and repositories are accurately functioning to their primary goal.
+
 ## Portfolio Table
 
 - [ ] Double check PORTFOLIO dividend yield calculation (ensure it is monthly, yearly, or quarterly)
+- [ ] Consider how much of the add or update asset method code needs to be in the repo versus the service.
 
 ## Firm Table
 
-- [ ] ASSET needs to be the sum of the TOTAL_VALUE column in the portfolio table.
+- [sx] ASSET needs to be the sum of the TOTAL_VALUE column in the portfolio table.
 
-- [X] CAPITAL column is simply CASH + ASSET
+- [?] CAPITAL column is simply CASH + ASSET (untested)
 
 - [ ] Add functionality for the PROFIT_LOSS column.
+    - [ ] Needs to functional alongside other columns in the firm table, i.e revenue and expenses.
+
 - [ ] Add CRUD service connections to the expenses, revenue, and liabilities. 
+    - [st] Expenses 
+    - [st] Revenue
+    - [st] Liabilities
+
 - [ ] Expenses should subtract from the profit_loss column (bank account costs x amount per year)
 
-## Database Connection
+## Database & Database Connection
 
 - [ ] Test new methods (manual rollback etc..)
 - [ ] Improvements to connection handling, better understand pooling
+- [ ] Maybe improve table naming?? or improve scope of tables?
 
 ## Icarus Stock AI
 
 - [ ] Add functionality for analysis of stocks in PORTFOLIO table.
+
+## Testing 
+
+- [ ] Redo test cases (clean up)
+- [ ] Aggressively test the functionality between transactions and portfolio table
+
+## Locate Sites for Innovation
+
+- [ ] Is there a better way to manage the connection between, repo -> service -> front
+- [ ] Can the functionality between transactions and portfolio be improved?
+- [ ] Research if services should be refactored into classes for specific table operations

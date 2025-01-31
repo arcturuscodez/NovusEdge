@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS PORTFOLIO (
 -- Create the FIRM table.
 CREATE TABLE IF NOT EXISTS FIRM (
     ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
-    CAPITAL NUMERIC(20, 2) GENERATED ALWAYS AS (ASSETS + CASH) STORED,                                                                                            -- The total cumulative capital of the firm
+    CAPITAL NUMERIC(20, 2) GENERATED ALWAYS AS (ASSETS + CASH) STORED,                                                          -- The total cumulative capital of the firm
     ASSETS NUMERIC(20, 2) DEFAULT 0,                                                                                            -- The total cumulative invested capital of the firm in assets
     CASH NUMERIC(20, 2) DEFAULT 0,                                                                                              -- The total cash reserve of the firm
     PROFIT_LOSS NUMERIC(20, 2) DEFAULT 0,                                                                                       -- The total profit or loss of the firm
@@ -52,6 +52,6 @@ CREATE TABLE IF NOT EXISTS FIRM (
 );
 
 CREATE TABLE IF NOT EXISTS TASK_METADATA (
-    TASK_NAME TEXT PRIMARY KEY,
-    LAST_RUN TIMESTAMP
+    TASK_NAME TEXT PRIMARY KEY,                                                                                                 -- Task name
+    LAST_RUN TIMESTAMP                                                                                                          -- Last run time                          
 );

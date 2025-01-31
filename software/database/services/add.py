@@ -212,3 +212,24 @@ def handle_add_firm(db):
         logger.error(f'An unexpected error occurred while adding the firm: {e}')
         print('An unexpected error occurred while adding the firm.')
         raise
+
+def handle_add_expense(db):
+    """
+    Handle the addition of a new expense into the firm's expenses column.
+    """
+    try:
+        pass # add an expense to the column
+        # subtract this value from the profit_loss column in the firm table (profit_loss is monthly or quarterly)
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the expense: {e}')
+        raise
+    
+def handle_add_liability(db):
+    """
+    Handle the addition of a new liability into the firm's liabilities column.
+    """
+    try:
+        pass
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the liability: {e}')
+        raise

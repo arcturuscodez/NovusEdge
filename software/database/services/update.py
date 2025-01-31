@@ -249,7 +249,7 @@ def handle_update_transaction(db):
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
     
-def handle_update_portfolio_live_data(db):
+def handle_update_portfolio_live_data(db: DatabaseConnection):
     """ 
     Handle the updating of the fields CURRENT_PRICE and DIVIDEND_YIELD using live data.
     """
@@ -295,7 +295,7 @@ def handle_update_portfolio_assets_data(db):
         if firm:
             firm_success = firm_repo.update_firm(1, assets=total_assets_value)
             if firm_success:
-                logger.info(f'Firm assets updated successfully: {total_assets_value}')
+                logger.info(f'Firm total assets value updated successfully: {total_assets_value}')
             else:
                 logger.warning('Failed to update firm assets column.')
         else:
@@ -312,29 +312,23 @@ def handle_daily_update(db: DatabaseConnection):
     Args:
         db (dict): The database connection parameters.
     """
-    connection, cursor = db.get_connection_and_cursor()
-    
     task_name = 'update_portfolio'
     try:
-        cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
-        row = cursor.fetchone()
+        db.cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
+        row = db.cursor.fetchone()
         now = datetime.now()
-        
         if row and (now - row[0] < timedelta(days=1)):
-            logger.info('Live asset data update already run today. Skipping.')
+            logger.info('Daily data update already run today. Skipping.')
             return
-        
-        handle_update_portfolio_live_data((connection, cursor))
-        
+        handle_update_portfolio_live_data(db.connection, db.cursor)
         if row:
-            cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
+            db.cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
         else:
-            cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
-        
-        connection.commit()
+            db.cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
+        db.connection.commit()
         logger.warning('Portfolio updated successfully.')
-    
+
     except Exception as e:
         logger.error(f'Error during daily update: {e}', exc_info=True)
-        connection.rollback()
+        db.connection.rollback()
         print(f'Error during daily update: {e}')
