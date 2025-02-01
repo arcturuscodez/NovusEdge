@@ -19,6 +19,7 @@ st = Just started working on it.
 ## Firm Table
 
 - [sx] ASSET needs to be the sum of the TOTAL_VALUE column in the portfolio table.
+    - [ ] Is there a more efficient way of keeping the ASSET value tracked? Maybe this should be done intra-db?
 
 - [?] CAPITAL column is simply CASH + ASSET (untested)
 

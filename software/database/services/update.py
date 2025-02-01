@@ -249,37 +249,6 @@ def handle_update_transaction(db):
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
     
-def handle_update_portfolio_live_data(db: DatabaseConnection):
-    """ 
-    Handle the updating of the fields CURRENT_PRICE and DIVIDEND_YIELD using live data.
-    """
-    try:
-        portfolio_repo = PortfolioRepository(db)
-        assets = portfolio_repo.get_all()
-        
-        for asset in assets:
-            retriever = AssetRetriever(ticker=asset.ticker)
-            
-            # Retrieve Latest Closing Price
-            latest_price = retriever.get_latest_closing_price()
-            if latest_price is not None:
-                portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
-                logging.info(f'Latest Closing Price for {asset.ticker}: {latest_price}')
-            else:
-                logger.warning(f'Could not retrieve latest closing price for {asset.ticker}')
-                
-            dividends = retriever.get_dividend_info()
-            if dividends is not None and not dividends.empty:
-                latest_dividend = dividends['Dividends'].iloc[-1]
-                dividend_yield = (latest_dividend / latest_price) * 100
-                portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield)
-                logger.info(f'Dividend Yield for {asset.ticker}: {dividend_yield:.2f}%')
-            else:
-                logger.info(f'No dividend information available for {asset.ticker}')
-                
-    except Exception as e:
-        logger.error(f'An error occurred updating the portfolio: {e}')
-
 def handle_update_portfolio_assets_data(db):
     """ 
     Handle the updating of the ASSETS fields using PORTFOLIO TOTAL_VALUE column.
@@ -320,7 +289,28 @@ def handle_daily_update(db: DatabaseConnection):
         if row and (now - row[0] < timedelta(days=1)):
             logger.info('Daily data update already run today. Skipping.')
             return
-        handle_update_portfolio_live_data(db.connection, db.cursor)
+        
+        portfolio_repo = PortfolioRepository(db)
+        assets = portfolio_repo.get_all()
+        
+        for asset in assets:
+            retriever = AssetRetriever(ticker=asset.ticker)
+            latest_price = retriever.get_latest_closing_price()
+            if latest_price is not None:
+                portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
+                logging.info(f'Latest Closing Price for {asset.ticker}: {latest_price}')
+            else:
+                logger.warning(f'Could not retrieve latest closing price for {asset.ticker}')
+            
+            dividends = retriever.get_dividend_info()
+            if dividends is not None and not dividends.empty:
+                latest_dividend = dividends['Dividends'].iloc[-1]
+                dividend_yield = (latest_dividend / latest_price) * 100
+                portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield)
+                logger.info(f'Dividend Yield for {asset.ticker}: {dividend_yield:.2f}%')
+            else:
+                logger.info(f'No dividend information available for {asset.ticker}')
+        
         if row:
             db.cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
         else:
