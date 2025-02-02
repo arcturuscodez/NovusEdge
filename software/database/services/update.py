@@ -284,9 +284,12 @@ def handle_daily_update(db: DatabaseConnection):
     task_name = 'update_portfolio'
     try:
         db.cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
+        
         row = db.cursor.fetchone()
         now = datetime.now()
-        if row and (now - row[0] < timedelta(days=1)):
+        
+        if row and (row[0].date() == now.date()):
+            logger.info(f'Row: {row}, Now: {now}')
             logger.info('Daily data update already run today. Skipping.')
             return
         
