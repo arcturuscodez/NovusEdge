@@ -99,3 +99,12 @@ class FirmModel(BaseModel):
     liabilities: float = 0.0
     firm_name: str = ""
     created_at: Optional[datetime] = field(default_factory=datetime.now)
+    
+@dataclass
+class TaskModel(BaseModel):
+    """
+    Dataclass model to represent a task.
+    """
+    task_name: str = ""
+    last_run : Optional[datetime] = None
+    

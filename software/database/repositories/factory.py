@@ -1,9 +1,10 @@
-from typing import Type, Optional
+from typing import Type
 from database.connection import DatabaseConnection
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
+from database.repositories.task import TaskRepository
 
 import logging
 
@@ -17,7 +18,8 @@ REPOSITORY_MAP = {
     'SHAREHOLDERS': ShareholderRepository,
     'TRANSACTIONS': TransactionRepository,
     'PORTFOLIO': PortfolioRepository,
-    'FIRM': FirmRepository
+    'FIRM': FirmRepository,
+    'TASK_METADATA': TaskRepository
 }
 
 def register_repository(table_name: str, repository_class: Type):
