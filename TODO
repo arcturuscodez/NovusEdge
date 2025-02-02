@@ -10,6 +10,9 @@ st = Just started working on it.
 ## General
 
 - [ ] Do a full code review and ensure that services and repositories are accurately functioning to their primary goal.
+- [ ] Add async where needed
+    - [ ] Asset updating should run alongside the software.
+    - [ ] Test in conjuction with threading
 
 ## Portfolio Table
 
@@ -41,7 +44,15 @@ st = Just started working on it.
 
 ## Icarus Stock AI
 
-- [ ] Add functionality for analysis of stocks in PORTFOLIO table.
+- [?] AssetRetriever
+    - [X] Validate the Ticker
+    - [X] Method to get asset data from a ticker using yfinance (cryptos should likely be added manually or in another manner)
+    - [X] Get the latest closing price, dividend info and any other relevant information
+
+- [ ] DataProcessor
+    - [ ]
+
+- [ ] Analysis
 
 ## Testing 
 
