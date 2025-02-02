@@ -16,6 +16,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import asyncio
+
 def handle_update_entity(db) -> bool:
     """
     Handle the updating of an entity in a table in the database.
@@ -249,21 +251,23 @@ def handle_update_transaction(db):
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
     
-def handle_update_portfolio_assets_data(db):
+async def handle_update_portfolio_assets_data(db):
     """ 
-    Handle the updating of the ASSETS fields using PORTFOLIO TOTAL_VALUE column.
+    Asynchronously update the ASSETS field using the PORTFOLIO TOTAL_VALUE column.
     """
+    loop = asyncio.get_running_loop()
     try:
         portfolio_repo = PortfolioRepository(db)
         firm_repo = FirmRepository(db)
         
-        assets = portfolio_repo.get_all()
+        # Run blocking calls in an executor
+        assets = await loop.run_in_executor(None, portfolio_repo.get_all)
         total_assets_value = sum(asset.total_value for asset in assets if asset.total_value is not None)
         
-        firm = firm_repo.get_firm(1)
+        firm = await loop.run_in_executor(None, lambda: firm_repo.get_firm(1))
         if firm:
-            firm_success = firm_repo.update_firm(1, assets=total_assets_value)
-            if firm_success:
+            success = await loop.run_in_executor(None, lambda: firm_repo.update_firm(1, assets=total_assets_value))
+            if success:
                 logger.info(f'Firm total assets value updated successfully: {total_assets_value}')
             else:
                 logger.warning('Failed to update firm assets column.')

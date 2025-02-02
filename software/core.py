@@ -1,7 +1,10 @@
 from database.connection import DatabaseConnection
+from timeit import default_timer as timer
 from options import args
 
 import os
+import asyncio
+
 from dotenv import load_dotenv
 
 import logging
@@ -31,6 +34,8 @@ class NovusEdge:
             'pg_exe': os.getenv('PG_EXE')
         }
         
+        self.start_time = timer()
+            
         self.db = DatabaseConnection(**self.db_params)
         
         if self._is_db_option_set():
@@ -63,6 +68,10 @@ class NovusEdge:
     def database_usage(self):
         try:
             with self.db:
+                from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
+                
+                asyncio.run(handle_update_portfolio_assets_data(self.db))
+                
                 if args.PrintTable:
                     from database.services.other import handle_print_table
                     handle_print_table(self.db)
@@ -91,7 +100,6 @@ class NovusEdge:
 
                 from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
                 handle_daily_update(self.db)
-                handle_update_portfolio_assets_data(self.db)
             
         except AttributeError as e:
             logger.error(f'Argument parsing error: {e}')
@@ -99,6 +107,11 @@ class NovusEdge:
         except Exception as e:
             logger.error(f'An unexpected error occurred: {e}')
             raise
+        
+        finally:
+            end_time = timer()
+            elapsed = end_time - self.start_time
+            logging.info(f'Elapsed time: {elapsed:.2f} seconds')
          
 if __name__ == '__main__':
     NovusEdge()
