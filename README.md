@@ -10,7 +10,7 @@ The system integrates with a database to store transaction records, portfolio de
 
 ### Bearhouse Capital
 
-Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.1), with several features being tested and refined.
+Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.2), with several features being tested and refined.
 
 <img src="img\image.png" alt="Project Logo" width="200"/>
 
@@ -37,7 +37,7 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 
 ### General
 
-- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](versions/V0.2.1/database/info.md).
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](versions/V0.2.2/database/info.md).
 
 ### Universal
 

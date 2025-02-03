@@ -171,12 +171,22 @@ class DatabaseConnection:
         Returns:
             Tuple[psy.extensions.connection, psy.extensions.cursor]: The connection and cursor objects.
         """
-        self.connection, self.cursor = self.connect()
-        return self.connection, self.cursor
+        try:
+            self.connection, self.cursor = self.connect()
+            return self.connection, self.cursor
+
+        except Exception as e:
+            logger.error(f'Error acquiring connection: {e}', exc_info=True)
+            raise
     
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         """ 
         Exit the runtime context for the database connection.
+        
+        Args:
+            exc_type: The type of exception raised.
+            exc_value: The exception value.
+            exc_traceback: The traceback for the exception.
         """
         if self.connection is None or self.connection.closed:
             logger.warning('Connection already closed; skipping commit/rollback')
@@ -205,20 +215,28 @@ class DatabaseConnection:
         """ 
         Adjust the size of the connection pool.
         """
-        if new_size > self.max_pool_size:
-            new_size = self.max_pool_size
-        self.pool.minconn = min(self.min_conn, new_size)
-        self.pool.maxconn = new_size
-        logger.info(f'Connection pool size adjusted to {new_size}.')
+        try:
+            
+            if new_size > self.max_pool_size:
+                new_size = self.max_pool_size
+            self.pool.minconn = min(self.min_conn, new_size)
+            self.pool.maxconn = new_size
+            logger.info(f'Connection pool size adjusted to {new_size}.')
+            
+        except Exception as e:
+            logger.error(f'Error adjusting connection pool size: {e}', exc_info=True)
+            raise
         
     def stop_server(self) -> None:
         """Stop the PostgreSQL server."""
         try:
             subprocess.run(['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], check=True, timeout=30)
             logger.info('PostgreSQL server stopped successfully.')
+            
         except subprocess.CalledProcessError as e:
             logger.error(f'Failed to stop PostgreSQL server: {e.output.decode()}')
             raise RuntimeError("Failed to stop PostgreSQL server") from e
+        
         except subprocess.TimeoutExpired:
             logger.error('Timed out while trying to stop PostgreSQL server.')
             raise RuntimeError("Timed out stopping PostgreSQL server")

@@ -10,7 +10,7 @@ class TaskRepository(BaseRepository):
     """Repository for task-specific operations."""
     
     def __init__(self, db_conn):
-        """Initialize the repository with the TaskMode."""
+        """Initialize the repository with the Task model."""
         super().__init__(db_conn, table_name='task_metadata', model=TaskModel)
     
     def add_task(self, task_name: str) -> Optional[int]:
