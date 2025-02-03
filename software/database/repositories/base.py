@@ -59,18 +59,19 @@ class BaseRepository:
             return None
 
     def get_entity(self, **kwargs) -> Optional[T]:
-        """ 
-        Retrieve a single entity based on provided filters.
-
-        Args:
-            **kwargs: Field-value pairs to filter the query.
-
+        """
+        Retrieve a single entity from the table based on provided filter conditions.
+    
+        Keyword Args:
+            Field-value pairs to filter the query (e.g., cash=1000, id=1). 
+            Ensure that the keys match the column names exactly (usually lowercase).
+    
         Returns:
-            Optional[T]: The entity retrieved, or None if not found.
+            Optional[T]: An instance of the model if a matching record is found, else None.
         """
         try:
             if not kwargs:
-                logger.warning('No conditions provided for fetching record.')
+                logger.warning('No filter conditions provided for fetching the record.')
                 return None
             
             conditions = ' AND '.join([f"{key} = %s" for key in kwargs.keys()])
