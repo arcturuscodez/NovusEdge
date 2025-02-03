@@ -39,10 +39,21 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 ## Features
 
 - **General**
+  - Modular design with clear separation of business logic and data access.
+  - Command-line interface options for adding/updating/deleting records.
 
 - **Database Interaction**
+  - Robust integration with PostgreSQL using a connection pool.
+  - Repository Pattern implementation in the database layer, supporting CRUD operations across various modules (shareholders, transactions, portfolio, firm, tasks).
 
 - **Icarus**
+  - Asset data processing for live market data integration.
+  - Functions for inspecting, processing, and cleaning market data.
+  - Moving average and daily returns calculations.
+
+- **Asynchronous Updates**
+  - Asynchronous portfolio data updates to recalculate assets and dividend yields daily.
+  - Automated tasks for updating portfolio information using external data sources.
 
 ## Contributing
 
