@@ -10,7 +10,7 @@ The system integrates with a database to store transaction records, portfolio de
 
 ### Bearhouse Capital
 
-Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.1), with several features being tested and refined.
+Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.2), with several features being tested and refined.
 
 <img src="img\image.png" alt="Project Logo" width="200"/>
 
@@ -33,25 +33,13 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 1. Python 3.10
 2. psycog2
 
-## Working Features ('V0.2.1')
+## General
 
-### General
+- **Prior Versions** Prior versions are stored on the developer's computer and are not published to github for public viewing.
 
-- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](versions/V0.2.1/database/info.md).
+- **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](software/database/info.md).
 
-### Universal
-
-- Entries in tables can be deleted universally by the universal "delete_by_id" method.
-
-### Tables
-
-- All tables are viewable through built-in options
-
-### Shareholders
-
-1. Add shareholders.
-2. Remove shareholders.
-3. Edit shareholders.
+- **V0.2.2** is the latest branch/version of the software with the most features.
 
 ## Contributing
 
