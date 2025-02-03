@@ -37,9 +37,11 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 
 ### General
 
+- **Prior Versions** Prior versions are stored on the developer's computer and are not published to github for public viewing.
+
 - **V0.2.1** is an entirely new method of handling the interaction to the database through the use of the repository pattern which can be further examined through [Database Information Documentation](software/database/info.md).
 
-- **V0.2.2** is the latest version of the new database interaction system, it currently is the most up to date version with the most working features
+- **V0.2.2** is the latest branch/version of the software with the most features.
 
 ### Universal
 
