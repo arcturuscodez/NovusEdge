@@ -7,6 +7,8 @@ from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
 
+from database.connection import DatabaseConnection
+
 from decimal import Decimal, InvalidOperation
 
 import logging
@@ -104,7 +106,7 @@ def handle_add_shareholder(db):
         logger.warning(f'An error occurred handling the adding of a shareholder to the table: {e}')
         raise
     
-def handle_add_transaction(db):
+def handle_add_transaction(db: DatabaseConnection):
     """ 
     Handle the addition of a transaction to the transactions table.
     
@@ -124,6 +126,7 @@ def handle_add_transaction(db):
         
         try:
             ticker, shares, price_per_share, transaction_type = parse_transaction_args(args)
+            
         except ValueError as e:
             logger.error(e)
             return
@@ -142,6 +145,13 @@ def handle_add_transaction(db):
                 logger.warning(f'Insufficient shares to sell: {shares} requested, {asset.total_shares if asset else 0} available.')
                 return
             
+        if transaction_type == 'buy':
+            firm_data = firm_repo.get_entity(id=1)
+            if not firm_data or firm_data.cash < shares * price_per_share:
+                db.manual_rollback(db.connection)
+                logger.warning(f'Insufficient funds to buy: {shares * price_per_share} required, {firm_data.cash if firm_data else 0} available.')
+                return
+                        
         # Add transaction
         transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
         if not transaction_id:
