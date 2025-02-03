@@ -286,6 +286,11 @@ def handle_daily_update(db: DatabaseConnection):
         db (dict): The database connection parameters.
     """
     task_name = 'update_portfolio'
+    
+    if not hasattr(db, 'connection') or db.connection is None or db.connection.closed != 0:
+        logging.warning('Daily update aborted. Database connection not available.')
+        return
+    
     try:
         db.cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
         
@@ -329,6 +334,9 @@ def handle_daily_update(db: DatabaseConnection):
         logger.warning('Portfolio updated successfully.')
 
     except Exception as e:
-        logger.error(f'Error during daily update: {e}', exc_info=True)
-        db.connection.rollback()
-        print(f'Error during daily update: {e}')
+        try:
+            if db.connection and db.connection.closed == 0:
+                db.connection.rollback()
+        except Exception:
+            logging.warning('Connection already closed; skipping rollback.')
+        logging.error('Daily update failed. Rolling back changes.')

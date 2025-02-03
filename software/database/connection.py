@@ -178,22 +178,28 @@ class DatabaseConnection:
         """ 
         Exit the runtime context for the database connection.
         """
-        if self.connection and self.cursor:
-            try:
-                if exc_type:
-                    self.connection.rollback()
-                    logger.info('Transaction rolled back due to an error.')
-                else: 
-                    self.connection.commit()
-                    logger.info('Transaction committed successfully.')
+        if self.connection is None or self.connection.closed:
+            logger.warning('Connection already closed; skipping commit/rollback')
+            return
+        
+        try:
+            if exc_type:
+                self.connection.rollback()
+                logger.info('Transaction rolled back due to an error.')
+            else: 
+                self.connection.commit()
+                logger.info('Transaction committed successfully.')
+        
+        except DatabaseError as e:
+            logger.error(f'Error committing transaction: {e}', exc_info=True)
+        
+        except Exception as e:
+            logger.error(f'Unexpected error committing transaction: {e}', exc_info=True)
             
-            except DatabaseError as e:
-                logger.error(f'Error committing transaction: {e}', exc_info=True)
-                
-            finally:
-                self.close(self.connection, self.cursor)
-                self.connection = None
-                self.cursor = None
+        finally:
+            self.close(self.connection, self.cursor)
+            self.connection = None
+            self.cursor = None
                 
     def adjust_pool_size(self, new_size: int) -> None:
         """ 
