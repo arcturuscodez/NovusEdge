@@ -13,6 +13,8 @@ st = Just started working on it.
 - [ ] Add async where needed
     - [ ] Asset updating should run alongside the software.
     - [ ] Test in conjuction with threading
+- [ ] Ensure that the stop server option actually works
+    - Currently it bugs out and requires higher permissions (find alternative or something)
 
 ## Portfolio Table
 

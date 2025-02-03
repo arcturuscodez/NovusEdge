@@ -292,10 +292,13 @@ def handle_daily_update(db: DatabaseConnection):
         row = db.cursor.fetchone()
         now = datetime.now()
         
-        if row and (row[0].date() == now.date()):
-            logger.info(f'Row: {row}, Now: {now}')
-            logger.info('Daily data update already run today. Skipping.')
-            return
+        if args.override is False:
+            if row and (row[0].date() == now.date()):
+                logger.info(f'Row: {row}, Now: {now}')
+                logger.info('Daily data update already run today. Skipping.')
+                return
+        else:
+            logger.info('Override flag set. Forcing update.')
         
         portfolio_repo = PortfolioRepository(db)
         assets = portfolio_repo.get_all()

@@ -22,7 +22,7 @@ database_options.add_argument(
     help='Start the PostgreSQL server.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Non Functional
     '-stop', '--stop_server',
     dest='StopServer',
     action='store_true',
@@ -142,6 +142,14 @@ utility_options.add_argument( # Functional
     action='store_true',
     default=False,
     help='Enable logging messages.'
+)
+
+utility_options.add_argument(
+    '-override', '--override',
+    dest='override',
+    action='store_true',
+    default=False,
+    help='Override the daily update clause forcing the update.'
 )
 
 """ Plotting Options """
