@@ -1,7 +1,7 @@
 """Service module for handling the addition of entities to the database."""
 from options import args
 from utility import is_valid_email
-from database.repositories.generic import GenericRepository
+from database.repositories.base import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository

@@ -2,24 +2,24 @@
 
 -- Create the SHAREHOLDERS table.
 CREATE TABLE IF NOT EXISTS SHAREHOLDERS (
-    ID SERIAL PRIMARY KEY,
-    NAME VARCHAR(255) NOT NULL UNIQUE,
-    OWNERSHIP NUMERIC(5, 2) CHECK (OWNERSHIP > 0 AND OWNERSHIP <=100),
-    INVESTMENT NUMERIC(15, 2) CHECK (INVESTMENT >= 0),
-    EMAIL VARCHAR(255) NOT NULL UNIQUE,
-    SHAREHOLDER_STATUS VARCHAR(20) DEFAULT 'active' CHECK (SHAREHOLDER_STATUS IN ('active', 'inactive')),
-    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
+    NAME VARCHAR(255) NOT NULL UNIQUE,                                                                                          -- Shareholder name                    
+    OWNERSHIP NUMERIC(5, 2) CHECK (OWNERSHIP > 0 AND OWNERSHIP <=100),                                                          -- Shareholder ownership percentage          
+    INVESTMENT NUMERIC(15, 2) CHECK (INVESTMENT >= 0),                                                                          -- Shareholder total investment           
+    EMAIL VARCHAR(255) NOT NULL UNIQUE,                                                                                         -- Shareholder email address                         
+    SHAREHOLDER_STATUS VARCHAR(20) DEFAULT 'active' CHECK (SHAREHOLDER_STATUS IN ('active', 'inactive')),                       -- Shareholder status (active or inactive)    
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the shareholder was created           
 );
 
 -- Create the TRANSACTIONS table.
 CREATE TABLE IF NOT EXISTS TRANSACTIONS (
-    ID SERIAL PRIMARY KEY,
-    TICKER VARCHAR(10) NOT NULL,
-    SHARES NUMERIC(10, 2) CHECK (SHARES > 0),
-    PRICE_PER_SHARE NUMERIC(15, 2) CHECK (PRICE_PER_SHARE > 0),
-    TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (SHARES * PRICE_PER_SHARE) STORED,
-    TRANSACTION_TYPE VARCHAR(10) NOT NULL CHECK (TRANSACTION_TYPE IN ('buy', 'sell')),
-    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
+    TICKER VARCHAR(10) NOT NULL,                                                                                                -- Asset ticker                         
+    SHARES NUMERIC(10, 2) CHECK (SHARES > 0),                                                                                   -- Number of shares bought or sold      
+    PRICE_PER_SHARE NUMERIC(15, 2) CHECK (PRICE_PER_SHARE > 0),                                                                 -- Price per share of the asset        
+    TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (SHARES * PRICE_PER_SHARE) STORED,                                           -- Total value of the transaction
+    TRANSACTION_TYPE VARCHAR(10) NOT NULL CHECK (TRANSACTION_TYPE IN ('buy', 'sell')),                                          -- Transaction type (buy or sell)
+    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the transaction was created
 );
 
 -- Create the PORTFOLIO table.
@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS FIRM (
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the firm was created
 );
 
+-- Create the TASK_METADATA table.
 CREATE TABLE IF NOT EXISTS TASK_METADATA (
     TASK_NAME TEXT PRIMARY KEY,                                                                                                 -- Task name
     LAST_RUN TIMESTAMP                                                                                                          -- Last run time                          

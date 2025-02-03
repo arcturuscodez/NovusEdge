@@ -20,6 +20,7 @@ st = Just started working on it.
 
 - [ ] Double check PORTFOLIO dividend yield calculation (ensure it is monthly, yearly, or quarterly)
 - [ ] Consider how much of the add or update asset method code needs to be in the repo versus the service.
+- [ ] Dividend values should be up to date and not old, i.e latest dividend value or nothing
 
 ## Firm Table
 

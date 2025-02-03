@@ -2,7 +2,7 @@ import numbers
 
 from typing import List, Optional, Type, TypeVar, Any, Dict, Union
 from database.connection import DatabaseConnection
-from database.models import BaseModel
+from database.models import BaseModel, GenericModel
 
 import logging
 
@@ -14,7 +14,6 @@ class BaseRepository:
     """
     Base repository providing common CRUD operations.
     """
-
     def __init__(
         self,
         db_conn: DatabaseConnection,
@@ -240,3 +239,10 @@ class BaseRepository:
             logger.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
             self.db.connection.rollback()
             return []
+        
+class GenericRepository(BaseRepository):
+    """ 
+    Repository for generic CRUD operations across any table.
+    """
+    def __init__(self, db: DatabaseConnection, table_name: str):
+        super().__init__(db, table_name, GenericModel)
