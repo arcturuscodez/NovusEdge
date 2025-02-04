@@ -72,7 +72,9 @@ class NovusEdge:
                 
                 asyncio.run(handle_update_portfolio_assets_data(self.db))
                 
-                if args.PrintTable:
+                if args.StartServer:
+                    self.db.start_server()
+                elif args.PrintTable:
                     from database.services.other import handle_print_table
                     handle_print_table(self.db)
                 elif args.AddShareholder:
