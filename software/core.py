@@ -1,6 +1,6 @@
 from database.connection import DatabaseConnection
 from timeit import default_timer as timer
-from options import args
+from options import args, parser
 
 import os
 import asyncio
@@ -47,16 +47,11 @@ class NovusEdge:
 
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
-        db_option_dests = [
-            'StopServer',
-            'PrintTable',
-            'AddShareholder',
-            'AddTransaction',
-            'AddFirm',
-            'UpdateShareholder',
-            'remove'
-        ]
-        return any(getattr(args, dest) not in [None, False] for dest in db_option_dests)
+        db_actions = []
+        for group in parser._action_groups:
+            if group.title == 'Database Options':
+                db_actions.extend(group._group_actions)
+        return any(getattr(args, action.dest) not in [None, False] for action in db_actions)
     
     def _is_plot_option_set(self):
         """Check if plotting option is set."""

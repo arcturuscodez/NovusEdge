@@ -228,12 +228,31 @@ def handle_add_expense(db):
     Handle the addition of a new expense into the firm's expenses column.
     """
     try:
-        pass # add an expense to the column
-        # subtract this value from the profit_loss column in the firm table (profit_loss is monthly or quarterly)
+        id, value = args.AddExpense.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_expense(value)
+        
+        logger.info(f'Adding expense {value} to firm with ID: {id}')
+        
     except Exception as e:
         logger.error(f'An unexpected error occurred while adding the expense: {e}')
         raise
-    
+
+def handle_add_revenue(db):
+    """ 
+    Handle the addition of a new revenue value into the firm's revenues column.
+    """
+    try:
+        pass
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the revenue: {e}')
+        raise
+
 def handle_add_liability(db):
     """
     Handle the addition of a new liability into the firm's liabilities column.

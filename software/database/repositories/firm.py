@@ -31,7 +31,20 @@ class FirmRepository(BaseRepository):
         except Exception as e:
             logger.error(f'Failed to add firm {firm_name}: {e}')
             return None
+    
+    def add_firm_expense(self, firm_id: int, expense: float) -> bool:
+        """ 
+        Create a new expense record for the firm.
         
+        Args:
+            firm_id (int): The ID of the firm.
+            expense (float): The monthly expense.
+            
+        Returns:
+            bool: True if the operation was successful, False otherwise.
+        """
+        return super().add(firm_id, expense)
+     
     def delete_firm(self, id: int) -> bool:
         """ 
         Delete a firm from the database.
