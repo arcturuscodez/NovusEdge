@@ -44,6 +44,32 @@ class FirmRepository(BaseRepository):
             bool: True if the operation was successful, False otherwise.
         """
         return super().increment_field(firm_id, 'EXPENSES', expense)
+    
+    def add_firm_revenue(self, firm_id: int, revenue: float) -> bool:
+        """ 
+        Manually add a revenue to the specified firm by id.
+        
+        Args:
+            firm_id (int): The ID of the firm.
+            revenue (float): The revenue to add.
+            
+        Returns: 
+            bool: True if the operation was successful, False otherwise.
+        """
+        return super().increment_field(firm_id, 'REVENUE', revenue)
+    
+    def add_firm_liability(self, firm_id: int, liability: float) -> bool:
+        """ 
+        Manually add a liability to the specified firm by id.
+        
+        Args:
+            firm_id (int): The ID of the firm.
+            liability (float): The liability to add.
+            
+        Returns: 
+            bool: True if the operation was successful, False otherwise.
+        """
+        return super().increment_field(firm_id, 'LIABILITIES', liability)
      
     def delete_firm(self, id: int) -> bool:
         """ 

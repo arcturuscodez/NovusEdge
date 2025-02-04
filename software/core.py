@@ -84,6 +84,12 @@ class NovusEdge:
                 elif args.AddExpense:
                     from database.services.add import handle_add_expense
                     handle_add_expense(self.db)
+                elif args.AddRevenue:
+                    from database.services.add import handle_add_revenue
+                    handle_add_revenue(self.db)
+                elif args.AddLiability:
+                    from database.services.add import handle_add_liability
+                    handle_add_liability(self.db)
                 elif args.UpdateShareholder:
                     from database.services.update import handle_update_shareholder
                     handle_update_shareholder(self.db)

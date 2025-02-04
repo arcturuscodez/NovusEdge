@@ -237,6 +237,7 @@ def handle_add_expense(db):
         
         firm_repo.add_firm_expense(id, value)
         
+        print(f'Adding expense {value} to firm with ID: {id}')
         logger.info(f'Adding expense {value} to firm with ID: {id}')
         
     except Exception as e:
@@ -248,7 +249,18 @@ def handle_add_revenue(db):
     Handle the addition of a new revenue value into the firm's revenues column.
     """
     try:
-        pass
+        id, value = args.AddRevenue.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_revenue(id, value)
+        
+        print(f'Adding revenue {value} to firm with ID: {id}')
+        logger.info(f'Adding revenue {value} to firm with ID: {id}')
+
     except Exception as e:
         logger.error(f'An unexpected error occurred while adding the revenue: {e}')
         raise
@@ -258,7 +270,18 @@ def handle_add_liability(db):
     Handle the addition of a new liability into the firm's liabilities column.
     """
     try:
-        pass
+        id, value = args.AddLiability.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_liability(id, value)
+        
+        print(f'Adding liability {value} to firm with ID: {id}')
+        logger.info(f'Adding liability {value} to firm with ID: {id}')
+        
     except Exception as e:
         logger.error(f'An unexpected error occurred while adding the liability: {e}')
         raise

@@ -246,10 +246,10 @@ class BaseRepository:
         Increment (or decrement) a specific field of an entity by delta.
 
         Args:
-        entity_id (int): The ID of the entity.
-        field (str): The name of the column to modify.
-        delta (float): The amount to add to (or subtract from) the field.
-
+            entity_id (int): The ID of the entity.
+            field (str): The name of the column to modify.
+            delta (float): The amount to add to (or subtract from) the field.
+    
         Returns:
             bool: True if the update was successful, False otherwise.
         """
