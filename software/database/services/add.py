@@ -235,7 +235,7 @@ def handle_add_expense(db):
             logger.warning(f'Firm with ID {id} not found.')
             return
         
-        firm_repo.add_firm_expense(value)
+        firm_repo.add_firm_expense(id, value)
         
         logger.info(f'Adding expense {value} to firm with ID: {id}')
         

@@ -31,19 +31,19 @@ class FirmRepository(BaseRepository):
         except Exception as e:
             logger.error(f'Failed to add firm {firm_name}: {e}')
             return None
-    
+        
     def add_firm_expense(self, firm_id: int, expense: float) -> bool:
-        """ 
-        Create a new expense record for the firm.
+        """
+        Increment the EXPENSES column for the specified firm by the given expense value.
         
         Args:
             firm_id (int): The ID of the firm.
-            expense (float): The monthly expense.
-            
+            expense (float): The expense to add.
+        
         Returns:
             bool: True if the operation was successful, False otherwise.
         """
-        return super().add(firm_id, expense)
+        return super().increment_field(firm_id, 'EXPENSES', expense)
      
     def delete_firm(self, id: int) -> bool:
         """ 

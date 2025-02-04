@@ -240,7 +240,28 @@ class BaseRepository:
             logger.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
             self.db.connection.rollback()
             return []
-        
+    
+    def increment_field(self, entity_id: int, field: str, delta: float) -> bool:
+        """
+        Increment (or decrement) a specific field of an entity by delta.
+
+        Args:
+        entity_id (int): The ID of the entity.
+        field (str): The name of the column to modify.
+        delta (float): The amount to add to (or subtract from) the field.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
+        try:
+            query = f"UPDATE {self.table_name} SET {field} = {field} + %s WHERE id = %s"
+            self.db.cursor.execute(query, (delta, entity_id))
+            return True
+        except Exception as e:
+            logger.error(f"Error incrementing {field} for ID {entity_id}: {e}", exc_info=True)
+            self.db.connection.rollback()
+            return False
+    
 class GenericRepository(BaseRepository):
     """ 
     Repository for generic CRUD operations across any table.
