@@ -1,11 +1,13 @@
 """Service module for handling the addition of entities to the database."""
 from options import args
 from utility import is_valid_email
-from database.repositories.generic import GenericRepository
+from database.repositories.base import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
+
+from database.connection import DatabaseConnection
 
 from decimal import Decimal, InvalidOperation
 
@@ -104,7 +106,7 @@ def handle_add_shareholder(db):
         logger.warning(f'An error occurred handling the adding of a shareholder to the table: {e}')
         raise
     
-def handle_add_transaction(db):
+def handle_add_transaction(db: DatabaseConnection):
     """ 
     Handle the addition of a transaction to the transactions table.
     
@@ -124,6 +126,7 @@ def handle_add_transaction(db):
         
         try:
             ticker, shares, price_per_share, transaction_type = parse_transaction_args(args)
+            
         except ValueError as e:
             logger.error(e)
             return
@@ -134,6 +137,7 @@ def handle_add_transaction(db):
         
         portfolio_repo = PortfolioRepository(db)
         transaction_repo = TransactionRepository(db)
+        firm_repo = FirmRepository(db)
         
         if transaction_type == 'sell':
             asset = portfolio_repo.get_asset_by_ticker(ticker)
@@ -141,6 +145,13 @@ def handle_add_transaction(db):
                 logger.warning(f'Insufficient shares to sell: {shares} requested, {asset.total_shares if asset else 0} available.')
                 return
             
+        if transaction_type == 'buy':
+            firm_data = firm_repo.get_entity(id=1)
+            if not firm_data or firm_data.cash < shares * price_per_share:
+                db.manual_rollback(db.connection)
+                logger.warning(f'Insufficient funds to buy: {shares * price_per_share} required, {firm_data.cash if firm_data else 0} available.')
+                return
+                        
         # Add transaction
         transaction_id = transaction_repo.add_transaction(ticker, shares, price_per_share, transaction_type)
         if not transaction_id:
@@ -150,16 +161,28 @@ def handle_add_transaction(db):
         print(f'Transaction added: {transaction_type} {ticker}, {shares} shares at {price_per_share}, ID: {transaction_id}')
         
         # Update portfolio
-        success = portfolio_repo.add_or_update_asset(
+        portfolio_success = portfolio_repo.add_or_update_asset(
             ticker=ticker,
             shares=shares if transaction_type == 'buy' else -shares,
             price_per_share=price_per_share,
             transaction_type=transaction_type
         )
-        if not success:
+        if not portfolio_success:
             logger.warning(f'Failed to update portfolio for ticker: {ticker}.')
         else:
             logger.info(f'Portfolio updated successfully for ticker: {ticker}.')
+            
+        # Update firm
+        
+        firm = firm_repo.get_firm(id=1)
+        firm_success = firm_repo.update_firm(
+            1,
+            CASH=firm.cash + (shares * price_per_share if transaction_type == 'sell' else -shares * price_per_share)
+            )
+        if not firm_success:
+            logger.warning(f'Failed to update firm for transaction: {transaction_id}.')
+        else:
+            logger.info(f'Firm updated successfully for transaction: {transaction_id}.')
             
     except Exception as e:
         logger.warning(f'Error handling transaction: {e}')
@@ -194,9 +217,71 @@ def handle_add_firm(db):
             print(f'Firm "{firm_name}" added successfully with ID: {firm_id}.')
         else:
             logger.warning('Failed to add firm.')
-            print('Error: Failed to add firm.')
 
     except Exception as e:
         logger.error(f'An unexpected error occurred while adding the firm: {e}')
         print('An unexpected error occurred while adding the firm.')
+        raise
+
+def handle_add_expense(db):
+    """
+    Handle the addition of a new expense into the firm's expenses column.
+    """
+    try:
+        id, value = args.AddExpense.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_expense(id, value)
+        
+        print(f'Adding expense {value} to firm with ID: {id}')
+        logger.info(f'Adding expense {value} to firm with ID: {id}')
+        
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the expense: {e}')
+        raise
+
+def handle_add_revenue(db):
+    """ 
+    Handle the addition of a new revenue value into the firm's revenues column.
+    """
+    try:
+        id, value = args.AddRevenue.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_revenue(id, value)
+        
+        print(f'Adding revenue {value} to firm with ID: {id}')
+        logger.info(f'Adding revenue {value} to firm with ID: {id}')
+
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the revenue: {e}')
+        raise
+
+def handle_add_liability(db):
+    """
+    Handle the addition of a new liability into the firm's liabilities column.
+    """
+    try:
+        id, value = args.AddLiability.split(':')
+        
+        firm_repo = FirmRepository(db)
+        if not firm_repo:
+            logger.warning(f'Firm with ID {id} not found.')
+            return
+        
+        firm_repo.add_firm_liability(id, value)
+        
+        print(f'Adding liability {value} to firm with ID: {id}')
+        logger.info(f'Adding liability {value} to firm with ID: {id}')
+        
+    except Exception as e:
+        logger.error(f'An unexpected error occurred while adding the liability: {e}')
         raise

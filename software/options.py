@@ -22,7 +22,7 @@ database_options.add_argument(
     help='Start the PostgreSQL server.'
 )
 
-database_options.add_argument(
+database_options.add_argument( # Non Functional
     '-stop', '--stop_server',
     dest='StopServer',
     action='store_true',
@@ -60,6 +60,16 @@ database_options.add_argument( # Untested
     type=str,
     metavar='<id>:key=value (-t <table>)',
     help='Edit a entity in a table by id.'
+)
+
+## Table Options
+
+database_options.add_argument( # Functional 
+    '--pt', '--print-table',
+    dest='PrintTable',
+    type=str,
+    metavar='SHAREHOLDER',
+    help='Print the specified table to the terminal.'
 )
 
 ## Shareholder Options
@@ -124,17 +134,33 @@ database_options.add_argument(
     help='Add a new firm with the specified name. Other fields are set to default values.'
 )
 
+database_options.add_argument(
+    '--ae', '--add-expense',
+    dest='AddExpense',
+    type=str,
+    metavar='id:value (monthly)',
+    help='Add an expense to a firm by id. (Ensure it is monthly).' 
+)
+
+database_options.add_argument(
+    '--ar', '--add-revenue',
+    dest='AddRevenue',
+    type=str,
+    metavar='id:value (monthly)',
+    help='Add a revenue to a firm by id. (Ensure it is monthly).'
+)
+
+database_options.add_argument(
+    '--al', '--add-liability',
+    dest='AddLiability',
+    type=str,
+    metavar='id:value',
+    help='Add a liability to a firm by id.'
+)
+
 """ Utility Options """
 
 utility_options = parser.add_argument_group('Utility Options')
-
-utility_options.add_argument( # Functional 
-    '--pt', '--print-table',
-    dest='PrintTable',
-    type=str,
-    metavar='SHAREHOLDER',
-    help='Print the specified table to the terminal.'
-)
 
 utility_options.add_argument( # Functional
     '-v', '--verbose',
@@ -142,6 +168,14 @@ utility_options.add_argument( # Functional
     action='store_true',
     default=False,
     help='Enable logging messages.'
+)
+
+utility_options.add_argument(
+    '-override', '--override',
+    dest='override',
+    action='store_true',
+    default=False,
+    help='Override the daily update clause forcing the update.'
 )
 
 """ Plotting Options """

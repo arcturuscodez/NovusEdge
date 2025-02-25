@@ -36,7 +36,7 @@ class BaseRepository:
 
 ```
 
-### GenericRepository (`generic.py`)
+### GenericRepository (`base.py`)
 
 - Extends BaseRepository to provide generic operations for any table.
 - Useful for tables that do not require specialized methods.

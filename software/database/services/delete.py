@@ -2,7 +2,7 @@
 from options import args
 from psycopg2.errors import UndefinedTable
 from database.repositories.factory import RepositoryNotFoundError
-from database.repositories.generic import GenericRepository
+from database.repositories.base import GenericRepository
 
 import logging
 

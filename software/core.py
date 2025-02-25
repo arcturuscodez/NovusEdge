@@ -1,7 +1,10 @@
 from database.connection import DatabaseConnection
-from options import args
+from timeit import default_timer as timer
+from options import args, parser
 
 import os
+import asyncio
+
 from dotenv import load_dotenv
 
 import logging
@@ -31,6 +34,8 @@ class NovusEdge:
             'pg_exe': os.getenv('PG_EXE')
         }
         
+        self.start_time = timer()
+            
         self.db = DatabaseConnection(**self.db_params)
         
         if self._is_db_option_set():
@@ -42,15 +47,11 @@ class NovusEdge:
 
     def _is_db_option_set(self):
         """Check if any database-related option is set."""
-        db_option_dests = [
-            'PrintTable',
-            'AddShareholder',
-            'AddTransaction',
-            'AddFirm',
-            'UpdateShareholder',
-            'remove'
-        ]
-        return any(getattr(args, dest) not in [None, False] for dest in db_option_dests)
+        db_actions = []
+        for group in parser._action_groups:
+            if group.title == 'Database Options':
+                db_actions.extend(group._group_actions)
+        return any(getattr(args, action.dest) not in [None, False] for action in db_actions)
     
     def _is_plot_option_set(self):
         """Check if plotting option is set."""
@@ -62,7 +63,13 @@ class NovusEdge:
     def database_usage(self):
         try:
             with self.db:
-                if args.PrintTable:
+                from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
+                
+                asyncio.run(handle_update_portfolio_assets_data(self.db))
+                
+                if args.StartServer:
+                    self.db.start_server()
+                elif args.PrintTable:
                     from database.services.other import handle_print_table
                     handle_print_table(self.db)
                 elif args.AddShareholder:
@@ -74,6 +81,15 @@ class NovusEdge:
                 elif args.AddFirm:
                     from database.services.add import handle_add_firm
                     handle_add_firm(self.db)
+                elif args.AddExpense:
+                    from database.services.add import handle_add_expense
+                    handle_add_expense(self.db)
+                elif args.AddRevenue:
+                    from database.services.add import handle_add_revenue
+                    handle_add_revenue(self.db)
+                elif args.AddLiability:
+                    from database.services.add import handle_add_liability
+                    handle_add_liability(self.db)
                 elif args.UpdateShareholder:
                     from database.services.update import handle_update_shareholder
                     handle_update_shareholder(self.db)
@@ -83,11 +99,12 @@ class NovusEdge:
                 elif args.remove:
                     from database.services.delete import handle_delete_by_id
                     handle_delete_by_id(self.db)
+                elif args.StopServer:
+                    self.db.stop_server()
                 elif args.table and not args.remove and not args.AddShareholder:
                     logger.error('No specific action provided for the table operation.')
 
-                from database.services.other import handle_daily_update
-                handle_daily_update(self.db_params)
+                handle_daily_update(self.db)
             
         except AttributeError as e:
             logger.error(f'Argument parsing error: {e}')
@@ -95,6 +112,11 @@ class NovusEdge:
         except Exception as e:
             logger.error(f'An unexpected error occurred: {e}')
             raise
+        
+        finally:
+            end_time = timer()
+            elapsed = end_time - self.start_time
+            logging.info(f'Elapsed time: {elapsed:.2f} seconds')
          
 if __name__ == '__main__':
     NovusEdge()

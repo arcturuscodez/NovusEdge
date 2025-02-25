@@ -1,17 +1,22 @@
 """Service module for handling the updating of entities in the database."""
 from options import args
 from utility import is_valid_email
-from database.repositories.generic import GenericRepository
+from database.repositories.base import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
+from datetime import datetime, timedelta
+
+from database.connection import DatabaseConnection
 
 from icarus.retriever import AssetRetriever
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+import asyncio
 
 def handle_update_entity(db) -> bool:
     """
@@ -246,25 +251,72 @@ def handle_update_transaction(db):
         logger.error(f'An error occurred handling the updating of a transaction in the table: {e}')
         raise
     
-def handle_update_portfolio(db):
+async def handle_update_portfolio_assets_data(db):
     """ 
-    Handle the updating of the fields CURRENT_PRICE and DIVIDEND_YIELD using live data.
+    Asynchronously update the ASSETS field using the PORTFOLIO TOTAL_VALUE column.
     """
+    loop = asyncio.get_running_loop()
     try:
+        portfolio_repo = PortfolioRepository(db)
+        firm_repo = FirmRepository(db)
+        
+        # Run blocking calls in an executor
+        assets = await loop.run_in_executor(None, portfolio_repo.get_all)
+        total_assets_value = sum(asset.total_value for asset in assets if asset.total_value is not None)
+        
+        firm = await loop.run_in_executor(None, lambda: firm_repo.get_firm(1))
+        if firm:
+            success = await loop.run_in_executor(None, lambda: firm_repo.update_firm(1, assets=total_assets_value))
+            if success:
+                logger.info(f'Firm total assets value updated successfully: {total_assets_value}')
+            else:
+                logger.warning('Failed to update firm assets column.')
+        else:
+            logger.warning('Firm not found.')
+            
+    except Exception as e:
+        logger.error(f'An error occurred updating the firm assets column: {e}')
+        raise
+
+def handle_daily_update(db: DatabaseConnection):
+    """
+    Run the update portfolio task once a day.
+    
+    Args:
+        db (dict): The database connection parameters.
+    """
+    task_name = 'update_portfolio'
+    
+    if not hasattr(db, 'connection') or db.connection is None or db.connection.closed != 0:
+        logging.warning('Daily update aborted. Database connection not available.')
+        return
+    
+    try:
+        db.cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
+        
+        row = db.cursor.fetchone()
+        now = datetime.now()
+        
+        if args.override is False:
+            if row and (row[0].date() == now.date()):
+                logger.info(f'Row: {row}, Now: {now}')
+                logger.info('Daily data update already run today. Skipping.')
+                return
+        else:
+            logger.info('Override flag set. Forcing update.')
+        
         portfolio_repo = PortfolioRepository(db)
         assets = portfolio_repo.get_all()
         
         for asset in assets:
             retriever = AssetRetriever(ticker=asset.ticker)
-            
-            # Retrieve Latest Closing Price
             latest_price = retriever.get_latest_closing_price()
             if latest_price is not None:
                 portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
                 logging.info(f'Latest Closing Price for {asset.ticker}: {latest_price}')
             else:
                 logger.warning(f'Could not retrieve latest closing price for {asset.ticker}')
-                
+            
             dividends = retriever.get_dividend_info()
             if dividends is not None and not dividends.empty:
                 latest_dividend = dividends['Dividends'].iloc[-1]
@@ -273,6 +325,18 @@ def handle_update_portfolio(db):
                 logger.info(f'Dividend Yield for {asset.ticker}: {dividend_yield:.2f}%')
             else:
                 logger.info(f'No dividend information available for {asset.ticker}')
-                
+        
+        if row:
+            db.cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
+        else:
+            db.cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
+        db.connection.commit()
+        logger.warning('Portfolio updated successfully.')
+
     except Exception as e:
-        logger.error(f'An error occurred updating the portfolio: {e}')
+        try:
+            if db.connection and db.connection.closed == 0:
+                db.connection.rollback()
+        except Exception:
+            logging.warning('Connection already closed; skipping rollback.')
+        logging.error('Daily update failed. Rolling back changes.')
