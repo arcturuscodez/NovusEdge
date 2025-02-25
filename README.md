@@ -59,7 +59,7 @@ Sonny Holman (Developer)
 
 ## License
 
-All rights reserved. Please refer to the LICENSE file for more details on usage and distribution.
+This software is proprietary and confidential. Unauthorized use, distribution, or modification is prohibited. To use or distribute this software, you must obtain explicit written permission from [Your Name] and, where applicable, pay a licensing fee. Contact [sonnyholman@hotmail.com] for inquiries.
 
 ## Contact
 
