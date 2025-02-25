@@ -35,7 +35,7 @@ database_options.add_argument( # Functional
     dest='table',
     type=str,
     metavar='<tablename>',
-    help='Print the specified table to the terminal.'
+    help='Table to interact with. Required for some database operations.'
 )
 
 database_options.add_argument( # Untested
@@ -175,7 +175,7 @@ utility_options.add_argument(
     dest='override',
     action='store_true',
     default=False,
-    help='Override the daily update clause forcing the update.'
+    help='Override the daily update clause, forcing the update.'
 )
 
 """ Plotting Options """
