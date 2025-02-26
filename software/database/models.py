@@ -89,16 +89,16 @@ class FirmModel(BaseModel):
     """ 
     Dataclass model to represent a firms financial data.
     """
-    id: Optional[int] = None
-    capital: Optional[float] = None
-    assets: float = 0.0
-    cash: float = 0.0
-    profit_loss: float = 0.0
-    expenses: float = 0.0
-    revenue: float = 0.0
-    liabilities: float = 0.0
-    firm_name: str = ""
-    created_at: Optional[datetime] = field(default_factory=datetime.now)
+    id: Optional[int] = None # Firm ID
+    capital: Optional[float] = None # Firm capital
+    assets: float = 0.0 # Firm assets
+    cash: float = 0.0 # Firm cash
+    profit_loss: float = 0.0 # Firm profit or loss
+    expenses: float = 0.0 # Firm expenses (Monthly)
+    revenue: float = 0.0 # Firm revenue (Monthly)
+    liabilities: float = 0.0 # Firm liabilities
+    firm_name: str = "" # Firm name
+    created_at: Optional[datetime] = field(default_factory=datetime.now) # Firm creation date
     
 @dataclass
 class TaskModel(BaseModel):

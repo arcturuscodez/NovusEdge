@@ -1,4 +1,4 @@
-"The main entry point for the NovusEdge application."
+"""The main entry point for the NovusEdge application."""
 from database.connection import DatabaseConnection
 from timeit import default_timer as timer
 from options import args
