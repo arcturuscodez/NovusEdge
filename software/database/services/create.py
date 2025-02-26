@@ -37,7 +37,7 @@ def handle_create_entity(db: DatabaseConnection, table: str, **data):
 
         logger.debug(f"Creating entity in table '{table}' with data: {data}")
         repository = GenericRepository(db, table)
-        entity_id = repository.add(data)
+        entity_id = repository.create(data)
 
         if entity_id:
             logger.info(f"Entity created in table '{table}' with ID: {entity_id}")
@@ -219,7 +219,7 @@ def handle_create_firm(db: DatabaseConnection, firm_name: str):
 
         logger.debug(f"Creating firm: {firm_name}")
         firm_repo = FirmRepository(db)
-        firm_id = firm_repo.add_firm(firm_name=firm_name)
+        firm_id = firm_repo.create_firm(firm_name=firm_name)
 
         if firm_id:
             logger.info(f"Firm '{firm_name}' created successfully with ID: {firm_id}")
@@ -261,7 +261,7 @@ def handle_create_expense(db: DatabaseConnection, firm_id: str, value: str):
             logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
-        firm_repo.add_firm_expense(firm_id_int, value_float)
+        firm_repo.create_firm_expense(firm_id_int, value_float)
         logger.info(f"Created expense {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:
@@ -299,7 +299,7 @@ def handle_create_revenue(db: DatabaseConnection, firm_id: str, value: str):
             logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
-        firm_repo.add_firm_revenue(firm_id_int, value_float)
+        firm_repo.create_firm_revenue(firm_id_int, value_float)
         logger.info(f"Created revenue {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:
@@ -337,7 +337,7 @@ def handle_create_liability(db: DatabaseConnection, firm_id: str, value: str):
             logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
-        firm_repo.add_firm_liability(firm_id_int, value_float)
+        firm_repo.create_firm_liability(firm_id_int, value_float)
         logger.info(f"Created liability {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:

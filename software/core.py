@@ -90,8 +90,8 @@ class NovusEdge:
             'revenue': handle_create_revenue,
             'liability': handle_create_liability
         }
-        if args.data:
-            data = dict(kv.split('=') for kv in args.data.split(':'))
+        if args.values:
+            data = dict(kv.split('=') for kv in args.values.split(':'))
             handler = handlers.get(args.type)
             handler(self.db, **data) if handler else logger.error(f"Unsupported add type: {args.type}")
         else:
@@ -107,8 +107,8 @@ class NovusEdge:
             'shareholder': handle_update_shareholder,
             'transaction': handle_update_transaction
         }
-        if args.data:
-            data = dict(kv.split('=') for kv in args.data.split(':'))
+        if args.values:
+            data = dict(kv.split('=') for kv in args.values.split(':'))
             handler = handlers.get(args.type)
             handler(self.db, args.id, **data) if handler else logger.error(f"Unsupported update type: {args.type}")
         else:

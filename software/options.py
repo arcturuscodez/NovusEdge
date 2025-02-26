@@ -1,7 +1,7 @@
 # options.py
 import argparse
 
-def create_parser():
+def software_parser():
     parser = argparse.ArgumentParser(
         description='NovusEdge: Financial Management Tool',
         prog='novusedge'
@@ -28,7 +28,7 @@ def create_parser():
     )
     create_parser.add_argument('--table', type=str, help='Table for generic operations')
     create_parser.add_argument('--id', type=int, help='ID for operations requiring it')
-    create_parser.add_argument('--data', type=str, help='Data in key=value format (e.g., name=John:ownership=10)')
+    create_parser.add_argument('--values', type=str, help='Data in key=value format (e.g., name=John:ownership=10)')
 
     # 'print' subcommand
     read_parser = subparsers.add_parser('read', help='Read table data')
@@ -51,4 +51,4 @@ def create_parser():
 
     return parser
 
-args = create_parser().parse_args()
+args = software_parser().parse_args()

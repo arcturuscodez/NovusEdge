@@ -247,11 +247,11 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
         now = datetime.now()
 
         if not force_update and row and row[0].date() == now.date():
-            logger.info(f"Last run: {row[0]}, Current time: {now}. Portfolio update already run today. Use --force to override")
+            logger.info(f"Last run: {row[0]}, Current time: {now}. Portfolio update already run today. Use --override to override")
             return
 
         if force_update:
-            logger.info("Force update enabled via --force. Proceeding with portfolio update")
+            logger.info("Force update enabled via --override. Proceeding with portfolio update")
 
         portfolio_repo = PortfolioRepository(db)
         logger.debug("Fetching all portfolio assets")
@@ -282,6 +282,8 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             else:
                 logger.debug(f"No dividend information available for {asset.ticker}")
 
+        # Below should use new Task repo methods.
+        
         if row:
             logger.debug(f"Updating TASK_METADATA for '{task_name}' with last_run: {now}")
             db.cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
