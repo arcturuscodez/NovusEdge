@@ -63,8 +63,8 @@ class PortfolioRepository(BaseRepository):
                     total_invested=shares * price_per_share,
                     realized_profit_loss=Decimal('0.00'),
                 )
-                success = self.add(new_asset) is not None
-                logger.info(f'Asset {ticker} added successfully.' if success else f'Failed to add {ticker}.')
+                success = self.create(new_asset) is not None
+                logger.info(f'Asset {ticker} created successfully.' if success else f'Failed to add {ticker}.')
                 return success
             
             logger.warning(f'No shares of {ticker} to sell.')

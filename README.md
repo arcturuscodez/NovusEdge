@@ -34,11 +34,59 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 3. yfinance
 4. SQL database
 
+### Environment Setup
+
+1. **Add to System PATH**
+   - Open Windows Start menu
+   - Search for "Environment Variables"
+   - Click "Edit the system environment variables"
+   - Click "Environment Variables" button
+   - Under "User Variables", find "Path"
+   - Click "Edit"
+   - Click "New"
+   - Add the full path to NovusEdge (e.g., `your-path\NovusEdge`)
+   - Click "OK" on all windows
+
+2. **Verify Installation**
+   - Open a new PowerShell window
+   - Test the command:
+   ```powershell
+   .\novusedge --help
+   ```
+   - You should see the help menu with available commands
+
+Note: If the command isn't recognized, try opening a new terminal window to refresh the PATH environment.
+
 ## Features
 
 - **General**
   - Modular design with clear separation of business logic and data access.
   - Command-line interface options for adding/updating/deleting records.
+
+- **Options & Commands**
+  - V0.2.3 introduces a modern subcommand-based CLI interface:
+    ```bash
+    # Adding records
+    novusedge add shareholder --data "name=John:ownership=10:investment=1000:email=john@example.com"
+    novusedge add transaction --data "ticker=AAPL:shares=100:price=150:type=buy"
+    
+    # Managing server
+    novusedge server start
+    novusedge server stop
+    
+    # Reading data
+    novusedge read shareholders
+    novusedge read portfolio
+    
+    # Updating records
+    novusedge update shareholder 1 --data "investment=2000"
+    
+    # Removing records
+    novusedge remove shareholders 1
+    ```
+  - Each command follows a consistent pattern: `.\novusedge <command> <subcommand> [options]`
+  - Supports common operations (add, read, update, remove) across all database entities
+  - Includes built-in help: `.\novusedge --help` or `.\novusedge <command> --help`
 
 - **Database Interaction**
   - Robust integration with PostgreSQL using a connection pool.

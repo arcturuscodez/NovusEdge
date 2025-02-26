@@ -26,15 +26,15 @@ class BaseRepository:
         self.model = model
         self.primary_keys = primary_keys
 
-    def add(self, entity: T) -> Optional[int]:
+    def create(self, entity: T) -> Optional[int]:
         """ 
         Add a new entity to the database.
 
         Args:
-            entity (T): The entity to add.
+            entity (T): The entity to create.
 
         Returns:
-            Optional[int]: The ID of the newly added entity, or None if failed.
+            Optional[int]: The ID of the newly created entity, or None if failed.
         """
         try:
             data = entity.to_dict()
@@ -50,11 +50,11 @@ class BaseRepository:
 
             self.db.cursor.execute(query, values)
             entity_id = self.db.cursor.fetchone()[0]
-            logger.info(f'Added entity to {self.table_name} with ID: {entity_id}')
+            logger.info(f'Created entity to {self.table_name} with ID: {entity_id}')
             return entity_id
 
         except Exception as e:
-            logger.warning(f'Error adding entity to {self.table_name}: {e}', exc_info=True)
+            logger.warning(f'Error creating entity to {self.table_name}: {e}', exc_info=True)
             self.db.connection.rollback()
             return None
 

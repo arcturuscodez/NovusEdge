@@ -1,122 +1,114 @@
+# core.py
 from database.connection import DatabaseConnection
 from timeit import default_timer as timer
-from options import args, parser
-
+from options import args
+from dotenv import load_dotenv
 import os
 import asyncio
-
-from dotenv import load_dotenv
-
 import logging
 
 logger = logging.getLogger(__name__)
 
 class NovusEdge:
-    """Main class to handle the software's functionality."""
-    
-    logging_level = logging.INFO if args.verbose else logging.WARNING
-    logging.basicConfig(
-        level=logging_level,
-        format='%(levelname)s:%(name)s:%(message)s'
-    )
-    
-    load_dotenv()
-    
+    """Main class to handle NovusEdge functionality."""
+
     def __init__(self):
-        """Set up the class for software usage."""
+        """Initialize the application."""
+        logging.basicConfig(
+            level=logging.INFO if args.verbose else logging.WARNING,
+            format='%(levelname)s:%(name)s:%(message)s'
+        )
+        load_dotenv()
         
         self.db_params = {
             'db': os.getenv('DB_NAME'),
             'user': os.getenv('DB_USER'),
             'password': os.getenv('DB_PASS'),
             'host': os.getenv('DB_HOST'),
-            'port': int(os.getenv('DB_PORT')),
+            'port': os.getenv('DB_PORT'),
             'pg_exe': os.getenv('PG_EXE')
         }
-        
         self.start_time = timer()
-            
         self.db = DatabaseConnection(**self.db_params)
-        
-        if self._is_db_option_set():
-            self.database_usage()
-        elif self._is_plot_option_set():
-            pass
-        else:
-            print('No valid context for options was provided, please use -h to view valid options and uses.')
 
-    def _is_db_option_set(self):
-        """Check if any database-related option is set."""
-        db_actions = []
-        for group in parser._action_groups:
-            if group.title == 'Database Options':
-                db_actions.extend(group._group_actions)
-        return any(getattr(args, action.dest) not in [None, False] for action in db_actions)
-    
-    def _is_plot_option_set(self):
-        """Check if plotting option is set."""
-        plot_option_dests = [
-            'plotdata'
-        ]
-        return any(getattr(args, dest, False) not in [None, False] for dest in plot_option_dests)
-    
-    def database_usage(self):
+    def run(self):
+        """Execute the command specified by the user."""
         try:
             with self.db:
-                from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
-                
-                asyncio.run(handle_update_portfolio_assets_data(self.db))
-                
-                if args.StartServer:
-                    self.db.start_server()
-                elif args.PrintTable:
-                    from database.services.other import handle_print_table
-                    handle_print_table(self.db)
-                elif args.AddShareholder:
-                    from database.services.add import handle_add_shareholder
-                    handle_add_shareholder(self.db)
-                elif args.AddTransaction:
-                    from database.services.add import handle_add_transaction
-                    handle_add_transaction(self.db)
-                elif args.AddFirm:
-                    from database.services.add import handle_add_firm
-                    handle_add_firm(self.db)
-                elif args.AddExpense:
-                    from database.services.add import handle_add_expense
-                    handle_add_expense(self.db)
-                elif args.AddRevenue:
-                    from database.services.add import handle_add_revenue
-                    handle_add_revenue(self.db)
-                elif args.AddLiability:
-                    from database.services.add import handle_add_liability
-                    handle_add_liability(self.db)
-                elif args.UpdateShareholder:
-                    from database.services.update import handle_update_shareholder
-                    handle_update_shareholder(self.db)
-                elif args.UpdateTransaction:
-                    from database.services.update import handle_update_transaction
-                    handle_update_transaction(self.db)
-                elif args.remove:
-                    from database.services.delete import handle_delete_by_id
-                    handle_delete_by_id(self.db)
-                elif args.StopServer:
-                    self.db.stop_server()
-                elif args.table and not args.remove and not args.AddShareholder:
-                    logger.error('No specific action provided for the table operation.')
+                # Dispatch based on subcommand
+                if args.command == 'create':
+                    self._handle_create()
+                elif args.command == 'server':
+                    self._handle_server()
+                elif args.command == 'read':
+                    self._handle_read()
+                elif args.command == 'update':
+                    self._handle_update()
+                elif args.command == 'delete':
+                    self._handle_delete()
 
-                handle_daily_update(self.db)
-            
-        except AttributeError as e:
-            logger.error(f'Argument parsing error: {e}')
-                    
+                self._daily_update() # Run daily update (if applicable due to TASK_METADATA check)
+
         except Exception as e:
-            logger.error(f'An unexpected error occurred: {e}')
+            logger.error(f"An unexpected error occurred: {e}")
             raise
-        
         finally:
-            end_time = timer()
-            elapsed = end_time - self.start_time
-            logging.info(f'Elapsed time: {elapsed:.2f} seconds')
-         
-if __name__ == '__main__':
-    NovusEdge()
+            elapsed = timer() - self.start_time
+            logger.info(f"Elapsed time: {elapsed:.2f} seconds")
+
+    # Command Handlers
+    def _handle_create(self):
+        from database.services.create import (
+            handle_create_shareholder, handle_create_transaction, handle_create_firm,
+            handle_create_expense, handle_create_revenue, handle_create_liability
+        )
+        handlers = {
+            'shareholder': handle_create_shareholder,
+            'transaction': handle_create_transaction,
+            'firm': handle_create_firm,
+            'expense': handle_create_expense,
+            'revenue': handle_create_revenue,
+            'liability': handle_create_liability
+        }
+        if args.data:
+            data = dict(kv.split('=') for kv in args.data.split(':'))
+            handler = handlers.get(args.type)
+            handler(self.db, **data) if handler else logger.error(f"Unsupported add type: {args.type}")
+        else:
+            logger.error("Data required for 'create' command")
+
+    def _handle_server(self):
+        if args.action == 'start':
+            self.db.start_server()
+        elif args.action == 'stop':
+            self.db.stop_server()
+
+    def _handle_read(self):
+        from database.services.read import handle_print_table
+        handle_print_table(self.db, args.table)
+
+    def _handle_update(self):
+        from database.services.update import handle_update_shareholder, handle_update_transaction
+        handlers = {
+            'shareholder': handle_update_shareholder,
+            'transaction': handle_update_transaction
+        }
+        if args.data:
+            data = dict(kv.split('=') for kv in args.data.split(':'))
+            handler = handlers.get(args.type)
+            handler(self.db, args.id, **data) if handler else logger.error(f"Unsupported update type: {args.type}")
+        else:
+            logger.error("Data required for 'update' command")
+
+    def _handle_delete(self):
+        from database.services.delete import handle_delete_by_id
+        handle_delete_by_id(self.db, args.table, args.id)
+
+    def _daily_update(self):
+        from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
+        asyncio.run(handle_update_portfolio_assets_data(self.db))
+        handle_daily_update(self.db, force_update=args.override)
+
+if __name__ == "__main__":
+    app = NovusEdge()
+    app.run()

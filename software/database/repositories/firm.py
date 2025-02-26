@@ -12,59 +12,59 @@ class FirmRepository(BaseRepository):
         """Initialize the repository with the FirmModel."""
         super().__init__(db_conn, table_name='FIRM', model=FirmModel)
         
-    def add_firm(self, firm_name: str) -> Optional[int]:
+    def create_firm(self, firm_name: str) -> Optional[int]:
         """ 
-        Create a FirmModel instance with the provided firm_name and default values, then add it to the database.
+        Create a FirmModel instance with the provided firm_name and default values, then insert it to the database.
         
         Args:
             firm_name (str): The name of the firm.
             
         Returns:
-            Optional[int]: The ID of the newly added firm, or None if the operation failed.
+            Optional[int]: The ID of the newly created firm, or None if the operation failed.
         """
         try:
             new_firm = FirmModel(
                 firm_name = firm_name,
             )
-            return super().add(new_firm)
+            return super().create(new_firm)
 
         except Exception as e:
-            logger.error(f'Failed to add firm {firm_name}: {e}')
+            logger.error(f'Failed to create firm {firm_name}: {e}')
             return None
         
-    def add_firm_expense(self, firm_id: int, expense: float) -> bool:
+    def create_firm_expense(self, firm_id: int, expense: float) -> bool:
         """
         Increment the EXPENSES column for the specified firm by the given expense value.
         
         Args:
             firm_id (int): The ID of the firm.
-            expense (float): The expense to add.
+            expense (float): The expense value to insert.
         
         Returns:
             bool: True if the operation was successful, False otherwise.
         """
         return super().increment_field(firm_id, 'EXPENSES', expense)
     
-    def add_firm_revenue(self, firm_id: int, revenue: float) -> bool:
+    def create_firm_revenue(self, firm_id: int, revenue: float) -> bool:
         """ 
-        Manually add a revenue to the specified firm by id.
+        Manually create a revenue value to the specified firm by id.
         
         Args:
             firm_id (int): The ID of the firm.
-            revenue (float): The revenue to add.
+            revenue (float): The revenue value to insert.
             
         Returns: 
             bool: True if the operation was successful, False otherwise.
         """
         return super().increment_field(firm_id, 'REVENUE', revenue)
     
-    def add_firm_liability(self, firm_id: int, liability: float) -> bool:
+    def create_firm_liability(self, firm_id: int, liability: float) -> bool:
         """ 
-        Manually add a liability to the specified firm by id.
+        Manually create a liability to the specified firm by id.
         
         Args:
             firm_id (int): The ID of the firm.
-            liability (float): The liability to add.
+            liability (float): The liability value to insert.
             
         Returns: 
             bool: True if the operation was successful, False otherwise.

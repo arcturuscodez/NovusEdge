@@ -27,7 +27,7 @@ class TaskRepository(BaseRepository):
             new_task = TaskModel(
                 task_name=task_name
             )
-            return super().add(new_task)
+            return super().create(new_task)
 
         except Exception as e:
             logger.error(f'Failed to add task: {e}')

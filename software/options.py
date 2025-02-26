@@ -1,185 +1,54 @@
-import globals
+# options.py
 import argparse
 
-parser = argparse.ArgumentParser(
-    description='ArgParse [-option] <command>',
-    epilog=f'Software Name: {globals.NAME} | Version: {globals.VERSION} | Author: {globals.AUTHOR}'
-)
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description='NovusEdge: Financial Management Tool',
+        prog='novusedge'
+    )
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
+    parser.add_argument('-o', '--override', action='store_true', help='Override existing rules, such as the daily current price update.')
 
-# Option Groups
+    subparsers = parser.add_subparsers(dest='command', required=True, help='Available commands')
 
-""" Database Options """
+    # 'server' subcommand
+    server_parser = subparsers.add_parser('server', help='Server management')
+    server_parser.add_argument(
+        'action',
+        choices=['start', 'stop'],
+        help='Server action'
+    )
+    
+    # 'create' subcommand
+    create_parser = subparsers.add_parser('create', help='Create a new entity')
+    create_parser.add_argument(
+        'type',
+        choices=['shareholder', 'transaction', 'firm', 'expense', 'revenue', 'liability'],
+        help='Type of entity to create'
+    )
+    create_parser.add_argument('--table', type=str, help='Table for generic operations')
+    create_parser.add_argument('--id', type=int, help='ID for operations requiring it')
+    create_parser.add_argument('--data', type=str, help='Data in key=value format (e.g., name=John:ownership=10)')
 
-database_options = parser.add_argument_group('Database Options')
+    # 'print' subcommand
+    read_parser = subparsers.add_parser('read', help='Read table data')
+    read_parser.add_argument('table', help='Table to read')
 
-## Universal Database Options
+    # 'update' subcommand
+    update_parser = subparsers.add_parser('update', help='Update an entity')
+    update_parser.add_argument(
+        'type',
+        choices=['shareholder', 'transaction'],
+        help='Type of entity to update'
+    )
+    update_parser.add_argument('id', type=int, help='ID of the entity')
+    update_parser.add_argument('data', type=str, help='Data in key=value format')
 
-database_options.add_argument(
-    '-start', '--start_server',
-    dest='StartServer',
-    action='store_true',
-    default=False,
-    help='Start the PostgreSQL server.'
-)
+    # 'delete' subcommand
+    delete_parser = subparsers.add_parser('delete', help='Delete an entity')
+    delete_parser.add_argument('table', help='Table to delete from')
+    delete_parser.add_argument('id', type=int, help='ID of the entity')
 
-database_options.add_argument( # Non Functional
-    '-stop', '--stop_server',
-    dest='StopServer',
-    action='store_true',
-    default=False,
-    help='Stop the PostgreSQL server.'
-) 
+    return parser
 
-database_options.add_argument( # Functional
-    '-t', '--table',
-    dest='table',
-    type=str,
-    metavar='<tablename>',
-    help='Table to interact with. Required for some database operations.'
-)
-
-database_options.add_argument( # Untested
-    '-a', '--add',
-    dest='add',
-    type=str,
-    metavar='(-t <table>):key=value',
-    help='Add an entity to a table. Requires exact key-value pairs.'
-)
-
-database_options.add_argument( # Functional
-    '-r', '--remove',
-    dest='remove',
-    type=int,
-    metavar='<id> (-t <table>)',
-    help='Remove an entity from a table by id.'
-)
-
-database_options.add_argument( # Untested
-    '-u', '--update',
-    dest='update',
-    type=str,
-    metavar='<id>:key=value (-t <table>)',
-    help='Edit a entity in a table by id.'
-)
-
-## Table Options
-
-database_options.add_argument( # Functional 
-    '--pt', '--print-table',
-    dest='PrintTable',
-    type=str,
-    metavar='SHAREHOLDER',
-    help='Print the specified table to the terminal.'
-)
-
-## Shareholder Options
-
-database_options.add_argument( # Functional
-    '--as', '--add-shareholder',
-    dest='AddShareholder',
-    type=str,
-    metavar='NAME:OWNERSHIP:INVESTMENT:EMAIL',
-    help='Add a shareholder to the SHAREHOLDER table.'
-)
-
-database_options.add_argument( # Functional
-    '--rs', '--remove-shareholder',
-    dest='RemoveShareholder',
-    type=int,
-    metavar='ID',
-    help='Remove a shareholder from the SHAREHOLDER table by id.'
-)
-
-database_options.add_argument( # Functional
-    '--us', '--update-shareholder',
-    dest='UpdateShareholder',
-    type=str,
-    metavar='id:key=value',
-    help='Edit a shareholder in the SHAREHOLDER table by id.'
-)
-
-## Transaction Options
-
-database_options.add_argument( # Functional
-    '--at', '--add-transaction',
-    dest='AddTransaction',
-    type=str,
-    metavar='TICKER:SHARES:PPS:TRANSACTION_TYPE',
-    help='Add a transaction to the TRANSACTIONS table.'
-)
-
-database_options.add_argument( # Untested/Nonfunctional
-    '--rt', '--remove-transaction',
-    dest='RemoveTransaction',
-    type=int,
-    metavar='ID',
-    help='Remove a transaction from the TRANSACTIONS table by id.'
-)
-
-database_options.add_argument( # Untested/Nonfunctional
-    '--ut', '--update-transaction',
-    dest='UpdateTransaction',
-    type=str,
-    metavar='id:key=value',
-    help='Edit a transaction in the TRANSACTIONS table by id.'
-)
-
-## Firm Options
-
-database_options.add_argument(
-    '--af', '--AddFirm',
-    dest='AddFirm',
-    type=str,
-    metavar='<firmname>',
-    help='Add a new firm with the specified name. Other fields are set to default values.'
-)
-
-database_options.add_argument(
-    '--ae', '--add-expense',
-    dest='AddExpense',
-    type=str,
-    metavar='id:value (monthly)',
-    help='Add an expense to a firm by id. (Ensure it is monthly).' 
-)
-
-database_options.add_argument(
-    '--ar', '--add-revenue',
-    dest='AddRevenue',
-    type=str,
-    metavar='id:value (monthly)',
-    help='Add a revenue to a firm by id. (Ensure it is monthly).'
-)
-
-database_options.add_argument(
-    '--al', '--add-liability',
-    dest='AddLiability',
-    type=str,
-    metavar='id:value',
-    help='Add a liability to a firm by id.'
-)
-
-""" Utility Options """
-
-utility_options = parser.add_argument_group('Utility Options')
-
-utility_options.add_argument( # Functional
-    '-v', '--verbose',
-    dest='verbose',
-    action='store_true',
-    default=False,
-    help='Enable logging messages.'
-)
-
-utility_options.add_argument(
-    '-override', '--override',
-    dest='override',
-    action='store_true',
-    default=False,
-    help='Override the daily update clause, forcing the update.'
-)
-
-""" Plotting Options """
-
-plotting_options = parser.add_argument_group('Plotting Options')
-
-args = parser.parse_args()
+args = create_parser().parse_args()

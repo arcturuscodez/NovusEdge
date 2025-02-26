@@ -15,7 +15,7 @@ class ShareholderRepository(BaseRepository):
     
     def add_shareholder(self, name: str, ownership: float, investment: float, email: str) -> Optional[int]:
         """ 
-        Add a new shareholder to the database.
+        Create a new shareholder entity.
         
         Args:
             name (str): Name of the shareholder.
@@ -24,7 +24,7 @@ class ShareholderRepository(BaseRepository):
             email (str): Shareholder's email.
         
         Returns:
-            Optional[int]: The ID of the newly added shareholder, or None if failed.
+            Optional[int]: The ID of the newly created shareholder, or None if failed.
         """
         try:
             new_shareholder = ShareholderModel(
@@ -34,10 +34,10 @@ class ShareholderRepository(BaseRepository):
                 investment=investment,
                 email=email
             )
-            return super().add(new_shareholder)
+            return super().create(new_shareholder)
 
         except Exception as e:
-            logger.error(f'Failed to add shareholder: {e}')
+            logger.error(f'Failed to create shareholder: {e}')
             return None
         
     def delete_shareholder(self, id: int) -> bool:

@@ -31,7 +31,7 @@ class TransactionRepository(BaseRepository):
                 price_per_share=price_per_share,
                 transaction_type=transaction_type
             )
-            return super().add(new_transaction)
+            return super().create(new_transaction)
         
         except Exception as e:
             logger.error(f'Failed to add a transaction: {e}')
