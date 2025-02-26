@@ -24,9 +24,15 @@ REPOSITORY_MAP = {
 
 def register_repository(table_name: str, repository_class: Type):
     """Register a new repository to the REPOSITORY_MAP."""
-    REPOSITORY_MAP[table_name.upper()] = repository_class
-    logger.debug(f'Registered repository for table: {table_name.upper()}')
-    
+    try:
+        table_name_upper = table_name.upper()
+        logger.debug(f"Registering repository for table: {table_name_upper} with class {repository_class.__name__}")
+        REPOSITORY_MAP[table_name_upper] = repository_class
+        logger.info(f"Successfully registered repository for table: {table_name_upper}")
+    except Exception as e:
+        logger.error(f"Failed to register repository for table '{table_name}': {e}", exc_info=True)
+        raise
+
 def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
     """
     Retrieve an instance of the repository based on the table name.
@@ -41,10 +47,21 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
     Raises:
         RepositoryNotFoundError: If the repository for the given table is not found.
     """
-    repository_class = REPOSITORY_MAP.get(table_name.upper())
-    if repository_class:
-        logger.info(f'Retrieving repository for table: {table_name.upper()}')
-        return repository_class(db_conn)
-    else:
-        logger.error(f"Repository for table '{table_name}' not found.") 
-        raise RepositoryNotFoundError(f"Repository for table '{table_name}' not found.")
+    try:
+        table_name_upper = table_name.upper()
+        logger.debug(f"Attempting to retrieve repository for table: {table_name_upper}")
+        
+        repository_class = REPOSITORY_MAP.get(table_name_upper)
+        if repository_class:
+            logger.info(f"Retrieved repository for table: {table_name_upper}")
+            return repository_class(db_conn)
+        
+        logger.error(f"Repository for table '{table_name_upper}' not found in REPOSITORY_MAP")
+        raise RepositoryNotFoundError(f"Repository for table '{table_name_upper}' not found.")
+
+    except RepositoryNotFoundError as e:
+        logger.error(f"Error retrieving repository: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error retrieving repository for table '{table_name}': {e}", exc_info=True)
+        raise

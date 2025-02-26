@@ -1,4 +1,4 @@
-"""Service module for handling the addition of entities to the database."""
+"""Service module for handling the creation of entities to the database."""
 from utility import is_valid_email
 from database.repositories.base import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
@@ -14,8 +14,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
-
 def handle_create_entity(db: DatabaseConnection, table: str, **data):
     """
     Handle the creation of a generic entity in a specified table.
@@ -26,17 +24,15 @@ def handle_create_entity(db: DatabaseConnection, table: str, **data):
         **data: Keyword arguments representing the entity’s key-value pairs.
 
     Returns:
-        None: Creates the entity and logs/prints the outcome.
+        None: Creates the entity and logs the outcome.
     """
     try:
         if not table:
-            logger.warning("Table name not provided.")
-            print("Error: Table name is required.")
+            logger.warning("Table name not provided for entity creation")
             return
 
         if not data:
-            logger.warning("No data provided for entity creation.")
-            print("Error: Entity data is required.")
+            logger.warning("No data provided for entity creation")
             return
 
         logger.debug(f"Creating entity in table '{table}' with data: {data}")
@@ -44,15 +40,12 @@ def handle_create_entity(db: DatabaseConnection, table: str, **data):
         entity_id = repository.add(data)
 
         if entity_id:
-            logger.info(f"Entity created in table '{table}' with ID: {entity_id}.")
-            print(f"Entity created successfully in '{table}' with ID: {entity_id}.")
+            logger.info(f"Entity created in table '{table}' with ID: {entity_id}")
         else:
-            logger.warning(f"Failed to create entity in table '{table}'.")
-            print(f"Error: Failed to create entity in '{table}'.")
+            logger.warning(f"Failed to create entity in table '{table}'")
 
     except Exception as e:
-        logger.error(f"Error creating entity in table '{table}': {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating entity in table '{table}': {e}", exc_info=True)
         raise
 
 def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str, investment: str, email: str):
@@ -67,39 +60,35 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
         email (str): The shareholder's email address.
 
     Returns:
-        None: Creates the shareholder and logs/prints the outcome.
+        None: Creates the shareholder and logs the outcome.
     """
     try:
         logger.debug(f"Creating shareholder: name={name}, ownership={ownership}, investment={investment}, email={email}")
         if not all([name, ownership, investment, email]):
-            logger.warning("All fields (name, ownership, investment, email) must be provided.")
-            print("Error: All fields (name, ownership, investment, email) are required.")
+            logger.warning("All fields (name, ownership, investment, email) must be provided for shareholder creation")
             return
 
         try:
             ownership_value = float(ownership)
             investment_value = float(investment)
         except ValueError:
-            logger.error("Ownership and investment must be numeric values.")
-            print("Error: Ownership and investment must be numbers.")
+            logger.error("Ownership and investment must be numeric values")
             return
 
         if not (0 < ownership_value <= 100):
-            logger.warning(f"Ownership must be between 0 and 100, got {ownership_value}.")
-            print(f"Error: Ownership must be between 0 and 100, got {ownership_value}.")
+            logger.warning(f"Ownership must be between 0 and 100, got {ownership_value}")
             return
 
         if investment_value < 0:
-            logger.warning(f"Investment must be positive, got {investment_value}.")
-            print(f"Error: Investment must be a positive number, got {investment_value}.")
+            logger.warning(f"Investment must be positive, got {investment_value}")
             return
 
         if not is_valid_email(email):
-            logger.warning(f"Invalid email address: {email}.")
-            print(f"Error: Invalid email address: {email}.")
+            logger.warning(f"Invalid email address: {email}")
             return
 
         repository = ShareholderRepository(db)
+        logger.debug(f"Adding shareholder '{name}' to database")
         shareholder_id = repository.add_shareholder(
             name=name,
             ownership=ownership_value,
@@ -108,23 +97,20 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
         )
 
         if shareholder_id:
-            logger.info(f"Shareholder '{name}' created successfully with ID: {shareholder_id}.")
-            print(f"Shareholder '{name}' created successfully with ID: {shareholder_id}.")
+            logger.info(f"Shareholder '{name}' created successfully with ID: {shareholder_id}")
             firm_repo = FirmRepository(db)
             firm_id = 1  # TODO: Replace with dynamic firm ID
+            logger.debug(f"Updating firm ID {firm_id} cash with investment: {investment_value}")
             success = firm_repo.update_firm(firm_id, CASH=investment_value)
             if success:
-                logger.info(f"Firm (ID: {firm_id}) CASH updated with investment: {investment_value}.")
+                logger.debug(f"Firm (ID: {firm_id}) cash updated with investment: {investment_value}")
             else:
-                logger.warning(f"Failed to update firm's CASH for firm ID: {firm_id}.")
-                print("Warning: Failed to update firm's cash balance.")
+                logger.warning(f"Failed to update firm cash with investment {investment_value} for firm ID: {firm_id}")
         else:
-            logger.warning(f"Failed to create shareholder '{name}'.")
-            print(f"Error: Failed to create shareholder '{name}'.")
+            logger.warning(f"Failed to create shareholder '{name}'")
 
     except Exception as e:
-        logger.error(f"Error creating shareholder: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating shareholder: {e}", exc_info=True)
         raise
 
 def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, price_per_share: str, transaction_type: str):
@@ -144,8 +130,7 @@ def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, 
     try:
         logger.debug(f"Creating transaction: ticker={ticker}, shares={shares}, price_per_share={price_per_share}, type={transaction_type}")
         if not all([ticker, shares, price_per_share, transaction_type]):
-            logger.warning("All transaction fields (ticker, shares, price_per_share, transaction_type) must be provided.")
-            print("Error: All transaction fields are required.")
+            logger.warning("All transaction fields (ticker, shares, price_per_share, transaction_type) must be provided")
             return
 
         try:
@@ -153,13 +138,11 @@ def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, 
             price_per_share_value = Decimal(price_per_share)
             transaction_type_value = transaction_type.lower()
         except (ValueError, InvalidOperation):
-            logger.error("Shares and price_per_share must be numeric.")
-            print("Error: Shares and price_per_share must be numbers.")
+            logger.error("Shares and price_per_share must be numeric")
             return
 
         if transaction_type_value not in ['buy', 'sell']:
-            logger.warning(f"Invalid transaction type: {transaction_type_value}. Must be 'buy' or 'sell'.")
-            print(f"Error: Transaction type must be 'buy' or 'sell', got '{transaction_type_value}'.")
+            logger.warning(f"Invalid transaction type: {transaction_type_value}. Must be 'buy' or 'sell'")
             return
 
         portfolio_repo = PortfolioRepository(db)
@@ -167,29 +150,29 @@ def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, 
         firm_repo = FirmRepository(db)
 
         if transaction_type_value == 'sell':
+            logger.debug(f"Checking available shares for ticker {ticker}")
             asset = portfolio_repo.get_asset_by_ticker(ticker)
             if not asset or asset.total_shares < shares_value:
-                logger.warning(f"Insufficient shares to sell: {shares_value} requested, {asset.total_shares if asset else 0} available.")
-                print(f"Error: Insufficient shares to sell ({shares_value} requested, {asset.total_shares if asset else 0} available).")
+                logger.warning(f"Insufficient shares to sell: {shares_value} requested, {asset.total_shares if asset else 0} available")
                 return
 
         if transaction_type_value == 'buy':
+            logger.debug("Checking firm cash for buy transaction")
             firm_data = firm_repo.get_entity(id=1)  # TODO: Make firm ID dynamic
             if not firm_data or firm_data.cash < shares_value * price_per_share_value:
-                logger.warning(f"Insufficient funds to buy: {shares_value * price_per_share_value} required, {firm_data.cash if firm_data else 0} available.")
-                print(f"Error: Insufficient funds to buy ({shares_value * price_per_share_value} required, {firm_data.cash if firm_data else 0} available).")
+                logger.warning(f"Insufficient funds to buy: {shares_value * price_per_share_value} required, {firm_data.cash if firm_data else 0} available")
                 db.manual_rollback(db.connection)
                 return
 
+        logger.debug(f"Adding transaction for {ticker}")
         transaction_id = transaction_repo.add_transaction(ticker, shares_value, price_per_share_value, transaction_type_value)
         if not transaction_id:
-            logger.warning(f"Failed to create transaction for {ticker}.")
-            print(f"Error: Failed to create transaction for {ticker}.")
+            logger.warning(f"Failed to create transaction for {ticker}")
             return
 
         logger.info(f"Transaction created: {transaction_type_value} {ticker}, {shares_value} shares at {price_per_share_value}, ID: {transaction_id}")
-        print(f"Transaction created: {transaction_type_value} {ticker}, {shares_value} shares at {price_per_share_value}, ID: {transaction_id}")
 
+        logger.debug(f"Updating portfolio for {ticker}")
         portfolio_success = portfolio_repo.add_or_update_asset(
             ticker=ticker,
             shares=shares_value if transaction_type_value == 'buy' else -shares_value,
@@ -197,23 +180,21 @@ def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, 
             transaction_type=transaction_type_value
         )
         if not portfolio_success:
-            logger.warning(f"Failed to update portfolio for ticker: {ticker}.")
-            print(f"Warning: Failed to update portfolio for {ticker}.")
+            logger.warning(f"Failed to update portfolio for ticker: {ticker}")
         else:
-            logger.info(f"Portfolio updated successfully for ticker: {ticker}.")
+            logger.debug(f"Portfolio updated successfully for ticker: {ticker}")
 
+        logger.debug("Updating firm cash")
         firm = firm_repo.get_firm(id=1)  # TODO: Make firm ID dynamic
         cash_change = shares_value * price_per_share_value if transaction_type_value == 'sell' else -shares_value * price_per_share_value
         firm_success = firm_repo.update_firm(1, CASH=firm.cash + cash_change)
         if not firm_success:
-            logger.warning(f"Failed to update firm cash for transaction: {transaction_id}.")
-            print(f"Warning: Failed to update firm cash for transaction {transaction_id}.")
+            logger.warning(f"Failed to update firm cash for transaction ID: {transaction_id}")
         else:
-            logger.info(f"Firm cash updated successfully for transaction: {transaction_id}.")
+            logger.debug(f"Firm cash updated successfully for transaction ID: {transaction_id}")
 
     except Exception as e:
-        logger.error(f"Error creating transaction: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating transaction: {e}", exc_info=True)
         raise
 
 def handle_create_firm(db: DatabaseConnection, firm_name: str):
@@ -225,17 +206,15 @@ def handle_create_firm(db: DatabaseConnection, firm_name: str):
         firm_name (str): The name of the firm to create.
 
     Returns:
-        None: Creates the firm and logs/prints the outcome.
+        None: Creates the firm and logs the outcome.
     """
     try:
         if not firm_name:
-            logger.warning("Firm name not provided.")
-            print("Error: Firm name is required.")
+            logger.warning("Firm name not provided")
             return
 
         if not isinstance(firm_name, str):
-            logger.warning(f"Firm name must be a string, got {type(firm_name)}.")
-            print(f"Error: Firm name must be a string, got {type(firm_name)}.")
+            logger.warning(f"Firm name must be a string, got {type(firm_name)}")
             return
 
         logger.debug(f"Creating firm: {firm_name}")
@@ -243,15 +222,12 @@ def handle_create_firm(db: DatabaseConnection, firm_name: str):
         firm_id = firm_repo.add_firm(firm_name=firm_name)
 
         if firm_id:
-            logger.info(f"Firm '{firm_name}' created successfully with ID: {firm_id}.")
-            print(f"Firm '{firm_name}' created successfully with ID: {firm_id}.")
+            logger.info(f"Firm '{firm_name}' created successfully with ID: {firm_id}")
         else:
-            logger.warning(f"Failed to create firm '{firm_name}'.")
-            print(f"Error: Failed to create firm '{firm_name}'.")
+            logger.warning(f"Failed to create firm '{firm_name}'")
 
     except Exception as e:
-        logger.error(f"Error creating firm: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating firm: {e}", exc_info=True)
         raise
 
 def handle_create_expense(db: DatabaseConnection, firm_id: str, value: str):
@@ -264,37 +240,32 @@ def handle_create_expense(db: DatabaseConnection, firm_id: str, value: str):
         value (str): The expense value (converted to float).
 
     Returns:
-        None: Creates the expense and logs/prints the outcome.
+        None: Creates the expense and logs the outcome.
     """
     try:
         if not all([firm_id, value]):
-            logger.warning("Firm ID and expense value must be provided.")
-            print("Error: Firm ID and expense value are required.")
+            logger.warning("Firm ID and expense value must be provided")
             return
 
         try:
             firm_id_int = int(firm_id)
             value_float = float(value)
         except ValueError:
-            logger.error("Firm ID must be an integer and value must be numeric.")
-            print("Error: Firm ID must be an integer and value must be a number.")
+            logger.error("Firm ID must be an integer and value must be numeric")
             return
 
         logger.debug(f"Creating expense {value_float} for firm ID: {firm_id_int}")
         firm_repo = FirmRepository(db)
         firm = firm_repo.get_firm(firm_id_int)
         if not firm:
-            logger.warning(f"Firm with ID {firm_id_int} not found.")
-            print(f"Error: Firm with ID {firm_id_int} not found.")
+            logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
         firm_repo.add_firm_expense(firm_id_int, value_float)
         logger.info(f"Created expense {value_float} for firm with ID: {firm_id_int}")
-        print(f"Created expense {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:
-        logger.error(f"Error creating expense: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating expense: {e}", exc_info=True)
         raise
 
 def handle_create_revenue(db: DatabaseConnection, firm_id: str, value: str):
@@ -307,37 +278,32 @@ def handle_create_revenue(db: DatabaseConnection, firm_id: str, value: str):
         value (str): The revenue value (converted to float).
 
     Returns:
-        None: Creates the revenue and logs/prints the outcome.
+        None: Creates the revenue and logs the outcome.
     """
     try:
         if not all([firm_id, value]):
-            logger.warning("Firm ID and revenue value must be provided.")
-            print("Error: Firm ID and revenue value are required.")
+            logger.warning("Firm ID and revenue value must be provided")
             return
 
         try:
             firm_id_int = int(firm_id)
             value_float = float(value)
         except ValueError:
-            logger.error("Firm ID must be an integer and value must be numeric.")
-            print("Error: Firm ID must be an integer and value must be a number.")
+            logger.error("Firm ID must be an integer and value must be numeric")
             return
 
         logger.debug(f"Creating revenue {value_float} for firm ID: {firm_id_int}")
         firm_repo = FirmRepository(db)
         firm = firm_repo.get_firm(firm_id_int)
         if not firm:
-            logger.warning(f"Firm with ID {firm_id_int} not found.")
-            print(f"Error: Firm with ID {firm_id_int} not found.")
+            logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
         firm_repo.add_firm_revenue(firm_id_int, value_float)
         logger.info(f"Created revenue {value_float} for firm with ID: {firm_id_int}")
-        print(f"Created revenue {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:
-        logger.error(f"Error creating revenue: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating revenue: {e}", exc_info=True)
         raise
 
 def handle_create_liability(db: DatabaseConnection, firm_id: str, value: str):
@@ -350,35 +316,30 @@ def handle_create_liability(db: DatabaseConnection, firm_id: str, value: str):
         value (str): The liability value (converted to float).
 
     Returns:
-        None: Creates the liability and logs/prints the outcome.
+        None: Creates the liability and logs the outcome.
     """
     try:
         if not all([firm_id, value]):
-            logger.warning("Firm ID and liability value must be provided.")
-            print("Error: Firm ID and liability value are required.")
+            logger.warning("Firm ID and liability value must be provided")
             return
 
         try:
             firm_id_int = int(firm_id)
             value_float = float(value)
         except ValueError:
-            logger.error("Firm ID must be an integer and value must be numeric.")
-            print("Error: Firm ID must be an integer and value must be a number.")
+            logger.error("Firm ID must be an integer and value must be numeric")
             return
 
         logger.debug(f"Creating liability {value_float} for firm ID: {firm_id_int}")
         firm_repo = FirmRepository(db)
         firm = firm_repo.get_firm(firm_id_int)
         if not firm:
-            logger.warning(f"Firm with ID {firm_id_int} not found.")
-            print(f"Error: Firm with ID {firm_id_int} not found.")
+            logger.warning(f"Firm with ID {firm_id_int} not found")
             return
 
         firm_repo.add_firm_liability(firm_id_int, value_float)
         logger.info(f"Created liability {value_float} for firm with ID: {firm_id_int}")
-        print(f"Created liability {value_float} for firm with ID: {firm_id_int}")
 
     except Exception as e:
-        logger.error(f"Error creating liability: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error creating liability: {e}", exc_info=True)
         raise

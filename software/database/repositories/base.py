@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 T = TypeVar('T', bound=BaseModel)
 
 class BaseRepository:
@@ -25,6 +26,7 @@ class BaseRepository:
         self.table_name = table_name
         self.model = model
         self.primary_keys = primary_keys
+        logger.debug(f"Initialized BaseRepository for table '{table_name}' with model {model.__name__}")
 
     def create(self, entity: T) -> Optional[int]:
         """ 
@@ -42,19 +44,21 @@ class BaseRepository:
             values = [value for value in data.values() if value is not None]
             
             if not columns:
-                raise ValueError('No fields provided for insertion. All fields are None or Null.')
+                logger.error("No fields provided for insertion. All fields are None or Null.")
+                return None
             
             columns_str = ', '.join(columns)
             placeholders = ', '.join(['%s'] * len(values))
             query = f'INSERT INTO {self.table_name} ({columns_str}) VALUES ({placeholders}) RETURNING {self.primary_keys[0]}'
+            logger.debug(f"Executing create query: {query} with values {values}")
 
             self.db.cursor.execute(query, values)
             entity_id = self.db.cursor.fetchone()[0]
-            logger.info(f'Created entity to {self.table_name} with ID: {entity_id}')
+            logger.info(f"Created entity in {self.table_name} with ID: {entity_id}")
             return entity_id
 
         except Exception as e:
-            logger.warning(f'Error creating entity to {self.table_name}: {e}', exc_info=True)
+            logger.error(f"Failed to create entity in {self.table_name}: {e}", exc_info=True)
             self.db.connection.rollback()
             return None
 
@@ -71,12 +75,13 @@ class BaseRepository:
         """
         try:
             if not kwargs:
-                logger.warning('No filter conditions provided for fetching the record.')
+                logger.warning("No filter conditions provided for fetching entity.")
                 return None
             
             conditions = ' AND '.join([f"{key} = %s" for key in kwargs.keys()])
             values = list(kwargs.values())
             query = f'SELECT * FROM {self.table_name} WHERE {conditions} LIMIT 1'
+            logger.debug(f"Fetching entity with query: {query} and values {values}")
             
             self.db.cursor.execute(query, values)
             row = self.db.cursor.fetchone()
@@ -84,12 +89,13 @@ class BaseRepository:
             if row:
                 columns = [desc[0] for desc in self.db.cursor.description]
                 data = dict(zip(columns, row))
-                logger.info(f'Fetched entity from {self.table_name} with conditions {kwargs}')
+                logger.info(f"Fetched entity from {self.table_name} with conditions {kwargs}")
                 return self.model(**data)
+            logger.debug(f"No entity found in {self.table_name} with conditions {kwargs}")
             return None
             
         except Exception as e:
-            logger.warning(f'Error fetching from {self.table_name} with conditions {kwargs}: {e}', exc_info=True)
+            logger.error(f"Failed to fetch entity from {self.table_name} with conditions {kwargs}: {e}", exc_info=True)
             self.db.connection.rollback()
             return None
 
@@ -130,15 +136,16 @@ class BaseRepository:
             if offset:
                 query += f" OFFSET {offset}"
                 
+            logger.debug(f"Fetching all entities with query: {query} and values {values}")
             self.db.cursor.execute(query, values)
             rows = self.db.cursor.fetchall()
             columns = [desc[0] for desc in self.db.cursor.description]
             entities = [self.model(**dict(zip(columns, row))) for row in rows]
-            logger.info(f'Fetched {len(entities)} entities from {self.table_name}')
+            logger.info(f"Fetched {len(entities)} entities from {self.table_name}")
             return entities
 
         except Exception as e:
-            logger.error(f'Error fetching entities from {self.table_name}: {e}', exc_info=True)
+            logger.error(f"Failed to fetch entities from {self.table_name}: {e}", exc_info=True)
             self.db.connection.rollback()
             return []
 
@@ -154,7 +161,7 @@ class BaseRepository:
             bool: True if update successful, False otherwise.
         """
         if not kwargs:
-            logger.warning('No fields provided for update.')
+            logger.warning(f"No fields provided for update in {self.table_name}")
             return False
 
         try:
@@ -169,18 +176,18 @@ class BaseRepository:
                 values.append(entity_id)
 
             query = f"UPDATE {self.table_name} SET {set_clause} WHERE {conditions}"
-
+            logger.debug(f"Updating entity with query: {query} and values {values}")
 
             self.db.cursor.execute(query, values)
             success = self.db.cursor.rowcount > 0
             if success: 
-                logger.info(f'Updated entity in {self.table_name} with ID: {entity_id}')
+                logger.info(f"Updated entity in {self.table_name} with ID: {entity_id}")
             else:
-                logger.warning(f'No entity found to update in {self.table_name} with ID: {entity_id}')
+                logger.warning(f"No entity found to update in {self.table_name} with ID: {entity_id}")
             return success
 
         except Exception as e:
-            logger.error(f'Error updating {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            logger.error(f"Failed to update entity in {self.table_name} with ID: {entity_id}: {e}", exc_info=True)
             self.db.connection.rollback()
             return False
 
@@ -203,6 +210,7 @@ class BaseRepository:
                 values = [entity_id]
 
             query = f"DELETE FROM {self.table_name} WHERE {conditions}"
+            logger.debug(f"Deleting entity with query: {query} and values {values}")
 
             self.db.cursor.execute(query, values)
             success = self.db.cursor.rowcount > 0
@@ -213,7 +221,7 @@ class BaseRepository:
             return success
 
         except Exception as e:
-            logger.error(f'Error deleting from {self.table_name} with ID: {entity_id}: {e}', exc_info=True)
+            logger.error(f"Failed to delete entity from {self.table_name} with ID: {entity_id}: {e}", exc_info=True)
             self.db.connection.rollback()
             return False
 
@@ -229,18 +237,19 @@ class BaseRepository:
             List[Dict[str, Any]]: The result set as a list of dictionaries.
         """
         try:
+            logger.debug(f"Executing raw query: {query} with params {params}")
             self.db.cursor.execute(query, params)
             rows = self.db.cursor.fetchall()
             columns = [desc[0] for desc in self.db.cursor.description]
             results = [dict(zip(columns, row)) for row in rows]
-            logger.info(f'Executed raw query on {self.table_name}: {query}')
+            logger.info(f"Executed raw query on {self.table_name}, returned {len(results)} rows")
             return results
 
         except Exception as e:
-            logger.warning(f'Error executing raw query on {self.table_name}: {e}', exc_info=True)
+            logger.error(f"Failed to execute raw query on {self.table_name}: {e}", exc_info=True)
             self.db.connection.rollback()
             return []
-    
+
     def increment_field(self, entity_id: int, field: str, delta: float) -> bool:
         """
         Increment (or decrement) a specific field of an entity by delta.
@@ -255,10 +264,16 @@ class BaseRepository:
         """
         try:
             query = f"UPDATE {self.table_name} SET {field} = {field} + %s WHERE id = %s"
+            logger.debug(f"Incrementing field '{field}' by {delta} for ID {entity_id} with query: {query}")
             self.db.cursor.execute(query, (delta, entity_id))
-            return True
+            success = self.db.cursor.rowcount > 0
+            if success:
+                logger.info(f"Incremented field '{field}' by {delta} for entity ID {entity_id} in {self.table_name}")
+            else:
+                logger.warning(f"No entity found to increment field '{field}' for ID {entity_id} in {self.table_name}")
+            return success
         except Exception as e:
-            logger.error(f"Error incrementing {field} for ID {entity_id}: {e}", exc_info=True)
+            logger.error(f"Failed to increment field '{field}' for ID {entity_id} in {self.table_name}: {e}", exc_info=True)
             self.db.connection.rollback()
             return False
     
@@ -268,3 +283,4 @@ class GenericRepository(BaseRepository):
     """
     def __init__(self, db: DatabaseConnection, table_name: str):
         super().__init__(db, table_name, GenericModel)
+        logger.debug(f"Initialized GenericRepository for table '{table_name}'")

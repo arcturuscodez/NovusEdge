@@ -22,38 +22,31 @@ def handle_delete_by_id(db: DatabaseConnection, table: str, entity_id: int) -> b
     """
     try:
         if not table:
-            logger.error("Table name not provided.")
-            print("Error: Table name is required for deletion.")
+            logger.error("Table name not provided for deletion")
             return False
 
         if not isinstance(entity_id, int):
-            logger.error(f"Entity ID must be an integer, got {type(entity_id)}.")
-            print(f"Error: Entity ID must be an integer, got {type(entity_id)}.")
+            logger.error(f"Entity ID must be an integer, got {type(entity_id)}")
             return False
 
-        logger.debug(f"Deleting entity ID {entity_id} from table '{table}'")
+        logger.debug(f"Attempting to delete entity ID {entity_id} from table '{table}'")
         repository = GenericRepository(db, table)
         result = repository.delete(entity_id)
 
         if result:
-            logger.info(f"Entity with ID {entity_id} from table '{table}' deleted successfully.")
-            print(f"Entity with ID {entity_id} from table '{table}' deleted successfully.")
+            logger.info(f"Entity with ID {entity_id} from table '{table}' deleted successfully")
             return True
         else:
-            logger.warning(f"Failed to delete entity with ID {entity_id} from table '{table}'.")
-            print(f"Error: Failed to delete entity with ID {entity_id} from table '{table}'.")
+            logger.warning(f"Failed to delete entity with ID {entity_id} from table '{table}' - entity may not exist")
             return False
 
     except RepositoryNotFoundError as e:
-        logger.error(f"Repository not found: {e}")
-        print(f"Error: Repository not found for table '{table}'.")
+        logger.error(f"Repository not found for table '{table}': {e}")
         return False
     except UndefinedTable as e:
         logger.error(f"Table '{table}' not found: {e}")
-        print(f"Error: Table '{table}' not found.")
         return False
     except Exception as e:
-        logger.error(f"Error deleting entity from table '{table}': {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Unexpected error deleting entity from table '{table}' with ID {entity_id}: {e}", exc_info=True)
         raise
         

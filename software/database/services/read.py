@@ -1,7 +1,4 @@
 """Service module for handling miscellaneous operations such as printing table data."""
-
-# database/services/other.py
-
 from utility import FormatTableData
 from database.repositories.factory import get_repository
 

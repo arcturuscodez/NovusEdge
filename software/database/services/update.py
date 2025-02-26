@@ -1,3 +1,4 @@
+"""Service module for handling the updating of an entities fields."""
 from datetime import datetime
 from utility import is_valid_email
 from database.repositories.base import GenericRepository
@@ -27,18 +28,15 @@ def handle_update_entity(db: DatabaseConnection, table: str, entity_id: int, **d
     """
     try:
         if not table:
-            logger.error("Table name not provided.")
-            print("Error: Table name is required for update.")
+            logger.error("Table name not provided for update")
             return False
 
         if not isinstance(entity_id, int):
-            logger.error(f"Entity ID must be an integer, got {type(entity_id)}.")
-            print(f"Error: Entity ID must be an integer, got {type(entity_id)}.")
+            logger.error(f"Entity ID must be an integer, got {type(entity_id)}")
             return False
 
         if not data:
-            logger.error("No data provided for update.")
-            print("Error: Update data is required.")
+            logger.warning("No data provided for entity update")
             return False
 
         logger.debug(f"Updating entity ID {entity_id} in table '{table}' with data: {data}")
@@ -46,17 +44,14 @@ def handle_update_entity(db: DatabaseConnection, table: str, entity_id: int, **d
         success = repository.update(entity_id, **data)
 
         if success:
-            logger.info(f"Entity ID {entity_id} in table '{table}' updated successfully with {data}.")
-            print(f"Entity ID {entity_id} in table '{table}' updated successfully.")
+            logger.info(f"Entity ID {entity_id} in table '{table}' updated successfully with {data}")
             return True
         else:
-            logger.warning(f"Failed to update entity ID {entity_id} in table '{table}'.")
-            print(f"Error: Failed to update entity ID {entity_id} in table '{table}'.")
+            logger.warning(f"Failed to update entity ID {entity_id} in table '{table}' - entity may not exist")
             return False
 
     except Exception as e:
-        logger.error(f"Error updating entity in table '{table}': {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error updating entity in table '{table}' with ID {entity_id}: {e}", exc_info=True)
         raise
 
 def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **data) -> bool:
@@ -73,13 +68,11 @@ def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **dat
     """
     try:
         if not isinstance(shareholder_id, int):
-            logger.error(f"Shareholder ID must be an integer, got {type(shareholder_id)}.")
-            print(f"Error: Shareholder ID must be an integer, got {type(shareholder_id)}.")
+            logger.error(f"Shareholder ID must be an integer, got {type(shareholder_id)}")
             return False
 
         if not data:
-            logger.error("No data provided for shareholder update.")
-            print("Error: Update data is required.")
+            logger.warning("No data provided for shareholder update")
             return False
 
         allowed_fields = {
@@ -94,8 +87,7 @@ def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **dat
         for key, value in data.items():
             key = key.lower()
             if key not in allowed_fields:
-                logger.warning(f"Unknown field: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}.")
-                print(f"Error: Unknown field '{key}'. Allowed fields: {', '.join(allowed_fields.keys())}.")
+                logger.warning(f"Unknown field for shareholder update: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}")
                 return False
 
             try:
@@ -103,18 +95,15 @@ def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **dat
                     validated_data[key] = float(value)
                 elif allowed_fields[key] == str:
                     if key == 'email' and not is_valid_email(value):
-                        logger.warning(f"Invalid email address: {value}.")
-                        print(f"Error: Invalid email address '{value}'.")
+                        logger.warning(f"Invalid email address: {value}")
                         return False
                     validated_data[key] = value
             except ValueError:
-                logger.error(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}.")
-                print(f"Error: Invalid value for '{key}'. Expected {allowed_fields[key].__name__}.")
+                logger.error(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}")
                 return False
 
         if 'ownership' in validated_data and not (0 < validated_data['ownership'] <= 100):
-            logger.warning(f"Ownership must be between 0 and 100, got {validated_data['ownership']}.")
-            print(f"Error: Ownership must be between 0 and 100, got {validated_data['ownership']}.")
+            logger.warning(f"Ownership must be between 0 and 100, got {validated_data['ownership']}")
             return False
 
         logger.debug(f"Updating shareholder ID {shareholder_id} with data: {validated_data}")
@@ -122,17 +111,14 @@ def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **dat
         success = repository.update_shareholder(shareholder_id, **validated_data)
 
         if success:
-            logger.info(f"Shareholder ID {shareholder_id} updated successfully with {validated_data}.")
-            print("Shareholder updated successfully.")
+            logger.info(f"Shareholder ID {shareholder_id} updated successfully with {validated_data}")
             return True
         else:
-            logger.warning(f"Failed to update shareholder ID {shareholder_id}.")
-            print("Error: Failed to update shareholder.")
+            logger.warning(f"Failed to update shareholder ID {shareholder_id} - shareholder may not exist")
             return False
 
     except Exception as e:
-        logger.error(f"Error updating shareholder: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error updating shareholder ID {shareholder_id}: {e}", exc_info=True)
         raise
 
 def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **data) -> bool:
@@ -149,13 +135,11 @@ def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **dat
     """
     try:
         if not isinstance(transaction_id, int):
-            logger.error(f"Transaction ID must be an integer, got {type(transaction_id)}.")
-            print(f"Error: Transaction ID must be an integer, got {type(transaction_id)}.")
+            logger.error(f"Transaction ID must be an integer, got {type(transaction_id)}")
             return False
 
         if not data:
-            logger.error("No data provided for transaction update.")
-            print("Error: Update data is required.")
+            logger.warning("No data provided for transaction update")
             return False
 
         allowed_fields = {
@@ -169,8 +153,7 @@ def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **dat
         for key, value in data.items():
             key = key.lower()
             if key not in allowed_fields:
-                logger.warning(f"Unknown field: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}.")
-                print(f"Error: Unknown field '{key}'. Allowed fields: {', '.join(allowed_fields.keys())}.")
+                logger.warning(f"Unknown field for transaction update: {key}. Allowed fields are: {', '.join(allowed_fields.keys())}")
                 return False
 
             try:
@@ -178,13 +161,11 @@ def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **dat
                     validated_data[key] = float(value)
                 elif allowed_fields[key] == str:
                     if key == 'transaction_type' and value.lower() not in ['buy', 'sell']:
-                        logger.warning(f"Invalid transaction type: {value}. Must be 'buy' or 'sell'.")
-                        print(f"Error: Invalid transaction type '{value}'. Must be 'buy' or 'sell'.")
+                        logger.warning(f"Invalid transaction type: {value}. Must be 'buy' or 'sell'")
                         return False
                     validated_data[key] = value.lower()
             except ValueError:
-                logger.error(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}.")
-                print(f"Error: Invalid value for '{key}'. Expected {allowed_fields[key].__name__}.")
+                logger.error(f"Invalid value type for {key}. Expected {allowed_fields[key].__name__}")
                 return False
 
         logger.debug(f"Updating transaction ID {transaction_id} with data: {validated_data}")
@@ -192,17 +173,14 @@ def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **dat
         success = repository.update_transaction(transaction_id, **validated_data)
 
         if success:
-            logger.info(f"Transaction ID {transaction_id} updated successfully with {validated_data}.")
-            print("Transaction updated successfully.")
+            logger.info(f"Transaction ID {transaction_id} updated successfully with {validated_data}")
             return True
         else:
-            logger.warning(f"Failed to update transaction ID {transaction_id}.")
-            print("Error: Failed to update transaction.")
+            logger.warning(f"Failed to update transaction ID {transaction_id} - transaction may not exist")
             return False
 
     except Exception as e:
-        logger.error(f"Error updating transaction: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error updating transaction ID {transaction_id}: {e}", exc_info=True)
         raise
 
 async def handle_update_portfolio_assets_data(db: DatabaseConnection):
@@ -216,30 +194,30 @@ async def handle_update_portfolio_assets_data(db: DatabaseConnection):
         None: Updates the firm’s assets and logs the outcome.
     """
     try:
+        logger.debug("Starting portfolio assets update")
         portfolio_repo = PortfolioRepository(db)
         firm_repo = FirmRepository(db)
 
-        # Fetch portfolio assets and calculate total value
+        logger.debug("Fetching all portfolio assets")
         assets = portfolio_repo.get_all()
         total_assets_value = sum(asset.total_value for asset in assets if asset.total_value is not None)
+        logger.debug(f"Calculated total assets value: {total_assets_value}")
 
-        # Update firm assets
-        firm = firm_repo.get_firm(1)  # TODO: Make firm ID dynamic
+        firm_id = 1  # TODO: Make firm ID dynamic
+        logger.debug(f"Retrieving firm with ID {firm_id}")
+        firm = firm_repo.get_firm(firm_id)
         if firm:
-            success = firm_repo.update_firm(1, assets=total_assets_value)
+            logger.debug(f"Updating firm ID {firm_id} assets to {total_assets_value}")
+            success = firm_repo.update_firm(firm_id, assets=total_assets_value)
             if success:
-                logger.info(f"Firm total assets updated successfully: {total_assets_value}")
-                print(f"Firm total assets updated to {total_assets_value}")
+                logger.info(f"Firm ID {firm_id} total assets updated successfully to {total_assets_value}")
             else:
-                logger.warning("Failed to update firm assets column.")
-                print("Error: Failed to update firm assets.")
+                logger.warning(f"Failed to update firm assets for ID {firm_id}")
         else:
-            logger.warning("Firm with ID 1 not found.")
-            print("Error: Firm not found.")
+            logger.warning(f"Firm with ID {firm_id} not found")
 
     except Exception as e:
-        logger.error(f"Error updating firm assets: {e}")
-        print(f"Unexpected error occurred: {e}")
+        logger.error(f"Error updating firm assets: {e}", exc_info=True)
         raise
 
 def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
@@ -258,41 +236,36 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
     """
     task_name = 'update_portfolio'
 
-    # Validate database connection
     if not hasattr(db, 'connection') or db.connection is None or db.connection.closed != 0:
-        logger.warning("Daily update aborted: Database connection not available.")
-        print("Error: Database connection not available for daily update.")
+        logger.error("Daily update aborted: Database connection not available")
         return
 
     try:
-        # Check last run time from TASK_METADATA
+        logger.debug(f"Checking last run time for task '{task_name}'")
         db.cursor.execute('SELECT last_run FROM task_metadata WHERE task_name = %s', (task_name,))
         row = db.cursor.fetchone()
         now = datetime.now()
 
-        # Skip if already run today, unless forced
         if not force_update and row and row[0].date() == now.date():
-            logger.info(f"Last run: {row[0]}, Current time: {now}. Portfolio update already run today. Use --force to override.")
-            print("Portfolio update already run today. Use -o, or --override to override.")
+            logger.info(f"Last run: {row[0]}, Current time: {now}. Portfolio update already run today. Use --force to override")
             return
 
         if force_update:
-            logger.info("Force update enabled via --override. Proceeding with portfolio update.")
+            logger.info("Force update enabled via --force. Proceeding with portfolio update")
 
-        # Fetch and update portfolio assets
         portfolio_repo = PortfolioRepository(db)
+        logger.debug("Fetching all portfolio assets")
         assets = portfolio_repo.get_all()
 
         if not assets:
-            logger.info("No assets found in portfolio to update.")
-            print("No assets found in portfolio to update.")
+            logger.info("No assets found in portfolio to update")
             return
 
-        logger.info(f"Updating {len(assets)} portfolio assets with latest data.")
+        logger.info(f"Updating {len(assets)} portfolio assets with latest data")
         for asset in assets:
+            logger.debug(f"Retrieving data for ticker {asset.ticker}")
             retriever = AssetRetriever(ticker=asset.ticker)
             
-            # Update latest closing price
             latest_price = retriever.get_latest_closing_price()
             if latest_price is not None:
                 portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
@@ -300,7 +273,6 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             else:
                 logger.warning(f"Could not retrieve latest closing price for {asset.ticker}")
 
-            # Update dividend yield
             dividends = retriever.get_dividend_info()
             if dividends is not None and not dividends.empty:
                 latest_dividend = dividends['Dividends'].iloc[-1]
@@ -308,27 +280,24 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
                 portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield)
                 logger.info(f"Updated {asset.ticker} dividend yield: {dividend_yield:.2f}%")
             else:
-                logger.info(f"No dividend information available for {asset.ticker}")
+                logger.debug(f"No dividend information available for {asset.ticker}")
 
-        # Update TASK_METADATA
         if row:
+            logger.debug(f"Updating TASK_METADATA for '{task_name}' with last_run: {now}")
             db.cursor.execute('UPDATE task_metadata SET last_run = %s WHERE task_name = %s', (now, task_name))
-            logger.debug(f"Updated TASK_METADATA for {task_name} with last_run: {now}")
         else:
+            logger.debug(f"Inserting TASK_METADATA for '{task_name}' with last_run: {now}")
             db.cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
-            logger.debug(f"Inserted TASK_METADATA for {task_name} with last_run: {now}")
 
         db.connection.commit()
-        logger.info("Portfolio updated successfully with latest daily data.")
-        print("Portfolio updated successfully.")
+        logger.info("Portfolio updated successfully with latest daily data")
 
     except Exception as e:
-        logger.error(f"Portfolio update failed: {e}")
-        print(f"Error during portfolio update: {e}")
+        logger.error(f"Portfolio update failed: {e}", exc_info=True)
         try:
             if db.connection and db.connection.closed == 0:
                 db.connection.rollback()
-                logger.info("Rolled back changes due to error.")
+                logger.debug("Rolled back changes due to error")
         except Exception as rollback_error:
             logger.warning(f"Failed to rollback changes: {rollback_error}")
         raise

@@ -1,4 +1,4 @@
-# core.py
+"The main entry point for the NovusEdge application."
 from database.connection import DatabaseConnection
 from timeit import default_timer as timer
 from options import args
@@ -9,17 +9,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+logging.basicConfig(
+            level=logging.DEBUG if args.verbose else logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )           
+        
+logger = logging.getLogger(__name__)
+
 class NovusEdge:
     """Main class to handle NovusEdge functionality."""
 
     def __init__(self):
         """Initialize the application."""
-        logging.basicConfig(
-            level=logging.INFO if args.verbose else logging.WARNING,
-            format='%(levelname)s:%(name)s:%(message)s'
-        )
-        load_dotenv()
         
+        load_dotenv()
         self.db_params = {
             'db': os.getenv('DB_NAME'),
             'user': os.getenv('DB_USER'),
@@ -31,6 +35,19 @@ class NovusEdge:
         self.start_time = timer()
         self.db = DatabaseConnection(**self.db_params)
 
+    def _handle_server(self):
+        """Handle server commands."""
+        try:
+            if args.action == 'start':
+                self.db.start_server()
+            elif args.action == 'stop':
+                self._skip_daily_update = True
+                self.db.stop_server()
+                return
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            raise
+    
     def run(self):
         """Execute the command specified by the user."""
         try:
@@ -47,14 +64,17 @@ class NovusEdge:
                 elif args.command == 'delete':
                     self._handle_delete()
 
-                self._daily_update() # Run daily update (if applicable due to TASK_METADATA check)
+                if args.command != 'server':
+                    self._daily_update() # Run daily update (if applicable due to TASK_METADATA check)
 
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
+            if not hasattr(self, '_skip_daily_update'):
+                logger.error(f"An unexpected error occurred: {e}")
             raise
         finally:
             elapsed = timer() - self.start_time
-            logger.info(f"Elapsed time: {elapsed:.2f} seconds")
+            if not hasattr(self, '_skip_daily_update'):
+                logger.info(f"Elapsed time: {elapsed:.2f} seconds")
 
     # Command Handlers
     def _handle_create(self):
@@ -76,12 +96,6 @@ class NovusEdge:
             handler(self.db, **data) if handler else logger.error(f"Unsupported add type: {args.type}")
         else:
             logger.error("Data required for 'create' command")
-
-    def _handle_server(self):
-        if args.action == 'start':
-            self.db.start_server()
-        elif args.action == 'stop':
-            self.db.stop_server()
 
     def _handle_read(self):
         from database.services.read import handle_print_table
