@@ -6,7 +6,7 @@ import pandas as pd
 
 def test_portfolio():
     # Initialize retrievers for each stock
-    tickers = ['NVDA', 'KO', 'AAPL']
+    tickers = ['O', 'KO', 'BA.L']
     retrievers = {ticker: AssetRetriever(ticker) for ticker in tickers}
     
     # Get latest prices and dividend info

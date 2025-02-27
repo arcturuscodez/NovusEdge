@@ -49,6 +49,10 @@ def software_parser():
     delete_parser.add_argument('table', help='Table to delete from')
     delete_parser.add_argument('id', type=int, help='ID of the entity')
 
+    search_parser = subparsers.add_parser('search', help='Search for tickers or similar tickers')
+    search_parser.add_argument('query', help='Search query (ticker or company name)')
+    search_parser.add_argument('--limit', type=int, default=10, help='Maximum number of results to return')
+    
     return parser
 
 args = software_parser().parse_args()

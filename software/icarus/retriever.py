@@ -29,12 +29,22 @@ class AssetRetriever:
         self.delay = delay
         
     def validate_ticker(self) -> bool:
-        """Validate the ticker symbol format."""
-        if not isinstance(self.ticker, str) or not self.ticker.isalnum():
-            logger.error(f'Invalid ticker symbol: {self.ticker}')
+        """Validate the ticker symbol format.
+        
+        Returns:
+            bool: True if the ticker is valid, False otherwise.
+        """
+        if not isinstance(self.ticker, str) or not self.ticker:
+            logger.error(f'Invalid ticker symbol provided: {self.ticker}')
             return False
+        
+        valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-")
+        if not all(c.upper() in valid_chars for c in self.ticker):
+            logger.error(f'Invalid ticker symbol provided: {self.ticker}')
+            return False
+        
         return True
-    
+        
     def validate_dividend_date(self, dividends) -> bool:
         """ 
         Validate if the most recent dividend was paid within the last year.
@@ -178,4 +188,105 @@ class AssetRetriever:
         except Exception as e:
             logger.error(f'Failed to fetch additional information for {self.ticker}: {e}')
             return None
-        
+    
+    def search_similar_tickers(self, query: str, limit: int = 10) -> list[dict]:
+        """ 
+        Search for tickers similar to the provided query string using Yahoo Finance API.
+
+        Args:
+            query (str): The query string to search for.
+            limit (int): Maximum number of results to return. Default is 10.
+
+        Returns:
+            list[dict]: A list of dictionaries containing information:
+                        - symbol: The ticker symbol.
+                        - name: The name of the company.
+                        - exchange: The exchange where the asset is traded.
+                        - type: The type of asset (e.g., stock).
+                        - score: A relevance score for the search result.
+        """
+        if not query or len(query) < 2:
+            logger.warning('Search query must be at least 2 characters')
+            return []
+
+        try:
+            logger.info(f'Searching for tickers similar to: {query}')
+
+            search_queries = [
+                query,  # Original query
+                f"{query}.DE",  # German exchange
+                f"{query}.F",   # Frankfurt
+                f"{query}.PA",  # Paris
+                f"{query}.L",   # London
+                f"{query}.TO",  # Toronto
+                f"{query}.AX",  # Australia
+                f"{query}.MI",  # Milan
+                f"{query}.MC"   # Madrid
+            ]
+
+            # Try common versions of the name
+            if " " in query:
+                # Add versions without spaces
+                search_queries.append(query.replace(" ", ""))
+                # Add first word only
+                search_queries.append(query.split(" ")[0])
+
+            search_results = []
+            seen_symbols = set()
+
+            # Try each query variation
+            for search_query in search_queries:
+                if len(search_results) >= limit:
+                    break
+
+                try:
+                    # Try a direct ticker lookup first
+                    ticker_obj = yf.Ticker(search_query)
+                    info = ticker_obj.info
+
+                    if info and 'shortName' in info and 'symbol' in info:
+                        symbol = info['symbol']
+                        if symbol not in seen_symbols:
+                            seen_symbols.add(symbol)
+                            search_results.append({
+                                'symbol': symbol,
+                                'name': info.get('shortName', ''),
+                                'exchange': info.get('exchange', ''),
+                                'type': info.get('quoteType', ''),
+                                'score': 1.0
+                            })
+                except Exception as e:
+                    logger.debug(f"Error looking up {search_query}: {e}")
+
+            # If no results, try a broader search using ticker suggestions
+            if not search_results:
+                try:
+                    tickers = yf.Tickers(query)
+
+                    for symbol, ticker_obj in tickers.tickers.items():
+                        if len(search_results) >= limit:
+                            break
+
+                        try:
+                            info = ticker_obj.info
+                            if info and 'shortName' in info:
+                                if symbol not in seen_symbols:
+                                    seen_symbols.add(symbol)
+                                    search_results.append({
+                                        'symbol': symbol,
+                                        'name': info.get('shortName', ''),
+                                        'exchange': info.get('exchange', ''),
+                                        'type': info.get('quoteType', ''),
+                                        'score': 0.9
+                                    })
+                        except Exception as e:
+                            logger.debug(f'Error processing ticker {symbol}: {e}')
+                except Exception as e:
+                    logger.debug(f"Error during broader search: {e}")
+
+            logger.info(f'Found {len(search_results)} similar tickers for query: {query}')
+            return search_results
+
+        except Exception as e:
+            logger.error(f'Failed to search for similar tickers: {e}')
+            return []

@@ -67,26 +67,27 @@ Note: If the command isn't recognized, try opening a new terminal window to refr
   - V0.2.3 introduces a modern subcommand-based CLI interface:
     ```bash
     # Adding records
-    novusedge add shareholder --data "name=John:ownership=10:investment=1000:email=john@example.com"
-    novusedge add transaction --data "ticker=AAPL:shares=100:price=150:type=buy"
+    .\novusedge add shareholder --data "name=John:ownership=10:investment=1000:email=john@example.com"
+    .\novusedge add transaction --data "ticker=AAPL:shares=100:price=150:type=buy"
     
     # Managing server
-    novusedge server start
-    novusedge server stop
+    .\novusedge server start
+    .\novusedge server stop
     
     # Reading data
-    novusedge read shareholders
-    novusedge read portfolio
+    .\novusedge read shareholders
+    .\novusedge read portfolio
     
     # Updating records
-    novusedge update shareholder 1 --data "investment=2000"
+    .\novusedge update shareholder 1 --data "investment=2000"
     
     # Removing records
-    novusedge remove shareholders 1
+    .\novusedge remove shareholders 1
     ```
   - Each command follows a consistent pattern: `.\novusedge <command> <subcommand> [options]`
-  - Supports common operations (add, read, update, remove) across all database entities
+  - Supports common operations (create, read, update, delete) across all database entities
   - Includes built-in help: `.\novusedge --help` or `.\novusedge <command> --help`
+  - Ticker search functionality
 
 - **Database Interaction**
   - Robust integration with PostgreSQL using a connection pool.
@@ -107,7 +108,7 @@ Sonny Holman (Developer)
 
 ## License
 
-This software is proprietary and confidential. Unauthorized use, distribution, or modification is prohibited. To use or distribute this software, you must obtain explicit written permission from [Your Name] and, where applicable, pay a licensing fee. Contact [sonnyholman@hotmail.com] for inquiries.
+This software is proprietary and confidential. Unauthorized use, distribution, or modification for commerical use is prohibited. To use or distribute this software, you must obtain explicit written permission from [Bearhouse Capital] and, where applicable, pay a licensing fee. Contact [sonnyholman@hotmail.com] for inquiries.
 
 ## Contact
 

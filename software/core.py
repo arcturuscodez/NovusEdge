@@ -63,8 +63,10 @@ class NovusEdge:
                     self._handle_update()
                 elif args.command == 'delete':
                     self._handle_delete()
+                elif args.command == 'search':
+                    self._handle_search()
 
-                if args.command != 'server':
+                if args.command not in ['server', 'search']:
                     self._daily_update() # Run daily update (if applicable due to TASK_METADATA check)
 
         except Exception as e:
@@ -117,6 +119,35 @@ class NovusEdge:
     def _handle_delete(self):
         from database.services.delete import handle_delete_by_id
         handle_delete_by_id(self.db, args.table, args.id)
+
+    def _handle_search(self):
+        """Handle the search command to find tickers."""
+        from icarus.retriever import AssetRetriever
+        
+        query = args.query
+        limit = args.limit
+        
+        retriever = AssetRetriever("TEMP")
+        
+        results = retriever.search_similar_tickers(query, limit)
+        
+        if results:
+            
+            symbol_width = max(10, max(len(r['symbol']) for r in results))
+            name_width = max(20, max(len(r['name']) for r in results))
+            exchange_width = max(10, max(len(r['exchange']) for r in results))
+            type_width = max(8, max(len(r['type']) for r in results))
+
+            print("\nSearch Results:")
+            print(f"{'Symbol':<{symbol_width}} {'Name':<{name_width}} {'Exchange':<{exchange_width}} {'Type':<{type_width}}")
+            print("-" * (symbol_width + name_width + exchange_width + type_width + 6))
+            
+            for result in results:
+                print(f"{result['symbol']:<{symbol_width}} {result['name']:<{name_width}} {result['exchange']:<{exchange_width}} {result['type']:<{type_width}}")
+
+            print(f"\nFound {len(results)} results for '{query}'")
+        else:
+            print(f"No results found for '{query}'")
 
     def _daily_update(self):
         from database.services.update import handle_daily_update, handle_update_portfolio_assets_data
