@@ -8,6 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 from typing import Optional
+from decimal import Decimal
+from datetime import datetime, timedelta
+import pytz
 
 class AssetRetriever:
     """A class for the retrieval of asset data using the Yahoo Finance API."""
@@ -31,6 +34,30 @@ class AssetRetriever:
             logger.error(f'Invalid ticker symbol: {self.ticker}')
             return False
         return True
+    
+    def validate_dividend_date(self, dividends) -> bool:
+        """ 
+        Validate if the most recent dividend was paid within the last year.
+        
+        Args:
+            dividends (pd.Series): A pandas Series containing dividend data. From yf.Ticker.dividends.
+            
+        Retuirns:
+            bool: True if the most recent dividend was paid within the last year, False otherwise.
+        """
+        if dividends.empty:
+            logger.info(f'No dividend data available for {self.ticker}')
+            return False
+        
+        latest_dividend_date = dividends.index[-1].to_pydatetime()
+        current_date = datetime.now(pytz.UTC)
+        one_year_ago = current_date - timedelta(days=365)
+        
+        if latest_dividend_date < one_year_ago:
+            logger.info(f'Latest dividend for {self.ticker} was on {latest_dividend_date}, over a year ago')
+            return False
+        
+        return True 
     
     def get_asset_data(self, start_date: str, end_date: str) -> pd.DataFrame:
         """ 
@@ -94,28 +121,35 @@ class AssetRetriever:
             logger.error(f'Failed to retrieve latest closing price for {self.ticker}: {e}')
             return None
         
-    def get_dividend_info(self) -> Optional[pd.DataFrame]:
-        """ 
-        Retrieve dividend information for the asset.
+    def get_dividend_yield(self) -> Optional[Decimal]:
+        """
+        Retrieve the current annual yield for the asset as a decimal value.
         
         Returns:
-            Optional[pd.DataFrame]: A DataFrame containing dividend information, or None if retrieval failed.
+            Optional[Decimal]: The dividend yield as a decimal (e.g., 0.03 for 3%), or None if not available.
         """
         if not self.validate_ticker():
             return None
-        
         try:
-            logger.info(f'Fetching dividend information for {self.ticker}')
+            logger.info(f'Fetching dividend yield for {self.ticker}')
             ticker_data = yf.Ticker(self.ticker)
+            
             dividends = ticker_data.dividends
-            if dividends.empty:
-                logger.info(f'No dividend information found for {self.ticker}')
-                return pd.DataFrame()
-            logger.info(f'Dividend information retrieved for {self.ticker}')
-            return dividends.reset_index()
-
+            if not self.validate_dividend_date(dividends):
+                return Decimal('0')
+            
+            info = ticker_data.info
+            if 'dividendYield' in info:
+                yield_value = info['dividendYield']
+                logger.info(f'Dividend yield for {self.ticker}: {yield_value}')
+                decimal_yield = Decimal(str(yield_value)) / Decimal('100') # Convert from percentage to decimal (e.g., 3% to 0.03)
+                return decimal_yield # Return as a decimal value not a percentage value (e.g., 0.03)
+            else:
+                logger.info(f'No current or recent dividend yield available for {self.ticker}, but dividends exist')
+                return Decimal('0')
+            
         except Exception as e:
-            logger.error(f'Failed to retrieve dividend information for {self.ticker}: {e}')
+            logger.error(f'Failed to retrieve dividend yield for {self.ticker}: {e}')
             return None
         
     def get_additional_info(self) -> Optional[dict]:

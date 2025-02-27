@@ -273,15 +273,14 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             else:
                 logger.warning(f"Could not retrieve latest closing price for {asset.ticker}")
 
-            dividends = retriever.get_dividend_info()
-            if dividends is not None and not dividends.empty:
-                latest_dividend = dividends['Dividends'].iloc[-1]
-                dividend_yield = (latest_dividend / latest_price) * 100 if latest_price else 0
-                portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield)
-                logger.info(f"Updated {asset.ticker} dividend yield: {dividend_yield:.2f}%")
+            dividend_yield = retriever.get_dividend_yield() # Retrieve the dividend yield as a value (e.g., 0.03 for 3%) NOT as a percentage (3%)
+            if dividend_yield is not None:
+                dividend_yield_percentage = dividend_yield * 100 # Convert to percentage for storage (e.g., 0.03 to 3%) NOT as a decimal (0.03)
+                portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield_percentage)
+                logger.info(f"Updated {asset.ticker} with dividend yield: {dividend_yield_percentage:.2f}%")
             else:
-                logger.debug(f"No dividend information available for {asset.ticker}")
-
+                logger.warning(f"Could not retrieve dividend yield for {asset.ticker}")
+            
         # Below should use new Task repo methods.
         
         if row:

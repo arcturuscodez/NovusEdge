@@ -42,3 +42,42 @@ def handle_print_table(db, table_name):
     except Exception as e:
         logger.error(f'An unexpected error occurred: {e}')
         raise
+    
+def handle_get_by_id(db, table_name: str, entity_id: int):
+    """ 
+    Get a single entity by its ID.
+    
+    Args:
+        db: Database connection object
+        table_name (str): Name of the table to search
+        entity_id (int): ID of the entity to retrieve
+        
+    Returns:
+        Optional[BaseModel]: The entity object if found, None otherwise
+    """
+    try:
+        repository = get_repository(table_name, db)
+        return repository.get_entity(id=entity_id)
+    except Exception as e:
+        logger.error(f'An unexpected error occurred retrieving by ID: {e}')
+        raise
+    
+def handle_get_filtered(db, table_name: str, filters: dict, limit: int = None):
+    """ 
+    Get entities matching specified filters.
+    
+    Args:
+        db: Database connection object
+        table_name (str): Name of the table to search
+        filters (dict): Dictionary of field names and values to filter by
+        limit (int): Maximum number of records to return
+    
+    Returns:
+        List[BaseModel]: List of entity objects matching the filters
+    """
+    try:
+        repository = get_repository(table_name, db)
+        return repository.get_all(filters=filters, limit=limit)
+    except Exception as e:
+        logger.error(f'An unexpected error occurred retrieving by filters: {e}')
+        raise
