@@ -97,17 +97,31 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
         )
 
         if shareholder_id:
-            logger.info(f"Shareholder '{name}' created successfully with ID: {shareholder_id}")
+            logger.info(f'Shareholder {name} created successfully with ID: {shareholder_id}')
             firm_repo = FirmRepository(db)
-            firm_id = 1  # TODO: Replace with dynamic firm ID
-            logger.debug(f"Updating firm ID {firm_id} cash with investment: {investment_value}")
-            success = firm_repo.update_firm(firm_id, CASH=investment_value)
+            firm_id = 1 # TODO: Replace with dynamic firm ID
+            
+            # Get current firm data
+            firm = firm_repo.get_firm(firm_id)
+            if not firm:
+                logger.warning(f'Firm with ID {firm_id} not found')
+                return
+            
+            # Convert both to Decimal for precision in calculations
+            investment_decimal = Decimal(str(investment_value))
+            
+            # Calculate new CASH value by ADDING investment
+            new_cash = firm.cash + investment_decimal
+            
+            logger.debug(f'Updating firm ID {firm_id} cash from {firm.cash} to {new_cash} with investment: +{investment_value}')
+            success = firm_repo.update_firm(firm_id, CASH=new_cash)
             if success:
-                logger.debug(f"Firm (ID: {firm_id}) cash updated with investment: {investment_value}")
+                logger.debug(f'Firm (ID: {firm_id}) cash updated with investment: +{investment_value}')
             else:
-                logger.warning(f"Failed to update firm cash with investment {investment_value} for firm ID: {firm_id}")
+                logger.warning(f'Failed to update firm cash with investment: +{investment_value}')
         else:
-            logger.warning(f"Failed to create shareholder '{name}'")
+            logger.warning(f'Failed to create shareholder {name}')
+            db.manual_rollback(db.connection)
 
     except Exception as e:
         logger.error(f"Error creating shareholder: {e}", exc_info=True)

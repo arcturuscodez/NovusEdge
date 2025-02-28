@@ -104,10 +104,11 @@ class NovusEdge:
         handle_print_table(self.db, args.table)
 
     def _handle_update(self):
-        from database.services.update import handle_update_shareholder, handle_update_transaction
+        from database.services.update import handle_update_shareholder, handle_update_transaction, handle_update_entity
         handlers = {
             'shareholder': handle_update_shareholder,
-            'transaction': handle_update_transaction
+            'transaction': handle_update_transaction,
+            'entity': handle_update_entity
         }
         if args.values:
             data = dict(kv.split('=') for kv in args.values.split(':'))

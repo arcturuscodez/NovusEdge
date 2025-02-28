@@ -224,23 +224,18 @@ class AssetRetriever:
                 f"{query}.MC"   # Madrid
             ]
 
-            # Try common versions of the name
             if " " in query:
-                # Add versions without spaces
                 search_queries.append(query.replace(" ", ""))
-                # Add first word only
                 search_queries.append(query.split(" ")[0])
 
             search_results = []
             seen_symbols = set()
 
-            # Try each query variation
             for search_query in search_queries:
                 if len(search_results) >= limit:
                     break
 
                 try:
-                    # Try a direct ticker lookup first
                     ticker_obj = yf.Ticker(search_query)
                     info = ticker_obj.info
 

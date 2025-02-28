@@ -1,58 +1,142 @@
-# options.py
 import argparse
 
-def software_parser():
+def create_main_parser() -> argparse.ArgumentParser:
+    """Create the main parser for NovusEdge CLI."""
     parser = argparse.ArgumentParser(
-        description='NovusEdge: Financial Management Tool',
-        prog='novusedge'
-    )
-    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
-    parser.add_argument('-o', '--override', action='store_true', help='Override existing rules, such as the daily current price update.')
-
-    subparsers = parser.add_subparsers(dest='command', required=True, help='Available commands')
-
-    # 'server' subcommand
-    server_parser = subparsers.add_parser('server', help='Server management')
-    server_parser.add_argument(
-        'action',
-        choices=['start', 'stop'],
-        help='Server action'
+        description='NovusEdge: Investment Firm Management Tool',
+        prog='novusedge',
+        usage='%(prog)s [options] command [args]',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
-    # 'create' subcommand
-    create_parser = subparsers.add_parser('create', help='Create a new entity')
-    create_parser.add_argument(
-        'type',
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose logging'
+    )
+    parser.add_argument(
+        '-vsn', '--version',
+        action='version',
+        version='%(prog)s 0.2.3',
+        help='Display the current version of the application'
+    )
+    parser.add_argument(
+        '-o', '--override',
+        action='store_true',
+        help='Override existing rules, such as the daily current price update'
+    )
+    return parser
+
+def add_server_parser(subparsers) -> None:
+    """Add 'server' subcommand parser."""
+    parser = subparsers.add_parser('server', help='Database server management')
+    
+    parser.add_argument(
+        'action',
+        choices=['start', 'stop'],
+        help='Start or stop the database server'
+    )
+    
+def add_create_parser(subparsers) -> None:
+    """Add 'create' subcommand parser."""
+    parser = subparsers.add_parser('create', help='Create a new entity')
+    
+    parser.add_argument(
+        "type",
         choices=['shareholder', 'transaction', 'firm', 'expense', 'revenue', 'liability'],
         help='Type of entity to create'
     )
-    create_parser.add_argument('--table', type=str, help='Table for generic operations')
-    create_parser.add_argument('--id', type=int, help='ID for operations requiring it')
-    create_parser.add_argument('--values', type=str, help='Data in key=value format (e.g., name=John:ownership=10)')
-
-    # 'print' subcommand
-    read_parser = subparsers.add_parser('read', help='Read table data')
-    read_parser.add_argument('table', help='Table to read')
-
-    # 'update' subcommand
-    update_parser = subparsers.add_parser('update', help='Update an entity')
-    update_parser.add_argument(
+    parser.add_argument('--table',
+                        type=str,
+                        help='Table for generic operations'
+    )
+    
+    parser.add_argument('--id',
+                        type=int,
+                        help='ID for operations requiring it'
+    )
+    
+    parser.add_argument('--values',
+                        type=str,
+                        help='Entity data in key=value:key=value format (e.g. name=John:age=25)'
+    )
+    
+def add_read_parser(subparsers) -> None:
+    """Add 'read' subcommand parser."""
+    parser = subparsers.add_parser('read', help='Read data from the database')
+    
+    parser.add_argument(
+        'table',
+        help='Table to read data from'
+    )
+    
+def add_update_parser(subparsers) -> None:
+    """Add ''update' subcommand parser."""
+    parser = subparsers.add_parser('update', help='Update an existing entity')
+    
+    parser.add_argument(
         'type',
-        choices=['shareholder', 'transaction'],
+        choices=['shareholder', 'transaction', 'entity'],
         help='Type of entity to update'
     )
-    update_parser.add_argument('id', type=int, help='ID of the entity')
-    update_parser.add_argument('data', type=str, help='Data in key=value format')
-
-    # 'delete' subcommand
-    delete_parser = subparsers.add_parser('delete', help='Delete an entity')
-    delete_parser.add_argument('table', help='Table to delete from')
-    delete_parser.add_argument('id', type=int, help='ID of the entity')
-
-    search_parser = subparsers.add_parser('search', help='Search for tickers or similar tickers')
-    search_parser.add_argument('query', help='Search query (ticker or company name)')
-    search_parser.add_argument('--limit', type=int, default=10, help='Maximum number of results to return')
+    
+    parser.add_argument('id', 
+                        type=int,
+                        help='ID of the entity to update'
+    )
+    
+    parser.add_argument('--values',
+                        type=str,
+                        help='Entity data in key=value:key=value format (e.g. name=John:age=25)'
+    )
+    
+def add_delete_parser(subparsers) -> None:
+    """Add 'delete' subcommand parser."""
+    parser = subparsers.add_parser('delete', help='Delete an entity')
+    
+    parser.add_argument(
+        'table',
+        help='Table to delete from'
+    )
+    
+    parser.add_argument(
+        'id',
+        type=int,
+        help='ID of the entity to delete'
+    )
+    
+def add_search_parser(subparsers) -> None:
+    """Add 'search' subcommand parser."""
+    parser = subparsers.add_parser('search', help='Search for a ticker')
+    
+    parser.add_argument(
+        'query',
+        help='Query to search for (ticker or company name)'
+    )
+    
+    parser.add_argument(
+        '--limit',
+        type=int,
+        default=10,
+        help='Maximum number of results to return'
+    )
+    
+def setup_parser() -> argparse.ArgumentParser:
+    """Set up the full argument parser with all subcommands."""
+    parser = create_main_parser()
+    subparsers = parser.add_subparsers(dest='command', required=True, help='Available commands')
+    
+    # Register subcommands
+    add_server_parser(subparsers)
+    add_create_parser(subparsers)
+    add_read_parser(subparsers)
+    add_update_parser(subparsers)
+    add_delete_parser(subparsers)
+    add_search_parser(subparsers)
     
     return parser
 
-args = software_parser().parse_args()
+args = setup_parser().parse_args()
+
+if __name__ == '__main__':
+    print(args)

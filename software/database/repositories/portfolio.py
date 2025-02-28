@@ -23,38 +23,50 @@ class PortfolioRepository(BaseRepository):
             shares (Decimal): The number of asset/shares to add/remove or update.
             price_per_share (Decimal): The price per share of the asset.
             transaction_type (str): Type of transaction ('buy' or 'sell').
+            
+        Returns:
+            bool: True if the operation was successful, False otherwise.
         """
         try:
             asset = self.get_asset_by_ticker(ticker)
             is_buy = transaction_type == 'buy'
-            
+
             if asset: 
-                new_shares = asset.total_shares + (shares if is_buy else -shares)
-                
+                # For buys, add shares; for sells, subtract shares
+                new_shares = asset.total_shares + shares  # shares is negative for sells
+
                 if new_shares < 0:
-                    logger.warning(f'Insufficient shares to sell: {shares} requested, {asset.total_shares} available.')
+                    logger.warning(f'Insufficient shares to sell: {abs(shares)} requested, {asset.total_shares} available.')
                     return False
-                
+
+                # Update fields based on transaction type
                 update_fields = {
                     'total_shares': new_shares,
-                    'total_invested': asset.total_invested + (shares * price_per_share if is_buy else 0),
-                    'realized_profit_loss': asset.realized_profit_loss + (
-                        0 if is_buy else (price_per_share - (asset.total_invested / asset.total_shares)) * abs(shares)
-                    ),
                 }
-                
+
+                # Only add to total_invested for buys
+                if is_buy:
+                    update_fields['total_invested'] = asset.total_invested + (shares * price_per_share)
+
+                # Add to realized profit/loss for sells
+                if not is_buy:
+                    cost_basis = asset.total_invested / asset.total_shares
+                    realized_profit = (price_per_share - cost_basis) * abs(shares)
+                    update_fields['realized_profit_loss'] = asset.realized_profit_loss + realized_profit
+
                 if new_shares == 0:
                     if self.delete_asset(asset.id):
                         logger.info(f'All shares of {ticker} sold. Entry deleted.')
                         return True
-                    
+
                     logger.warning(f'Failed to delete {ticker} from portfolio.')
                     return False
-                
+
                 success = self.update(asset.id, **update_fields)
                 logger.info(f'Asset {ticker} {"updated" if success else "update failed"}.')
                 return success
-        
+
+            # Only create new entries for buy transactions
             if is_buy:
                 new_asset = PortfolioModel(
                     id=None, 
@@ -66,10 +78,10 @@ class PortfolioRepository(BaseRepository):
                 success = self.create(new_asset) is not None
                 logger.info(f'Asset {ticker} created successfully.' if success else f'Failed to add {ticker}.')
                 return success
-            
+
             logger.warning(f'No shares of {ticker} to sell.')
             return False
-        
+
         except (InvalidOperation, ValueError) as e:
             logger.error(f'Invalid numerical value: {e}')
             return False
@@ -95,9 +107,9 @@ class PortfolioRepository(BaseRepository):
     
     def get_asset_by_ticker(self, ticker: str) -> Optional[PortfolioModel]:
         """ 
-        Retrieve an asset by id.
+        Retrieve an asset entity by id.
         
         Args:
-            id (int): The id of the asset to retrieve.    
+            id (int): The id of the asset entity to retrieve.    
         """
         return super().get_entity(ticker=ticker)
