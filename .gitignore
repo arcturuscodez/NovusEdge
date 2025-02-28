@@ -164,6 +164,7 @@ cython_debug/
 #Other
 
 /todo
+/tests
 
 .env
 config/.env
