@@ -16,7 +16,7 @@ class FinnishCorporateTaxCalculator:
     """Class for calculating Finnish corporate taxes."""
     CORPORATE_TAX_RATE = Decimal('0.20') # 20% corporate tax rate
     
-    def calculate_finnish_tax(self, income: TaxableIncome) -> Tuple[Decimal, Decimal]:
+    def calculate_finnish_tax(self, income: TaxableIncome) -> Tuple[Decimal, Decimal, Decimal]:
         """ 
         
         
