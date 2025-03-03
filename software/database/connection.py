@@ -25,7 +25,7 @@ class DatabaseConnection:
                  initial_retry_delay: int = 5,
                  min_conn: int = 1,
                  max_conn: int = 10,
-                 max_pool_size: int = 20,
+                 max_pool_size: int = 20
                 ):
         self.db = db
         self.user = user
