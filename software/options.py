@@ -58,9 +58,9 @@ def add_create_parser(subparsers) -> None:
     ) # Subparsers for each entity type
     
     entity_parsers = {
-        'shareholder': ('Create a new shareholder', _add_shareholder_args),
-        'transaction': ('Create a new transaction', _add_transaction_args),
-        'firm': ('Create a new firm', _add_firm_args),
+        'shareholder': ('Create a new shareholder', _create_shareholder_args),
+        'transaction': ('Create a new transaction', _create_transaction_args),
+        'firm': ('Create a new firm', _create_firm_args),
     } # Entity type to help text and argument function mapping
     
     # Add subparsers for each entity type
@@ -68,8 +68,8 @@ def add_create_parser(subparsers) -> None:
         entity_parser = entity_subparsers.add_parser(entity_type, help=help_text)
         add_args_func(entity_parser)
 
-def _add_shareholder_args(parser):
-    """Add shareholder-specific arguments."""
+def _create_shareholder_args(parser):
+    """Create shareholder-specific arguments."""
     parser.add_argument(
         '-n', '--name',
         dest='name',
@@ -98,8 +98,8 @@ def _add_shareholder_args(parser):
         help='Contact email'
     )
 
-def _add_transaction_args(parser):
-    """Add transaction-specific arguments."""
+def _create_transaction_args(parser):
+    """Create transaction-specific arguments."""
     
     parser.add_argument(
         '-t' ,'--ticker',
@@ -135,8 +135,8 @@ def _add_transaction_args(parser):
         help='Additional transaction notes'
         )
 
-def _add_firm_args(parser):
-    """Add firm-specific arguments."""
+def _create_firm_args(parser):
+    """Create firm-specific arguments."""
     
     parser.add_argument(
         '-n', '--name',
@@ -156,19 +156,35 @@ def add_read_parser(subparsers) -> None:
 
 def add_update_parser(subparsers) -> None:
     """Add 'update' subcommand parser."""
-    parser = subparsers.add_parser('update', help='Update an existing entity')
+    parser = subparsers.add_parser('update', help='Update an entity in the database')
     
-    entity_subparsers = parser.add_subparsers(dest='type', required=True, help='Type of entity to update')
+    entity_subparsers = parser.add_subparsers(
+        dest='type',
+        required=True,
+        help='Type of entity to update'
+    )
     
-    # Shareholder update subparser
-    shareholder_parser = entity_subparsers.add_parser('shareholder', help='Update a shareholder')
-    shareholder_parser.add_argument('id', type=int, help='ID of the shareholder to update')
-    _add_shareholder_args(shareholder_parser)
+    entity_parser = entity_subparsers.add_parser('entity', help='Update a generic entity')
     
-    # Transaction update subparser
-    transaction_parser = entity_subparsers.add_parser('transaction', help='Update a transaction')
-    transaction_parser.add_argument('id', type=int, help='ID of the transaction to update')
-    _add_transaction_args(transaction_parser)
+    entity_parser.add_argument(
+        'table',
+        type=str,
+        help='Table name containing the entity to update'
+    )
+    
+    entity_parser.add_argument(
+        'id',
+        type=int,
+        help='ID of the entity to update'
+    )
+    
+    entity_parser.add_argument(
+        '-f', '--fields',
+        dest='fields',
+        nargs='+',
+        required=True,
+        help='Fields to update in the format: field=value field2=value2'
+    )
 
 def add_delete_parser(subparsers) -> None:
     """Add 'delete' subcommand parser."""

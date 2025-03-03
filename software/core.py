@@ -80,10 +80,8 @@ class NovusEdge:
         """ 
         Handle the update command to update an entity in the database.
         """
-        from database.services.update import handle_update_shareholder, handle_update_transaction, handle_update_entity
+        from database.services.update import handle_update_entity
         handlers = {
-            'shareholder': handle_update_shareholder,
-            'transaction': handle_update_transaction,
             'entity': handle_update_entity
         }
         self._execute_handler(handlers, args.type, with_id=True)
