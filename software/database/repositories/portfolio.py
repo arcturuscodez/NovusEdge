@@ -1,6 +1,7 @@
 from typing import Optional
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from database.repositories.base import BaseRepository
+from database.repositories.transaction import TransactionRepository
 from database.models import PortfolioModel
 
 import logging
@@ -14,76 +15,111 @@ class PortfolioRepository(BaseRepository):
         """Initialize the repository with the PortfolioModel."""
         super().__init__(db_conn, table_name='portfolio', model=PortfolioModel)
         
-    def add_or_update_asset(self, ticker: str, shares: Decimal, price_per_share: Decimal, transaction_type: str) -> bool:
-        """ 
-        Add a new asset or update existing asset's shares and other fields in the PORTFOLIO table.
-        
-        Args:
-            ticker (str): Ticker symbol of the asset
-            shares (Decimal): The number of asset/shares to add/remove or update.
-            price_per_share (Decimal): The price per share of the asset.
-            transaction_type (str): Type of transaction ('buy' or 'sell').
-            
-        Returns:
-            bool: True if the operation was successful, False otherwise.
+    def create_or_update_asset(self, ticker: str, shares: Decimal, price_per_share: Decimal,
+                      transaction_type: str = 'buy', transaction_fees: float = 0.0, 
+                      existing_transaction_id: int = None) -> bool:
         """
+        Add or update an asset in the portfolio with improved profit/loss tracking.
+
+        Args:
+            ticker (str): The ticker symbol of the asset.
+            shares (Decimal): The number of shares to add/remove.
+            price_per_share (Decimal): The price per share.
+            transaction_type (str): The type of transaction ('buy' or 'sell').
+            transaction_fees (float): Any transaction fees.
+            existing_transaction_id (int, optional): ID of an existing transaction.
+
+        Returns:
+            bool: True if the asset was added or updated successfully.
+        """
+        ticker = ticker.upper()
+        shares_decimal = Decimal(str(abs(shares)))
+        price_per_share_decimal = Decimal(str(price_per_share))
+        transaction_value = shares_decimal * price_per_share_decimal
+        is_buy = transaction_type.lower() == 'buy'
+        actual_shares = shares_decimal if is_buy else -shares_decimal
+
         try:
-            asset = self.get_asset_by_ticker(ticker)
-            is_buy = transaction_type == 'buy'
+            # Get existing asset or create new one
+            asset = self.get_entity(ticker=ticker)
 
-            if asset: 
-                # For buys, add shares; for sells, subtract shares
-                new_shares = asset.total_shares + shares  # shares is negative for sells
-
-                if new_shares < 0:
-                    logger.warning(f'Insufficient shares to sell: {abs(shares)} requested, {asset.total_shares} available.')
+            # CASE 1: New asset
+            if not asset:
+                if not is_buy:
+                    logger.error(f"Cannot sell asset {ticker} that does not exist in portfolio")
                     return False
 
-                # Update fields based on transaction type
+                # Create new portfolio entry
+                new_asset = PortfolioModel(
+                    ticker=ticker,
+                    total_shares=actual_shares,
+                    total_invested=transaction_value,
+                    average_purchase_price=price_per_share_decimal,
+                    current_price=price_per_share_decimal,
+                    realized_profit_loss=Decimal('0')
+                )
+
+                asset_id = self.create(new_asset)
+                if asset_id:
+                    logger.info(f"Created portfolio entry for {ticker}: {actual_shares} shares at ${price_per_share_decimal}")
+                    return True
+                return False
+
+            # CASE 2: Update existing asset
+            new_shares = asset.total_shares + actual_shares
+
+            # Validate: Can't sell more than owned
+            if new_shares < 0:
+                logger.error(f"Cannot sell {shares_decimal} shares of {ticker}, only {asset.total_shares} available")
+                return False
+
+            # Calculate fields for update
+            update_fields = {}
+            realized_profit_loss = Decimal('0')
+
+            if is_buy:
+                # BUY: Update average price via weighted average
+                new_total_invested = asset.total_invested + transaction_value
+                new_average_price = new_total_invested / new_shares if new_shares > 0 else asset.average_purchase_price
+
                 update_fields = {
                     'total_shares': new_shares,
+                    'total_invested': new_total_invested,
+                    'average_purchase_price': new_average_price,
+                    'current_price': price_per_share_decimal
+                }
+            else:
+                # SELL: Calculate realized profit/loss
+                cost_basis = asset.average_purchase_price
+                portion_sold = shares_decimal / asset.total_shares
+                realized_profit_loss = (price_per_share_decimal - cost_basis) * shares_decimal
+                investment_reduction = asset.total_invested * portion_sold
+
+                update_fields = {
+                    'total_shares': new_shares,
+                    'total_invested': asset.total_invested - investment_reduction,
+                    'realized_profit_loss': asset.realized_profit_loss + realized_profit_loss,
+                    'current_price': price_per_share_decimal
                 }
 
-                # Only add to total_invested for buys
-                if is_buy:
-                    update_fields['total_invested'] = asset.total_invested + (shares * price_per_share)
+                # Update transaction with profit/loss details if ID provided
+                if existing_transaction_id:
+                    transaction_repo = TransactionRepository(self.db)
+                    transaction_repo.update(existing_transaction_id, 
+                        cost_basis=cost_basis,
+                        realized_profit_loss=realized_profit_loss,
+                        portion_of_position=portion_sold * 100,
+                        notes=f"Selling {portion_sold:.2%} of position"
+                    )
 
-                # Add to realized profit/loss for sells
-                if not is_buy:
-                    cost_basis = asset.total_invested / asset.total_shares
-                    realized_profit = (price_per_share - cost_basis) * abs(shares)
-                    update_fields['realized_profit_loss'] = asset.realized_profit_loss + realized_profit
+            # Apply update
+            success = self.update(asset.id, **update_fields)
+            if success:
+                logger.info(f"Updated {ticker}: {new_shares} shares, total invested: ${update_fields['total_invested']}")
+            return success
 
-                if new_shares == 0:
-                    if self.delete_asset(asset.id):
-                        logger.info(f'All shares of {ticker} sold. Entry deleted.')
-                        return True
-
-                    logger.warning(f'Failed to delete {ticker} from portfolio.')
-                    return False
-
-                success = self.update(asset.id, **update_fields)
-                logger.info(f'Asset {ticker} {"updated" if success else "update failed"}.')
-                return success
-
-            # Only create new entries for buy transactions
-            if is_buy:
-                new_asset = PortfolioModel(
-                    id=None, 
-                    ticker=ticker,
-                    total_shares=shares,
-                    total_invested=shares * price_per_share,
-                    realized_profit_loss=Decimal('0.00'),
-                )
-                success = self.create(new_asset) is not None
-                logger.info(f'Asset {ticker} created successfully.' if success else f'Failed to add {ticker}.')
-                return success
-
-            logger.warning(f'No shares of {ticker} to sell.')
-            return False
-
-        except (InvalidOperation, ValueError) as e:
-            logger.error(f'Invalid numerical value: {e}')
+        except Exception as e:
+            logger.error(f"Failed to update asset {ticker}: {e}")
             return False
         
     def delete_asset(self, id: int) -> bool:

@@ -19,15 +19,25 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     PRICE_PER_SHARE NUMERIC(15, 2) CHECK (PRICE_PER_SHARE > 0),                                                                 -- Price per share of the asset        
     TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (SHARES * PRICE_PER_SHARE) STORED,                                           -- Total value of the transaction
     TRANSACTION_TYPE VARCHAR(10) NOT NULL CHECK (TRANSACTION_TYPE IN ('buy', 'sell')),                                          -- Transaction type (buy or sell)
+    COST_BASIS NUMERIC(20, 2),                                                                                                  -- The cost basis of the transaction
+    REALIZED_PROFIT_LOSS NUMERIC(20, 2) DEFAULT 0,                                                                              -- The realized profit or loss of the transaction
+    TRANSACTION_FEES NUMERIC(20, 2) DEFAULT 0.00,                                                                               -- The transaction fees of the transaction
+    PORTION_OF_POSITION NUMERIC(5, 2),                                                                                          -- The portion of the position bought or sold
+    NOTES TEXT,                                                                                                                 -- Additional notes for the transaction
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP                                                                              -- The time the transaction was created
 );
+
+-- CREATE INDEX 
+CREATE INDEX IF NOT EXISTS idx_transactions_ticker ON TRANSACTIONS(TICKER);                                                    -- Index on the TICKER column
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON TRANSACTIONS(CREATED_AT);                                                   -- Index on the CREATED_AT column
 
 -- Create the PORTFOLIO table.
 CREATE TABLE IF NOT EXISTS PORTFOLIO (
     ID SERIAL PRIMARY KEY,                                                                                                      -- Entry ID
     TICKER VARCHAR(10) NOT NULL UNIQUE,                                                                                         -- Unique asset ticker
-    TOTAL_SHARES NUMERIC(10, 2) CHECK (TOTAL_SHARES > 0),                                                                       -- Total owned shares of the asset
+    TOTAL_SHARES NUMERIC(10, 2),                                                                                                -- Total owned shares of the asset
     TOTAL_INVESTED NUMERIC(20, 2) CHECK (TOTAL_INVESTED >= 0),                                                                  -- The total invested in the asset
+    AVERAGE_PURCHASE_PRICE NUMERIC(15, 2) CHECK (AVERAGE_PURCHASE_PRICE >= 0),                                                  -- The average purchase price of the asset
     CURRENT_PRICE NUMERIC(15, 2) CHECK (CURRENT_PRICE >= 0),                                                                    -- The current price of 1 of the asset
     TOTAL_VALUE NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_SHARES * CURRENT_PRICE) STORED,                                       -- The total value of all owned shares of the asset
     UNREALIZED_PROFIT_LOSS NUMERIC(20, 2) GENERATED ALWAYS AS (TOTAL_SHARES * CURRENT_PRICE - TOTAL_INVESTED) STORED,           -- The unrealized profit or loss of the asset

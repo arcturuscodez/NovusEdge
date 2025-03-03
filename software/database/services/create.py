@@ -129,22 +129,20 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
 
 def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, price_per_share: str, transaction_type: str):
     """
-    Handle the creation of a transaction in the TRANSACTIONS table.
+    Handle the creation of a transaction and update portfolio/firm accordingly.
 
     Args:
-        db (DatabaseConnection): The database connection object.
+        db (DatabaseConnection): The database connection.
         ticker (str): The stock ticker symbol.
-        shares (str): Number of shares (converted to Decimal).
-        price_per_share (str): Price per share (converted to Decimal).
+        shares (str): Number of shares.
+        price_per_share (str): Price per share.
         transaction_type (str): Type of transaction ('buy' or 'sell').
-
-    Returns:
-        None: Creates the transaction and updates portfolio/firm accordingly.
     """
     try:
-        logger.debug(f"Creating transaction: ticker={ticker}, shares={shares}, price_per_share={price_per_share}, type={transaction_type}")
+        logger.debug(f"Processing transaction: {transaction_type} {shares} {ticker} @ {price_per_share}")
+        
         if not all([ticker, shares, price_per_share, transaction_type]):
-            logger.warning("All transaction fields (ticker, shares, price_per_share, transaction_type) must be provided")
+            logger.warning("All transaction fields must be provided")
             return
 
         try:
@@ -152,64 +150,63 @@ def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str, 
             price_per_share_value = Decimal(price_per_share)
             transaction_type_value = transaction_type.lower()
         except (ValueError, InvalidOperation):
-            logger.error("Shares and price_per_share must be numeric")
+            logger.error("Shares and price must be numeric values")
             return
 
         if transaction_type_value not in ['buy', 'sell']:
-            logger.warning(f"Invalid transaction type: {transaction_type_value}. Must be 'buy' or 'sell'")
+            logger.warning(f"Invalid transaction type: {transaction_type_value}")
             return
 
         portfolio_repo = PortfolioRepository(db)
         transaction_repo = TransactionRepository(db)
         firm_repo = FirmRepository(db)
-
+        
         if transaction_type_value == 'sell':
-            logger.debug(f"Checking available shares for ticker {ticker}")
             asset = portfolio_repo.get_asset_by_ticker(ticker)
             if not asset or asset.total_shares < shares_value:
-                logger.warning(f"Insufficient shares to sell: {shares_value} requested, {asset.total_shares if asset else 0} available")
+                logger.warning(f"Insufficient shares: {shares_value} requested, {asset.total_shares if asset else 0} available")
                 return
-
+                
         if transaction_type_value == 'buy':
-            logger.debug("Checking firm cash for buy transaction")
             firm_data = firm_repo.get_entity(id=1)  # TODO: Make firm ID dynamic
             if not firm_data or firm_data.cash < shares_value * price_per_share_value:
-                logger.warning(f"Insufficient funds to buy: {shares_value * price_per_share_value} required, {firm_data.cash if firm_data else 0} available")
-                db.manual_rollback(db.connection)
+                logger.warning(f"Insufficient funds: {shares_value * price_per_share_value} required")
                 return
 
-        logger.debug(f"Adding transaction for {ticker}")
-        transaction_id = transaction_repo.add_transaction(ticker, shares_value, price_per_share_value, transaction_type_value)
-        if not transaction_id:
-            logger.warning(f"Failed to create transaction for {ticker}")
-            return
-
-        logger.info(f"Transaction created: {transaction_type_value} {ticker}, {shares_value} shares at {price_per_share_value}, ID: {transaction_id}")
-
-        logger.debug(f"Updating portfolio for {ticker}")
-        portfolio_success = portfolio_repo.add_or_update_asset(
+        # Step 1: Create transaction record
+        transaction_id = transaction_repo.create_transaction(
             ticker=ticker,
-            shares=shares_value if transaction_type_value == 'buy' else -shares_value,
+            shares=shares_value, 
             price_per_share=price_per_share_value,
             transaction_type=transaction_type_value
         )
+        
+        if not transaction_id:
+            logger.warning(f"Failed to create transaction for {ticker}")
+            return
+            
+        logger.info(f"Transaction created: {transaction_type_value} {ticker}, {shares_value} shares at {price_per_share_value}, ID: {transaction_id}")
+        
+        # Step 2: Update portfolio
+        portfolio_success = portfolio_repo.create_or_update_asset(
+            ticker=ticker,
+            shares=shares_value if transaction_type_value == 'buy' else -shares_value,
+            price_per_share=price_per_share_value,
+            transaction_type=transaction_type_value,
+            existing_transaction_id=transaction_id
+        )
+        
         if not portfolio_success:
-            logger.warning(f"Failed to update portfolio for ticker: {ticker}")
-        else:
-            logger.debug(f"Portfolio updated successfully for ticker: {ticker}")
-
-        logger.debug("Updating firm cash")
-        firm = firm_repo.get_firm(id=1)  # TODO: Make firm ID dynamic
-        cash_change = shares_value * price_per_share_value if transaction_type_value == 'sell' else -shares_value * price_per_share_value
-        firm_success = firm_repo.update_firm(1, CASH=firm.cash + cash_change)
-        if not firm_success:
-            logger.warning(f"Failed to update firm cash for transaction ID: {transaction_id}")
-        else:
-            logger.debug(f"Firm cash updated successfully for transaction ID: {transaction_id}")
+            logger.warning(f"Failed to update portfolio for {ticker}")
+        
+        # Step 3: Update firm cash balance
+        firm = firm_repo.get_entity(id=1)  # TODO: Make firm ID dynamic
+        cash_change = shares_value * price_per_share_value * (1 if transaction_type_value == 'sell' else -1)
+        firm_repo.update(1, CASH=firm.cash + cash_change)
 
     except Exception as e:
-        logger.error(f"Error creating transaction: {e}", exc_info=True)
-        raise
+        logger.error(f"Transaction processing failed: {e}", exc_info=True)
+        db.manual_rollback(db.connection)
 
 def handle_create_firm(db: DatabaseConnection, firm_name: str):
     """

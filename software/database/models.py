@@ -65,6 +65,11 @@ class TransactionModel(BaseModel):
     price_per_share: float = 0.0 # Price per share of the asset
     total_value: Optional[float] = None # Total value of the transaction
     transaction_type: str = "" # Type of transaction (buy, sell, etc.)
+    cost_basis: Optional[float] = None # Cost basis of the transaction
+    realized_profit_loss: Optional[float] = None # Realized profit or loss on the transaction
+    transaction_fees: Optional[float] = None # Transaction fees
+    portion_of_position: Optional[float] = None # Portion of the position
+    notes: Optional[str] = None # Transaction notes
     created_at: Optional[datetime] = field(default_factory=datetime.now) # Transaction creation date
 
 @dataclass
@@ -76,7 +81,8 @@ class PortfolioModel(BaseModel):
     ticker: str = "" # Asset ticker symbol
     total_shares: float = 0.0 # Total number of shares of the asset
     total_invested: float = 0.0 # Total amount invested in the asset
-    current_price: Optional[float] = None
+    average_purchase_price: float = 0.0 # Average purchase price of the asset
+    current_price: Optional[float] = None # Current price of the asset
     total_value: Optional[float] = None # Total value of currently owned asset shares
     unrealized_profit_loss: Optional[float] = None # Unrealized profit or loss on the asset
     realized_profit_loss: Optional[float] = None # Realized profit or loss on the asset
