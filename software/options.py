@@ -1,64 +1,148 @@
+"""Command line argument parsing for NovusEdge."""
 import argparse
+import sys
+import globals
+import logging
+
+logger = logging.getLogger(__name__)
 
 def create_main_parser() -> argparse.ArgumentParser:
     """Create the main parser for NovusEdge CLI."""
     parser = argparse.ArgumentParser(
         description='NovusEdge: Investment Firm Management Tool',
         prog='novusedge',
-        usage='%(prog)s [options] command [args]',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose logging'
-    )
-    parser.add_argument(
-        '-vsn', '--version',
+        '-v', '--version',
+        dest='version',
         action='version',
-        version='%(prog)s 0.2.3',
-        help='Display the current version of the application'
+        version=f'Version: {globals.VERSION}'
     )
+    
+    parser.add_argument(
+        '-d' ,'--debug',
+        dest='debug',
+        action='store_true',
+        help='Enable debugging mode'
+    )
+    
     parser.add_argument(
         '-o', '--override',
+        dest='override',
         action='store_true',
-        help='Override existing rules, such as the daily current price update'
+        help='Override existing rules'
     )
+    
     return parser
 
 def add_server_parser(subparsers) -> None:
     """Add 'server' subcommand parser."""
-    parser = subparsers.add_parser('server', help='Database server management')
+    parser = subparsers.add_parser('server', help='NovusEdge Database Server Management')
     
     parser.add_argument(
         'action',
         choices=['start', 'stop', 'check'],
-        help='Start, stop, or check the status of the database server'
+        help='Action to perform on the server'
     )
     
 def add_create_parser(subparsers) -> None:
     """Add 'create' subcommand parser."""
     parser = subparsers.add_parser('create', help='Create a new entity')
     
-    parser.add_argument(
-        "type",
-        choices=['shareholder', 'transaction', 'firm', 'expense', 'revenue', 'liability'],
+    entity_subparsers = parser.add_subparsers(
+        dest='type',
+        required=True,
         help='Type of entity to create'
-    )
-    parser.add_argument('--table',
-                        type=str,
-                        help='Table for generic operations'
+    ) # Subparsers for each entity type
+    
+    entity_parsers = {
+        'shareholder': ('Create a new shareholder', _add_shareholder_args),
+        'transaction': ('Create a new transaction', _add_transaction_args),
+        'firm': ('Create a new firm', _add_firm_args),
+    } # Entity type to help text and argument function mapping
+    
+    # Add subparsers for each entity type
+    for entity_type, (help_text, add_args_func) in entity_parsers.items():
+        entity_parser = entity_subparsers.add_parser(entity_type, help=help_text)
+        add_args_func(entity_parser)
+
+def _add_shareholder_args(parser):
+    """Add shareholder-specific arguments."""
+    parser.add_argument(
+        '-n', '--name',
+        dest='name',
+        type=str,
+        help='Shareholder name'
     )
     
-    parser.add_argument('--id',
-                        type=int,
-                        help='ID for operations requiring it'
+    parser.add_argument(
+        '-o','--ownership',
+        dest='ownership',
+        type=float,
+        help='Firm ownership percentage'
     )
     
-    parser.add_argument('--values',
-                        type=str,
-                        help='Entity data in key=value:key=value format (e.g. name=John:age=25)'
+    parser.add_argument(
+        '-i', '--investment',
+        dest='investment',
+        type=float,
+        help='Initial investment amount'
+    )
+    
+    parser.add_argument(
+        '-e', '--email',
+        dest='email',
+        type=str,
+        help='Contact email'
+    )
+
+def _add_transaction_args(parser):
+    """Add transaction-specific arguments."""
+    
+    parser.add_argument(
+        '-t' ,'--ticker',
+        dest='ticker',
+        type=str,
+        help='Stock ticker symbol'
+    )
+    
+    parser.add_argument(
+        '-s', '--shares',
+        dest='shares',
+        type=float,
+        help='Number of shares'
+    )
+    
+    parser.add_argument(
+        '-p', '--pps',
+        dest='price_per_share',
+        type=float,
+        help='Price per share')
+    
+    parser.add_argument(
+        '-a', '--action',
+        dest='transaction_type',
+        choices=['buy', 'sell'],
+        help='Transaction type (buy/sell)'
+        )
+    
+    parser.add_argument(
+        '-n', '--notes',
+        dest='notes',
+        type=str,
+        help='Additional transaction notes'
+        )
+
+def _add_firm_args(parser):
+    """Add firm-specific arguments."""
+    
+    parser.add_argument(
+        '-n', '--name',
+        dest='firm_name',
+        type=str,
+        help='Firm name'
     )
     
 def add_read_parser(subparsers) -> None:
@@ -69,30 +153,26 @@ def add_read_parser(subparsers) -> None:
         'table',
         help='Table to read data from'
     )
-    
+
 def add_update_parser(subparsers) -> None:
-    """Add ''update' subcommand parser."""
+    """Add 'update' subcommand parser."""
     parser = subparsers.add_parser('update', help='Update an existing entity')
     
-    parser.add_argument(
-        'type',
-        choices=['shareholder', 'transaction', 'entity'],
-        help='Type of entity to update'
-    )
+    entity_subparsers = parser.add_subparsers(dest='type', required=True, help='Type of entity to update')
     
-    parser.add_argument('id', 
-                        type=int,
-                        help='ID of the entity to update'
-    )
+    # Shareholder update subparser
+    shareholder_parser = entity_subparsers.add_parser('shareholder', help='Update a shareholder')
+    shareholder_parser.add_argument('id', type=int, help='ID of the shareholder to update')
+    _add_shareholder_args(shareholder_parser)
     
-    parser.add_argument('--values',
-                        type=str,
-                        help='Entity data in key=value:key=value format (e.g. name=John:age=25)'
-    )
-    
+    # Transaction update subparser
+    transaction_parser = entity_subparsers.add_parser('transaction', help='Update a transaction')
+    transaction_parser.add_argument('id', type=int, help='ID of the transaction to update')
+    _add_transaction_args(transaction_parser)
+
 def add_delete_parser(subparsers) -> None:
     """Add 'delete' subcommand parser."""
-    parser = subparsers.add_parser('delete', help='Delete an entity')
+    parser = subparsers.add_parser('delete', help='Delete an entity from the database')
     
     parser.add_argument(
         'table',
@@ -104,14 +184,14 @@ def add_delete_parser(subparsers) -> None:
         type=int,
         help='ID of the entity to delete'
     )
-    
+
 def add_search_parser(subparsers) -> None:
     """Add 'search' subcommand parser."""
-    parser = subparsers.add_parser('search', help='Search for a ticker')
+    parser = subparsers.add_parser('search', help='Search for assets')
     
     parser.add_argument(
         'query',
-        help='Query to search for (ticker or company name)'
+        help='Search query'
     )
     
     parser.add_argument(
@@ -120,13 +200,15 @@ def add_search_parser(subparsers) -> None:
         default=10,
         help='Maximum number of results to return'
     )
-    
-def setup_parser() -> argparse.ArgumentParser:
-    """Set up the full argument parser with all subcommands."""
+
+def parse_args():
+    """
+    Parse command line arguments and return processed args.
+    """
     parser = create_main_parser()
-    subparsers = parser.add_subparsers(dest='command', required=True, help='Available commands')
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
     
-    # Register subcommands
+    # Add command subparsers
     add_server_parser(subparsers)
     add_create_parser(subparsers)
     add_read_parser(subparsers)
@@ -134,9 +216,27 @@ def setup_parser() -> argparse.ArgumentParser:
     add_delete_parser(subparsers)
     add_search_parser(subparsers)
     
-    return parser
+    args = parser.parse_args()
+    
+    args = process_command_args(args)
+    
+    return args
 
-args = setup_parser().parse_args()
+def process_command_args(args) -> argparse.Namespace:  
+    """
+    Process command line arguments.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        args: Processed command line arguments
+    """
+    # Show help if no command provided
+    if not hasattr(args, 'command') or not args.command:
+        logger.error("No command specified. See --help for available commands.")
+        sys.exit(1)
+    
+    return args
 
-if __name__ == '__main__':
-    print(args)
+args = parse_args()
