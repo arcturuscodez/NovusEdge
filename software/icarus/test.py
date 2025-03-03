@@ -1,4 +1,4 @@
-from tax import FinnishCorporateTaxCalculator, TaxableIncome
+from finance import FinnishCorporateTaxCalculator
 from retriever import AssetRetriever
 from analysis import project_portfolio_growth
 from decimal import Decimal
