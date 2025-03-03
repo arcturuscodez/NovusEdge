@@ -89,7 +89,7 @@ class BaseRepository:
             if row:
                 columns = [desc[0] for desc in self.db.cursor.description]
                 data = dict(zip(columns, row))
-                logger.info(f"Fetched entity from {self.table_name} with conditions {kwargs}")
+                logger.debug(f"Fetched entity from {self.table_name} with conditions {kwargs}")
                 return self.model(**data)
             logger.debug(f"No entity found in {self.table_name} with conditions {kwargs}")
             return None
@@ -141,7 +141,7 @@ class BaseRepository:
             rows = self.db.cursor.fetchall()
             columns = [desc[0] for desc in self.db.cursor.description]
             entities = [self.model(**dict(zip(columns, row))) for row in rows]
-            logger.info(f"Fetched {len(entities)} entities from {self.table_name}")
+            logger.debug(f"Fetched {len(entities)} entities from {self.table_name}")
             return entities
 
         except Exception as e:
@@ -181,7 +181,7 @@ class BaseRepository:
             self.db.cursor.execute(query, values)
             success = self.db.cursor.rowcount > 0
             if success: 
-                logger.info(f"Updated entity in {self.table_name} with ID: {entity_id}")
+                logger.debug(f"Updated entity in {self.table_name} with ID: {entity_id}")
             else:
                 logger.warning(f"No entity found to update in {self.table_name} with ID: {entity_id}")
             return success
@@ -215,7 +215,7 @@ class BaseRepository:
             self.db.cursor.execute(query, values)
             success = self.db.cursor.rowcount > 0
             if success:
-                logger.info(f"Deleted entity from {self.table_name} with ID: {entity_id}")
+                logger.debug(f"Deleted entity from {self.table_name} with ID: {entity_id}")
             else:
                 logger.warning(f"No entity found to delete in {self.table_name} with ID: {entity_id}")
             return success
@@ -242,7 +242,7 @@ class BaseRepository:
             rows = self.db.cursor.fetchall()
             columns = [desc[0] for desc in self.db.cursor.description]
             results = [dict(zip(columns, row)) for row in rows]
-            logger.info(f"Executed raw query on {self.table_name}, returned {len(results)} rows")
+            logger.debug(f"Executed raw query on {self.table_name}, returned {len(results)} rows")
             return results
 
         except Exception as e:
@@ -268,7 +268,7 @@ class BaseRepository:
             self.db.cursor.execute(query, (delta, entity_id))
             success = self.db.cursor.rowcount > 0
             if success:
-                logger.info(f"Incremented field '{field}' by {delta} for entity ID {entity_id} in {self.table_name}")
+                logger.debug(f"Incremented field '{field}' by {delta} for entity ID {entity_id} in {self.table_name}")
             else:
                 logger.warning(f"No entity found to increment field '{field}' for ID {entity_id} in {self.table_name}")
             return success
