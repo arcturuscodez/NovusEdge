@@ -33,8 +33,8 @@ def add_server_parser(subparsers) -> None:
     
     parser.add_argument(
         'action',
-        choices=['start', 'stop'],
-        help='Start or stop the database server'
+        choices=['start', 'stop', 'check'],
+        help='Start, stop, or check the status of the database server'
     )
     
 def add_create_parser(subparsers) -> None:

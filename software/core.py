@@ -43,7 +43,12 @@ class NovusEdge:
             elif args.action == 'stop':
                 self._skip_daily_update = True
                 self.db.stop_server()
+            elif args.action == 'check':
+                self.db._check_server_status()
+            else:
+                logger.error(f"Unsupported server action: {args.action}")
                 return
+            
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             raise

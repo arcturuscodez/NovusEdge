@@ -53,7 +53,7 @@ class DatabaseConnection:
                 host=self.host,
                 port=self.port
             )
-            logger.info(f"Connection pool created successfully for DB: {self.db} with {max_conn} max connections")
+            logger.debug(f"Connection pool created successfully for DB: {self.db} with {max_conn} max connections")
 
         except OperationalError as e:
             logger.error(f"Operational error creating connection pool: {e}", exc_info=True)
@@ -117,7 +117,7 @@ class DatabaseConnection:
             )
             is_running = result.returncode == 0
             if is_running:
-                logger.info(f"PostgreSQL server is running on {self.host}:{self.port}")
+                logger.debug(f"PostgreSQL server is running on {self.host}:{self.port}")
             else:
                 logger.warning(f"PostgreSQL server is not running on {self.host}:{self.port}")
             return is_running
