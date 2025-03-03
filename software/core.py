@@ -42,9 +42,14 @@ class NovusEdge:
                 self.db.start_server()
             elif args.action == 'stop':
                 self._skip_daily_update = True
-                self.db.stop_server()
-            elif args.action == 'check':
-                self.db._check_server_status()
+                try:
+                    self.db.stop_server()
+                except RuntimeError as e:
+                    logger.warning(str(e))
+                    return
+            elif args.action == 'status':
+                status = self.db._check_server_status()
+                logger.info(f"PostgreSQL server status: {'Running' if status else 'Not running'}")
             else:
                 logger.error(f"Unsupported server action: {args.action}")
                 return
@@ -73,6 +78,9 @@ class NovusEdge:
         self._execute_handler(handlers, args.type)
 
     def _handle_read(self):
+        """
+        Handle the read command to retrieve data from the database
+        """
         from database.services.read import handle_print_table
         handle_print_table(self.db, args.table)
 
@@ -81,9 +89,7 @@ class NovusEdge:
         Handle the update command to update an entity in the database.
         """
         from database.services.update import handle_update_entity
-        handlers = {
-            'entity': handle_update_entity
-        }
+        handlers = {'entity': handle_update_entity}
         self._execute_handler(handlers, args.type, with_id=True)
 
     def _handle_delete(self):
@@ -112,25 +118,7 @@ class NovusEdge:
         
         retriever = AssetRetriever("TEMP")
         
-        results = retriever.search_similar_tickers(query, limit)
-        
-        if results:
-            
-            symbol_width = max(10, max(len(r['symbol']) for r in results))
-            name_width = max(20, max(len(r['name']) for r in results))
-            exchange_width = max(10, max(len(r['exchange']) for r in results))
-            type_width = max(8, max(len(r['type']) for r in results))
-
-            print("\nSearch Results:")
-            print(f"{'Symbol':<{symbol_width}} {'Name':<{name_width}} {'Exchange':<{exchange_width}} {'Type':<{type_width}}")
-            print("-" * (symbol_width + name_width + exchange_width + type_width + 6))
-            
-            for result in results:
-                print(f"{result['symbol']:<{symbol_width}} {result['name']:<{name_width}} {result['exchange']:<{exchange_width}} {result['type']:<{type_width}}")
-
-            print(f"\nFound {len(results)} results for '{query}'")
-        else:
-            print(f"No results found for '{query}'")
+        retriever.search_similar_tickers(query, limit)
 
     def _filter_global_args(self, args_dict):
         """
@@ -183,22 +171,24 @@ class NovusEdge:
         Execute the command specified by the user.
         """
         try:
-            with self.db:
-                if args.command == 'create':
-                    self._handle_create()
-                elif args.command == 'server':
-                    self._handle_server()
-                elif args.command == 'read':
-                    self._handle_read()
-                elif args.command == 'update':
-                    self._handle_update()
-                elif args.command == 'delete':
-                    self._handle_delete()
-                elif args.command == 'search':
-                    self._handle_search()
+            
+            if args.command in ['search']:
+                self._handle_search()
+            elif args.command in ['server']:
+                self._handle_server()
+            else:
+                with self.db:
+                    if args.command == 'create':
+                        self._handle_create()
+                    elif args.command == 'read':
+                        self._handle_read()
+                    elif args.command == 'update':
+                        self._handle_update()
+                    elif args.command == 'delete':
+                        self._handle_delete()
 
-                if args.command not in ['server', 'search']:
-                    self._daily_update()
+                    if args.command not in ['server', 'search']:
+                        self._daily_update()
         except Exception as e:
             if not hasattr(self, '_skip_daily_update'):
                 logger.error(f"An unexpected error occurred: {e}")

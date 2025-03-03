@@ -14,45 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def handle_update_entity(db: DatabaseConnection, table: str, entity_id: int, **data) -> bool:
-    """
-    Handle the updating of a generic entity in a specified table.
-
-    Args:
-        db (DatabaseConnection): The database connection object.
-        table (str): The name of the table to update.
-        entity_id (int): The ID of the entity to update.
-        **data: Keyword arguments representing the fields to update (e.g., key=value).
-
-    Returns:
-        bool: True if the entity was updated successfully, False otherwise.
-    """
-    try:
-        if not table:
-            logger.error("Table name not provided for update")
-            return False
-
-        if not isinstance(entity_id, int):
-            logger.error(f"Entity ID must be an integer, got {type(entity_id)}")
-            return False
-
-        if not data:
-            logger.warning("No data provided for entity update")
-            return False
-
-        logger.debug(f"Updating entity ID {entity_id} in table '{table}' with data: {data}")
-        repository = GenericRepository(db, table)
-        success = repository.update(entity_id, **data)
-
-        if success:
-            logger.info(f"Entity ID {entity_id} in table '{table}' updated successfully with {data}")
-            return True
-        else:
-            logger.warning(f"Failed to update entity ID {entity_id} in table '{table}' - entity may not exist")
-            return False
-
-    except Exception as e:
-        logger.error(f"Error updating entity in table '{table}' with ID {entity_id}: {e}", exc_info=True)
-        raise
+    """TODO: Implement a master function that can handle updating any entity and calls to specific handlers in mandatory cases."""
     
 def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **data) -> bool:
     """TODO: Implement a redesigned function."""
@@ -87,7 +49,7 @@ async def handle_update_portfolio_assets_data(db: DatabaseConnection):
             logger.debug(f"Updating firm ID {firm_id} assets to {total_assets_value}")
             success = firm_repo.update_firm(firm_id, assets=total_assets_value)
             if success:
-                logger.info(f"Firm ID {firm_id} total assets updated successfully to {total_assets_value}")
+                logger.debug(f"Firm ID {firm_id} total assets updated successfully to {total_assets_value}")
             else:
                 logger.warning(f"Failed to update firm assets for ID {firm_id}")
         else:
@@ -135,7 +97,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
         assets = portfolio_repo.get_all()
 
         if not assets:
-            logger.info("No assets found in portfolio to update")
+            logger.debug("No assets found in portfolio to update")
             return
 
         logger.info(f"Updating {len(assets)} portfolio assets with latest data")

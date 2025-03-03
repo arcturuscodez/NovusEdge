@@ -43,7 +43,7 @@ def add_server_parser(subparsers) -> None:
     
     parser.add_argument(
         'action',
-        choices=['start', 'stop', 'check'],
+        choices=['start', 'stop', 'status'],
         help='Action to perform on the server'
     )
     

@@ -13,7 +13,7 @@ class TaskRepository(BaseRepository):
         """Initialize the repository with the Task model."""
         super().__init__(db_conn, table_name='task_metadata', model=TaskModel)
     
-    def add_task(self, task_name: str) -> Optional[int]:
+    def create_task(self, task_name: str) -> Optional[int]:
         """ 
         Add a new task to the database.
         

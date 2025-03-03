@@ -53,7 +53,7 @@ def get_repository(table_name: str, db_conn: DatabaseConnection) -> Type:
         
         repository_class = REPOSITORY_MAP.get(table_name_upper)
         if repository_class:
-            logger.info(f"Retrieved repository for table: {table_name_upper}")
+            logger.debug(f"Retrieved repository for table: {table_name_upper}")
             return repository_class(db_conn)
         
         logger.error(f"Repository for table '{table_name_upper}' not found in REPOSITORY_MAP")

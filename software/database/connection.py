@@ -25,7 +25,7 @@ class DatabaseConnection:
                  initial_retry_delay: int = 5,
                  min_conn: int = 1,
                  max_conn: int = 10,
-                 max_pool_size: int = 20
+                 max_pool_size: int = 20,
                 ):
         self.db = db
         self.user = user
@@ -237,13 +237,23 @@ class DatabaseConnection:
         """Stop the PostgreSQL server."""
         try:
             logger.info("Attempting to stop PostgreSQL server")
-            subprocess.run(['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], check=True, timeout=30)
+            result = subprocess.run(
+                ['pg_ctl', '-D', self.pg_exe, 'stop', '-m', 'fast'], 
+                check=True, 
+                timeout=30,
+                capture_output=True
+            )
             logger.info("PostgreSQL server stopped successfully")
-            
+
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to stop PostgreSQL server: {e.output.decode()}", exc_info=True)
-            raise RuntimeError("Failed to stop PostgreSQL server") from e
-        
+            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+            if "Operation not permitted" in error_msg:
+                logger.warning("Cannot stop PostgreSQL server: insufficient permissions")
+                logger.info("Please use the PostgreSQL admin console or services panel to stop the server")
+            else:
+                logger.error(f"Failed to stop PostgreSQL server: {error_msg}", exc_info=True)
+            raise RuntimeError("Please use the PostgreSQL admin console or services panel to stop the server")
+
         except subprocess.TimeoutExpired:
             logger.error("Timed out while trying to stop PostgreSQL server")
             raise RuntimeError("Timed out stopping PostgreSQL server")

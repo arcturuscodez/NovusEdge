@@ -88,8 +88,8 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
             return
 
         repository = ShareholderRepository(db)
-        logger.debug(f"Adding shareholder '{name}' to database")
-        shareholder_id = repository.add_shareholder(
+        logger.debug(f"Creating shareholder: '{name}'.")
+        shareholder_id = repository.create_shareholder(
             name=name,
             ownership=ownership_value,
             investment=investment_value,
