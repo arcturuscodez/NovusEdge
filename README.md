@@ -42,7 +42,7 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 
 1. Clone the repository:
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/arcturuscodez/NovusEdge.git
     ```
 
 2. Create a `.env` file with the following variables:
