@@ -1,10 +1,8 @@
-# Software Name
-
-NovusEdge - Investment Firm Management Software
+# NovusEdge - Investment Firm Management Software
 
 ## Description
 
-NovusEdge is an all around investment management software designed for investment firms to manage stock transactions, track portfolio performance, and monitor live market data. It provides users with the ability to execute buy transactions, update portfolio information with real-time stock prices, calculate unrealized profits and losses, and track dividend yields.
+NovusEdge is an all-around investment management software designed for investment firms to manage stock transactions, track portfolio performance, and monitor live market data. It provides users with the ability to execute buy transactions, update portfolio information with real-time stock prices, calculate unrealized profits and losses, and track dividend yields.
 
 The system integrates with a database to store transaction records, portfolio details, and firm financial information. It also leverages external stock data sources to provide live updates on stock prices and dividends. The long-term goal is to enhance the system with machine learning and AI capabilities to simulate, monitor, and provide feedback on the portfolios managed by Bearhouse Capital’s Chief Investment Officer.
 
@@ -21,36 +19,51 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 ## Table of Contents
 - [Installation](#installation)
 - [Features](#features)
+- [System Architecture](#system-architecture)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
 
 ## Installation
 
-### Requried Software, Libraries, Etc...
+### Required Software, Libraries, Etc...
 
 1. Python (v3.10+)
 2. PostgreSQL database (v17+)
 3. Python Libraries:
   - psycopg2 (PostgreSQL adapter)
-  - yfiannce (Yahoo Fianance data)
-  - python.dotenv (environment variable management)
+  - yfinance (Yahoo Finance data)
+  - python-dotenv (environment variable management)
   - pandas & numpy (data processing)
   - decimal (precise financial calculations)
 4. Anaconda3 (recommended for environment management)
 
 ### Setup
 
-1. Clone the repository
-2. Create a .env file with the following variables:
-  - DB_NAME
-  - DB_USER
-  - DB_PASS
-  - DB_HOST
-  - DB_PORT
-  - PG_EXE
-3. Install dependencies
-4. Run the application .\novusedge <command> <subcommand> [options]
+1. Clone the repository:
+    ```bash
+    git clone <repository-url>
+    ```
+
+2. Create a `.env` file with the following variables:
+    ```plaintext
+    DB_NAME=<your-database-name>
+    DB_USER=<your-database-username>
+    DB_PASS=<your-database-password>
+    DB_HOST=<your-database-host>
+    DB_PORT=<your-database-port>
+    PG_EXE=<path-to-postgresql-executable>
+    ```
+
+3. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. Run the application:
+    ```bash
+    .\novusedge <command> <subcommand> [options]
+    ```
 
 **Reminder**
 
@@ -110,28 +123,27 @@ Please review the [LICENSE](LICENSE) file for detailed information on the use of
   - Automated asset liquidation processing during shareholder withdrawals
   - Comprehensive transaction logging and history
 
-### System Architecture
+## System Architecture
 
 NovusEdge is built on a modular architecture with clear separation between:
 
-#### Core Components
+### Core Components
 
-- **Database Layer** Repository pattern implementation with PostgreSQL
+- **Database Layer**: Repository pattern implementation with PostgreSQL
   - Connection pooling for efficient database access
   - Specialized repositories for shareholders, transactions, portfolio, firm, and task data
   - Transactional data integrity with commit/rollback support
 
-- **Business Logic Layer** Services for handling complex operations
+- **Business Logic Layer**: Services for handling complex operations
   - Create, read, update, and delete operations
   - Withdrawal processing with liquidation planning
   - Automated daily updates
 
-- **Icarus Module** Financial data integration and analysis
+- **Icarus Module**: Financial data integration and analysis
   - Market data retrieval from Yahoo Finance
   - Portfolio growth projections
   - Corporate tax calculations
   - Asset data processing
-
 
 ## Contributing
 
@@ -140,8 +152,6 @@ Sonny Holman (Developer)
 ## License
 
 Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
-
-Copyright (c) [Bearhouse Capital] [2025]
 
 This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License. 
 To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/ or send a 
