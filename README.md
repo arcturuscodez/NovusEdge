@@ -14,7 +14,7 @@ Bearhouse Capital is an investment firm owned by the developer of NovusEdge. Nov
 
 ### Branch Version
 
-- **V0.2.4** The latest in development version.
+- **Main**: The main branch contains the latest stable and working version of NovusEdge. It is the recommended branch for production use.
 
 ## Table of Contents
 - [Installation](#installation)
