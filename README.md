@@ -2,15 +2,9 @@
 
 ## Description
 
-NovusEdge is an all-around investment management software designed for investment firms to manage stock transactions, track portfolio performance, and monitor live market data. It provides users with the ability to execute buy transactions, update portfolio information with real-time stock prices, calculate unrealized profits and losses, and track dividend yields.
+NovusEdge is a comprehensive investment management software designed specifically for investment firms. It enables efficient management of stock transactions, tracking of portfolio performance, and monitoring of live market data. With NovusEdge, users can execute buy and sell transactions, update portfolio information with real-time stock prices, calculate both realized and unrealized profits and losses, and track dividend yields seamlessly.
 
-The system integrates with a database to store transaction records, portfolio details, and firm financial information. It also leverages external stock data sources to provide live updates on stock prices and dividends. The long-term goal is to enhance the system with machine learning and AI capabilities to simulate, monitor, and provide feedback on the portfolios managed by Bearhouse Capital’s Chief Investment Officer.
-
-### Bearhouse Capital
-
-Bearhouse Capital is an investment firm owned by the developer of NovusEdge. NovusEdge is developed to streamline and optimize Bearhouse Capital's management. The software is currently in development (Version V0.2.2), with several features being tested and refined.
-
-<img src="img\image.png" alt="Project Logo" width="200"/>
+The system integrates robustly with a database to store transaction records, portfolio details, and firm financial information. Additionally, it leverages external stock data sources to provide live updates on stock prices and dividends. The long-term vision for NovusEdge includes enhancing the system with advanced machine learning and AI capabilities to simulate, monitor, and provide insightful feedback on the portfolios managed by Bearhouse Capital’s Chief Investment Officer (Hey that's me!).
 
 ### Branch Version
 
