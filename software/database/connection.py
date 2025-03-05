@@ -1,56 +1,139 @@
 """Database connection management module."""
 from typing import Tuple
 from psycopg2 import pool, OperationalError, DatabaseError, InterfaceError
-import subprocess
-import time
 import psycopg2 as psy
+import subprocess
+import socket
+import struct
+import time
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
-class DatabaseConnection:
+class DatabaseServer:
+    """
+    A class to manage PostgreSQL server operations.
+    """
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 pg_exe: str) -> None:
+        
+        self.port = port
+        self.host = host
+        self.pg_exe = pg_exe
+
+    def start(self) -> None:
+        """ 
+        Start the PostgreSQL server.
+        """
+        if not self.status():
+            try:  
+                subprocess.run(['pg_ctl', 'start', '-D', self.pg_exe], check=True, timeout=30)
+                logger.info("PostgreSQL server started successfully")
+            
+            except subprocess.CalledProcessError as e:
+                error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+                if "another server might be running" in error_msg:
+                    logger.warning("Cannot start PostgreSQL server: another server is running")
+                    return
+                else:
+                    logger.error(f"Failed to start PostgreSQL server: {error_msg}", exc_info=True)
+                    return
+
+    def status(self, host: str = None, port: int = None) -> bool:
+        """
+        Check if PostgreSQL server is running by attempting a connection.
+
+        Args:
+            host (str, optional): The host to check.
+            port (int, optional): The port to check.
+
+        Returns:
+            bool: True if the server is running, False otherwise.
+        """
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(5)
+            s.connect((str(self.host), int(self.port)))
+            s.sendall(struct.pack('!i', 8))
+            s.sendall(struct.pack('!i', 80877103))
+            response = s.recv(1)
+            s.close()
+            if response in (b'S', b'N'):
+                logger.info(f"PostgreSQL server is running on {self.host}:{self.port}")
+                return True
+            return False
+        except socket.error as e:
+            logger.warning(f"PostgreSQL server is not running on {self.host}:{self.port}: {e}")
+            return False
+
+    def stop(self) -> bool:
+        """Stop the PostgreSQL server."""
+        try:
+            subprocess.run(['pg_ctl', 'stop', '-D', self.pg_exe], check=True, timeout=30)
+            logger.info("PostgreSQL server stopped successfully")
+            return True
+        
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+            logger.error(f"Failed to stop PostgreSQL server: {error_msg}", exc_info=True)
+            return False
+
+        except Exception as e:
+            logger.error(f"Unexpected error stopping PostgreSQL server: {e}", exc_info=True)
+            return False
+        
+    def restart(self) -> bool:
+            """Restart the PostgreSQL server."""
+            if self.stop():
+                self.start()
+                return True
+            else:
+                return False
+    
+class DatabaseConnection(DatabaseServer):
     """
     A class to manage connections to a PostgreSQL database.
     """
     
     def __init__(self,
-                 db: str,
-                 user: str,
+                 dbname: str,
+                 username: str,
                  password: str,
                  host: str,
                  port: int,
-                 pg_exe: str,
                  max_retries: int = 3,
                  initial_retry_delay: int = 5,
                  min_conn: int = 1,
                  max_conn: int = 10,
                  max_pool_size: int = 20
                 ):
-        self.db = db
-        self.user = user
+        self.dbname = dbname
+        self.username = username
         self.password = password
         self.host = host
         self.port = port
-        self.pg_exe = pg_exe
+
         self.max_retries = max_retries
         self.initial_retry_delay = initial_retry_delay
+
         self.min_conn = min_conn
         self.max_conn = max_conn
         self.max_pool_size = max_pool_size
 
-        logger.debug(f"Initializing DatabaseConnection: db={db}, host={host}, port={port}")
+        logger.debug(f"Initializing DatabaseConnection: db={self.dbname}, host={self.host}, port={self.port}")
 
         try:
             self.pool = pool.ThreadedConnectionPool(
                 min_conn, max_conn,
-                dbname=self.db,
-                user=self.user,
+                dbname=self.dbname,
+                user=self.username,
                 password=self.password,
                 host=self.host,
                 port=self.port
-            )
-            logger.debug(f"Connection pool created successfully for DB: {self.db} with {max_conn} max connections")
+            ) 
+            logger.debug(f"Connection pool created successfully for DB: {self.dbname} with {max_conn} max connections")
 
         except OperationalError as e:
             logger.error(f"Operational error creating connection pool: {e}", exc_info=True)
@@ -64,15 +147,15 @@ class DatabaseConnection:
         """
         Acquire a connection and cursor from the pool with retry logic.
         """
-        if not self._check_server_status():
-            self.start_server()
+        if not super().status():
+            self.start()
             time.sleep(5)
         return self._retry(self._acquire_connection)
     
     def _acquire_connection(self):
         connection = self.pool.getconn()
         cursor = connection.cursor()
-        logger.info(f'Connection acquired successfully for DB: {self.db} on {self.host}:{self.port}')
+        logger.info(f'Connection acquired successfully for DB: {self.dbname} on {self.host}:{self.port}')
         return connection, cursor
     
     def _retry(self, func):
@@ -94,49 +177,7 @@ class DatabaseConnection:
                     logger.error(f"Unexpected error acquiring connection: {e}", exc_info=True)
                     raise
             logger.error(f"Failed to acquire connection after {self.max_retries} attempts")
-            raise Exception(f"Failed to acquire connection from the pool after {self.max_retries} attempts")
-    
-    def _check_server_status(self) -> bool:
-        """
-        Check if PostgreSQL server is running by attempting a connection.
-        """
-        try:
-            logger.debug(f"Checking PostgreSQL server status on {self.host}:{self.port}")
-            connection = psy.connect(
-                dbname=self.db,
-                user=self.user,
-                password=self.password,
-                host=self.host,
-                port=self.port,
-                connect_timeout=2
-            )
-            connection.close()
-            logger.debug(f"PostgreSQL server is running on {self.host}:{self.port}")
-            return True
-        except OperationalError as e:
-            logger.warning(f"PostgreSQL server is not running on {self.host}:{self.port}: {e}")
-            return False
-    
-    def start_server(self) -> None:
-        """ 
-        Start the PostgreSQL server.
-        """
-        if not self._check_server_status():
-            try:
-                logger.info(f"Attempting to start PostgreSQL server at {self.pg_exe}")
-                env = os.environ.copy()
-                env['DB_PASS'] = self.password
-                
-                subprocess.run(['pg_ctl', 'start', '-D', self.pg_exe], check=True, timeout=30)
-                logger.info("PostgreSQL server started successfully")
-            
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Failed to start PostgreSQL server: {e}", exc_info=True)
-                raise RuntimeError("Error starting PostgreSQL server")
-            
-            except subprocess.TimeoutExpired:
-                logger.error(f"Timeout while starting PostgreSQL server at {self.pg_exe}")
-                raise RuntimeError("Timeout while starting PostgreSQL server")
+            quit(1)
     
     def close(self, connection: psy.extensions.connection, cursor: psy.extensions.cursor) -> None:
         """
@@ -152,7 +193,7 @@ class DatabaseConnection:
                 cursor.close()
             if connection:
                 self.pool.putconn(connection)
-                logger.info(f"Connection returned to pool for DB: {self.db}")
+                logger.info(f"Connection returned to pool")
         
         except DatabaseError as e:
             logger.error(f"Error closing connection: {e}", exc_info=True)
@@ -168,7 +209,7 @@ class DatabaseConnection:
         try:
             logger.debug("Entering database connection context")
             self.connection, self.cursor = self.connect()
-            return self.connection, self.cursor
+            return self
 
         except Exception as e:
             logger.error(f"Error entering database connection context: {e}", exc_info=True)
@@ -207,26 +248,6 @@ class DatabaseConnection:
             self.connection = None
             self.cursor = None
 
-    def stop_server(self) -> None:
-        """Stop the PostgreSQL server."""
-        try:
-            logger.info("Attempting to stop PostgreSQL server")
-            subprocess.run(['pg_ctl', 'stop', '-D', self.pg_exe], check=True, timeout=30)
-            logger.info("PostgreSQL server stopped successfully")
-
-        except subprocess.CalledProcessError as e:
-            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
-            if "Operation not permitted" in error_msg:
-                logger.warning("Cannot stop PostgreSQL server: insufficient permissions")
-                return
-            else:
-                logger.error(f"Failed to stop PostgreSQL server: {error_msg}", exc_info=True)
-                return
-
-        except subprocess.TimeoutExpired:
-            logger.error("Timed out while trying to stop PostgreSQL server")
-            raise RuntimeError("Timed out stopping PostgreSQL server")
-
     def manual_rollback(self, connection: psy.extensions.connection, error_msg: str = None) -> None:
         """
         Manually rollback a transaction on the provided connection.
@@ -250,7 +271,7 @@ class DatabaseConnection:
             logger.debug("Extending connection from pool")
             connection = self.pool.getconn()
             cursor = connection.cursor()
-            logger.info(f"Connection extended successfully for DB: {self.db} on {self.host}:{self.port}")
+            logger.info(f"Connection extended successfully for DB: {self.dbname} on {self.host}:{self.port}")
             return connection, cursor
         
         except DatabaseError as e:

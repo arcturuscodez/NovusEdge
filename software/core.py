@@ -1,5 +1,5 @@
 """The main entry point for the NovusEdge application."""
-from database.connection import DatabaseConnection
+from database.connection import DatabaseConnection, DatabaseServer
 from timeit import default_timer as timer
 from options import args
 from dotenv import load_dotenv
@@ -15,41 +15,46 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )        
 
+load_dotenv()
+
+DBNAME = os.getenv('DB_NAME')
+DBUSER = os.getenv('DB_USER')
+DBPASS = os.getenv('DB_PASS')
+DBHOST = os.getenv('DB_HOST')
+DBPORT = os.getenv('DB_PORT')
+PG_EXE = os.getenv('PG_EXE')
+
 class NovusEdge:
     """Main class to handle NovusEdge functionality."""
 
     def __init__(self):
         """Initialize the application.""" 
-        
-        load_dotenv() # Load environment variables from .env file
-        
-        self.db_params = {
-            'db': os.getenv('DB_NAME'),
-            'user': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASS'),
-            'host': os.getenv('DB_HOST'),
-            'port': os.getenv('DB_PORT'),
-            'pg_exe': os.getenv('PG_EXE')
-        }
         self.start_time = timer()
-        
-        self.db = DatabaseConnection(**self.db_params) # Initialize database connection
+
+        self.server = DatabaseServer(DBHOST, DBPORT, PG_EXE)
 
     def _handle_server(self):
         """Handle server commands."""
         try:
             if args.action == 'start':
-                self.db.start_server()
+                self.server.start()
             elif args.action == 'stop':
                 self._skip_daily_update = True
                 try:
-                    self.db.stop_server()
+                    self.server.stop()
                 except RuntimeError as e:
                     logger.warning(str(e))
                     return
             elif args.action == 'status':
-                status = self.db._check_server_status()
+                status = self.server.status()
                 logger.info(f"PostgreSQL server status: {'Running' if status else 'Not running'}")
+            elif args.action == 'restart':
+                self._skip_daily_update = True
+                try:
+                    self.server.restart()
+                except RuntimeError as e:
+                    logger.warning(str(e))
+                    return
             else:
                 logger.error(f"Unsupported server action: {args.action}")
                 return
@@ -180,7 +185,9 @@ class NovusEdge:
             elif args.command in ['server']:
                 self._handle_server()
             else:
-                with self.db:
+                with DatabaseConnection(
+                    DBNAME, DBUSER, DBPASS, DBHOST, DBPORT
+                ) as self.db:
                     if args.command == 'create':
                         self._handle_create()
                     elif args.command == 'read':
