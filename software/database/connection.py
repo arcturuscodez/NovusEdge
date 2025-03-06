@@ -90,6 +90,7 @@ class DatabaseServer:
                 self.start()
                 return True
             else:
+                logger.warning(f'Failed to restart PostgreSQL server.')
                 return False
     
 class DatabaseConnection(DatabaseServer):
