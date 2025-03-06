@@ -6,7 +6,8 @@ def project_portfolio_growth(tax_calculator: FinnishCorporateTaxCalculator,
                              dividend_yield: Decimal,
                              foreign_withholding_rate: Decimal,
                              years: int,
-                             dividend_growth_rate: Decimal = Decimal('0')) -> list[dict]:
+                             dividend_growth_rate: Decimal = Decimal('0'),
+                             asset_growth_rate: Decimal = Decimal('0')) -> list[dict]:
     """ 
     Project portfolio value and taxes over multiple years with reinvestment of after-tax dividends.
     
@@ -17,6 +18,7 @@ def project_portfolio_growth(tax_calculator: FinnishCorporateTaxCalculator,
         foreign_withholding_rate: Foreign withholding tax rate on dividends. (e.g., 0.15 for 15%)
         years: Number of years to project.
         dividend_growth_rate: Annual dividend growth rate as a decimal. (e.g., 0.02 for 2%)
+        asset_growth_rate: Annual asset growth rate as a decimal. (e.g., 0.07 for 7%)
         
     Returns:
         List of dictionaries with yearly results.
@@ -25,6 +27,7 @@ def project_portfolio_growth(tax_calculator: FinnishCorporateTaxCalculator,
         - dividend_income: Dividend income in euros.
         - finnish_tax: Finnish corporate tax in euros.
         - total_tax: Total tax in euros (Finnish + foreign) for the year.
+        - after_tax_cash: After-tax cash in euros.
     """
     results = []
     portfolio_value = initial_value
@@ -59,6 +62,7 @@ def project_portfolio_growth(tax_calculator: FinnishCorporateTaxCalculator,
         finnish_tax, total_tax, after_tax_cash = tax_calculator.calculate_finnish_tax(income)
         
         portfolio_value += after_tax_cash
+        portfolio_value *= (1 + asset_growth_rate)  # Apply asset growth rate
         
         results.append({
             "year": year,

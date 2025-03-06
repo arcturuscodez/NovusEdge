@@ -14,11 +14,15 @@ class DatabaseServer:
     """
     A class to manage PostgreSQL server operations.
     """
-    def __init__(self,
-                 host: str,
-                 port: int,
-                 pg_exe: str) -> None:
-        
+    def __init__(self, host: str, port: int, pg_exe: str) -> None:
+        """
+        Initialize the database server object.
+
+        Args:
+            host (str): The host of the PostgreSQL server.
+            port (int): The port of the PostgreSQL server.
+            pg_exe (str): The path to the PostgreSQL executable.
+        """
         self.port = port
         self.host = host
         self.pg_exe = pg_exe
@@ -53,20 +57,16 @@ class DatabaseServer:
             bool: True if the server is running, False otherwise.
         """
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(5)
-            s.connect((str(self.host), int(self.port)))
-            s.sendall(struct.pack('!i', 8))
-            s.sendall(struct.pack('!i', 80877103))
-            response = s.recv(1)
-            s.close()
-            if response in (b'S', b'N'):
-                logger.info(f"PostgreSQL server is running on {self.host}:{self.port}")
-                return True
-            return False
+            with socket.create_connection((str(self.host), int(self.port)), timeout=5) as s:
+                s.sendall(struct.pack('!i', 8))
+                s.sendall(struct.pack('!i', 80877103))
+                response = s.recv(1)
+                if response in (b'S', b'N'):
+                    logger.info(f'PostgreSQL server is running on {self.host}:{self.port}')
+                    return True
         except socket.error as e:
-            logger.warning(f"PostgreSQL server is not running on {self.host}:{self.port}: {e}")
-            return False
+            logger.warning(f'PostgreSQL server is not running on {self.host}:{self.port}: {e}')
+        return False
 
     def stop(self) -> bool:
         """Stop the PostgreSQL server."""
@@ -97,18 +97,24 @@ class DatabaseConnection(DatabaseServer):
     A class to manage connections to a PostgreSQL database.
     """
     
-    def __init__(self,
-                 dbname: str,
-                 username: str,
-                 password: str,
-                 host: str,
-                 port: int,
-                 max_retries: int = 3,
-                 initial_retry_delay: int = 5,
-                 min_conn: int = 1,
-                 max_conn: int = 10,
-                 max_pool_size: int = 20
-                ):
+    def __init__(self, dbname: str, username: str, password: str, host: str, port: int,
+                 max_retries: int = 3, initial_retry_delay: int = 5,
+                 min_conn: int = 1, max_conn: int = 10, max_pool_size: int = 20) -> None:
+        """
+        Initialize the database connection.
+
+        Args:
+            dbname (str): The name of the database to connect to.
+            username (str): The username to use for authentication.
+            password (str): The password to use for authentication.
+            host (str): The host address of the PostgreSQL server.
+            port (int): The port number on which the PostgreSQL server is listening.
+            max_retries (int, optional): The maximum number of retry attempts for acquiring a connection. Defaults to 3.
+            initial_retry_delay (int, optional): The initial delay (in seconds) between retry attempts. Defaults to 5.
+            min_conn (int, optional): The minimum number of connections to maintain in the pool. Defaults to 1.
+            max_conn (int, optional): The maximum number of connections to maintain in the pool. Defaults to 10.
+            max_pool_size (int, optional): The maximum size of the connection pool. Defaults to 20.
+        """
         self.dbname = dbname
         self.username = username
         self.password = password

@@ -117,14 +117,14 @@ class AssetRetriever:
             return None
         
         try:
-            logger.info(f'Fetching latest closing price for {self.ticker}')
+            logger.debug(f'Fetching latest closing price for {self.ticker}')
             ticker_data = yf.Ticker(self.ticker)
             hist = ticker_data.history(period='1d')
             if hist.empty:
                 logger.warning(f'No recent data available for {self.ticker}')
                 return None
             latest_close = hist['Close'].iloc[-1]
-            logger.info(f'Latest closing price for {self.ticker}: {latest_close}')
+            logger.debug(f'Latest closing price for {self.ticker}: {latest_close}')
             return latest_close
         
         except Exception as e:
@@ -141,7 +141,7 @@ class AssetRetriever:
         if not self.validate_ticker():
             return None
         try:
-            logger.info(f'Fetching dividend yield for {self.ticker}')
+            logger.debug(f'Fetching dividend yield for {self.ticker}')
             ticker_data = yf.Ticker(self.ticker)
             
             dividends = ticker_data.dividends
@@ -151,7 +151,7 @@ class AssetRetriever:
             info = ticker_data.info
             if 'dividendYield' in info:
                 yield_value = info['dividendYield']
-                logger.info(f'Dividend yield for {self.ticker}: {yield_value}')
+                logger.debug(f'Dividend yield for {self.ticker}: {yield_value}')
                 decimal_yield = Decimal(str(yield_value)) / Decimal('100') # Convert from percentage to decimal (e.g., 3% to 0.03)
                 return decimal_yield # Return as a decimal value not a percentage value (e.g., 0.03)
             else:
@@ -161,6 +161,26 @@ class AssetRetriever:
         except Exception as e:
             logger.error(f'Failed to retrieve dividend yield for {self.ticker}: {e}')
             return None
+        
+    def custom_dividend_yield(self, div_yield: Decimal) -> Optional[Decimal]:
+        """
+        Calculate a custom dividend yield based on a user-provided value.
+
+        Args:
+            div_yield (Decimal): The custom dividend yield to use.
+
+        Returns:
+            Optional[Decimal]: The custom dividend yield as a decimal, or None if invalid.
+        """
+        if not isinstance(div_yield, Decimal):
+            logger.error('Invalid dividend yield provided, must be a Decimal')
+            return None
+        
+        if div_yield < Decimal('0'):
+            logger.error('Invalid dividend yield provided, must be a positive value')
+            return None
+        
+        return div_yield
         
     def get_additional_info(self) -> Optional[dict]:
         """

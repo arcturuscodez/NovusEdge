@@ -6,22 +6,31 @@ import pandas as pd
 
 def test_portfolio() -> None:
     """Test portfolio growth projection."""
-    tickers = ['O', 'KO', 'BA.L']
+    tickers = ['HDLV.PA', 'VGWD.DE']
+
+    custom_yields = {
+        'HDLV.PA': Decimal('0.0336'),  # Custom yield for HDLV.PA
+        'VGWD.DE': Decimal('0.0295')  # Custom yield for VGWD.DE
+    }
+
     retrievers = {ticker: AssetRetriever(ticker) for ticker in tickers}
     
     portfolio_data = {}
     total_value = Decimal('0')
-    
+    shares = 50
+
     for ticker, retriever in retrievers.items():
         price = Decimal(str(retriever.get_latest_closing_price() or 0))
-        div_yield = retriever.get_dividend_yield() or Decimal('0')
+        div_yield = retriever.get_dividend_yield()
+        if div_yield is None or div_yield == Decimal('0'):
+            div_yield = custom_yields.get(ticker, Decimal('0'))  # Use custom yield if retrieval fails
         
         portfolio_data[ticker] = {
             'price': price,
             'div_yield': div_yield
         }
         
-        total_value += price * 100
+        total_value += price * Decimal(shares)
 
     avg_div_yield = sum(d['div_yield'] for d in portfolio_data.values()) / Decimal(str(len(portfolio_data)))
     
@@ -31,17 +40,18 @@ def test_portfolio() -> None:
         dividend_yield=avg_div_yield,
         foreign_withholding_rate=Decimal('0.15'),
         years=10,
-        dividend_growth_rate=Decimal('0.02')
+        dividend_growth_rate=Decimal('0.02'),
+        asset_growth_rate=Decimal('0.03')
     )
     
     rounded_results = [
         {
             'year': r['year'],
-            'portfolio_value': float(r['portfolio_value'].quantize(Decimal('0.01'))),
-            'dividend_income': float(r['dividend_income'].quantize(Decimal('0.01'))),
-            'finnish_tax': float(r['finnish_tax'].quantize(Decimal('0.01'))),
-            'total_tax': float(r['total_tax'].quantize(Decimal('0.01'))),
-            'after_tax_cash': float(r['after_tax_cash'].quantize(Decimal('0.01')))
+            'portfolio_value': float(Decimal(r['portfolio_value']).quantize(Decimal('0.01'))),
+            'dividend_income': float(Decimal(r['dividend_income']).quantize(Decimal('0.01'))),
+            'finnish_tax': float(Decimal(r['finnish_tax']).quantize(Decimal('0.01'))),
+            'total_tax': float(Decimal(r['total_tax']).quantize(Decimal('0.01'))),
+            'after_tax_cash': float(Decimal(r['after_tax_cash']).quantize(Decimal('0.01')))
         }
         for r in results
     ]
