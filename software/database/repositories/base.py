@@ -265,6 +265,7 @@ class BaseRepository:
 
         This method allows working with any database table without
         requiring a dedicated repository class.
+        Additionally allows the manipulation of any and all existing tables.
 
         Args:
             db (DatabaseConnection): Database connection object

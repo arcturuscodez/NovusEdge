@@ -53,7 +53,37 @@ def handle_update_entity_by_id(db: DatabaseConnection, table_name: str, entity_i
         return False
     
 def handle_update_shareholder(db: DatabaseConnection, shareholder_id: int, **data) -> bool:
-    """TODO: Implement a redesigned function."""
+    """
+    Handle special cases for updating shareholder entities.
+
+    Args:
+        db (DatabaseConnection): The database connection object.
+        shareholder_id (int): The ID of the shareholder to update.
+        **data: Keyword arguments containing the fields to update.
+
+    Returns:
+        bool: True if the shareholder was updated successfully, False otherwise.
+    """
+    try:
+        logger.debug(f'Updating shareholder with ID {shareholder_id}: {data}')
+
+        if 'email' in data and not is_valid_email(data['email']):
+            logger.error(f"Invalid email address: {data['email']}")
+            return False
+        
+        repository = ShareholderRepository(db)
+        success = repository.update(shareholder_id, **data)
+        if success:
+            logger.info(f"Successfully updated shareholder with ID {shareholder_id} with data: {data}")
+            return True
+        else:
+            logger.warning(f"Failed to update shareholder with ID {shareholder_id}")
+            return False
+    
+    except Exception as e:
+        logger.error(f"Error updating shareholder: {e}", exc_info=True)
+        return False
+
     
 def handle_update_transaction(db: DatabaseConnection, transaction_id: int, **data) -> bool:
     """TODO: Implement a redesigned function."""
