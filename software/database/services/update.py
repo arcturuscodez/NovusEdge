@@ -1,7 +1,7 @@
 """Service module for handling the updating of an entities fields."""
 from datetime import datetime
 from utility import is_valid_email
-from database.repositories.base import GenericRepository
+from database.repositories.base import BaseRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
@@ -33,12 +33,12 @@ def handle_update_entity_by_id(db: DatabaseConnection, table_name: str, entity_i
                 logger.error(f'Field {key} cannot be empty.')
                 return False
 
-        if table_name.lower() == 'shareholders' and any(field in ['investment'] for field in data):
+        if table_name.lower() == 'shareholders' and any(field in ['name', 'investment', 'email'] for field in data):
             return handle_update_shareholder(db, entity_id, **data)
         elif table_name.lower() == 'transactions' and any(field in ['shares', 'price_per_share', 'transaction_type'] for field in data):
             return handle_update_transaction(db, entity_id, **data)
 
-        repository = GenericRepository(db, table_name)
+        repository = BaseRepository.for_table(db, table_name)
         success = repository.update(entity_id, **data)
         
         if success:
@@ -136,7 +136,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             logger.debug("No assets found in portfolio to update")
             return
 
-        logger.info(f"Updating {len(assets)} portfolio assets with latest data")
+        logger.debug(f"Updating {len(assets)} portfolio assets with latest data")
         for asset in assets:
             logger.debug(f"Retrieving data for ticker {asset.ticker}")
             retriever = AssetRetriever(ticker=asset.ticker)
@@ -144,7 +144,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             latest_price = retriever.get_latest_closing_price()
             if latest_price is not None:
                 portfolio_repo.update(asset.id, CURRENT_PRICE=latest_price)
-                logger.info(f"Updated {asset.ticker} with latest closing price: {latest_price}")
+                logger.debug(f"Updated {asset.ticker} with latest closing price: {latest_price}")
             else:
                 logger.warning(f"Could not retrieve latest closing price for {asset.ticker}")
 
@@ -152,7 +152,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             if dividend_yield is not None:
                 dividend_yield_percentage = dividend_yield * 100 # Convert to percentage for storage (e.g., 0.03 to 3%) NOT as a decimal (0.03)
                 portfolio_repo.update(asset.id, DIVIDEND_YIELD=dividend_yield_percentage)
-                logger.info(f"Updated {asset.ticker} with dividend yield: {dividend_yield_percentage:.2f}%")
+                logger.debug(f"Updated {asset.ticker} with dividend yield: {dividend_yield_percentage:.2f}%")
             else:
                 logger.warning(f"Could not retrieve dividend yield for {asset.ticker}")
             
@@ -166,7 +166,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
             db.cursor.execute('INSERT INTO task_metadata (task_name, last_run) VALUES (%s, %s)', (task_name, now))
 
         db.connection.commit()
-        logger.info("Portfolio updated successfully with latest daily data")
+        logger.info("Portfolio update completed successfully")
 
     except Exception as e:
         logger.error(f"Portfolio update failed: {e}", exc_info=True)

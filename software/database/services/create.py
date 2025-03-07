@@ -1,52 +1,43 @@
 """Service module for handling the creation of entities to the database."""
 from utility import is_valid_email
-from database.repositories.base import GenericRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
-
 from database.connection import DatabaseConnection
-
 from decimal import Decimal, InvalidOperation
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def handle_create_entity(db: DatabaseConnection, table: str, **data):
+def handle_create_entity(db: DatabaseConnection, entity_type: str, **kwargs):
     """
-    Handle the creation of a generic entity in a specified table.
+    Handle the creation of a new entity in the database.
 
     Args:
-        db (DatabaseConnection): The database connection object.
-        table (str): The name of the table to create the entity in.
-        **data: Keyword arguments representing the entity’s key-value pairs.
-
+        db (DatabaseConnection): The database connection
+        entity_type (str): The type of entity to create
+        **kwargs: The attributes of the entity to create
+    
     Returns:
-        None: Creates the entity and logs the outcome.
+        None: Creates the entity and logs the outcome
     """
-    try:
-        if not table:
-            logger.warning("Table name not provided for entity creation")
-            return
+    handlers = {
+        'shareholder': handle_create_shareholder,
+        'transaction': handle_create_transaction,
+        'firm': handle_create_firm,
+        'expense': handle_create_expense,
+        'revenue': handle_create_revenue,
+        'liability': handle_create_liability
+    }
 
-        if not data:
-            logger.warning("No data provided for entity creation")
-            return
-
-        logger.debug(f"Creating entity in table '{table}' with data: {data}")
-        repository = GenericRepository(db, table)
-        entity_id = repository.create(data)
-
-        if entity_id:
-            logger.info(f"Entity created in table '{table}' with ID: {entity_id}")
-        else:
-            logger.warning(f"Failed to create entity in table '{table}'")
-
-    except Exception as e:
-        logger.error(f"Error creating entity in table '{table}': {e}", exc_info=True)
-        raise
+    handler = handlers.get(entity_type)
+    if not handler:
+        logger.error(f"Unsupported entity type: {entity_type}")
+        return
+    
+    handler(db, **kwargs)
 
 def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str, investment: str, email: str):
     """
@@ -129,7 +120,8 @@ def handle_create_shareholder(db: DatabaseConnection, name: str, ownership: str,
         raise
 
 def handle_create_transaction(db: DatabaseConnection, ticker: str, shares: str,
-                               price_per_share: str, transaction_type: str, transaction_fees: str = None, notes: str = None):
+                            price_per_share: str, transaction_type: str,
+                            transaction_fees: str = None, notes: str = None):
     """
     Handle the creation of a transaction and updates the portfolio/firm accordingly.
 

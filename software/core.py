@@ -2,10 +2,9 @@
 from database.connection import DatabaseConnection, DatabaseServer
 from timeit import default_timer as timer
 from options import args
-from dotenv import load_dotenv
-import os
 import asyncio
 import logging
+import globals
 
 logger = logging.getLogger(__name__)
 
@@ -13,16 +12,7 @@ logging.basicConfig(
     level=logging.DEBUG if args.debug else logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
-)        
-
-load_dotenv()
-
-DBNAME = os.getenv('DB_NAME')
-DBUSER = os.getenv('DB_USER')
-DBPASS = os.getenv('DB_PASS')
-DBHOST = os.getenv('DB_HOST')
-DBPORT = os.getenv('DB_PORT')
-PG_EXE = os.getenv('PG_EXE')
+)
 
 class NovusEdge:
     """Main class to handle NovusEdge functionality."""
@@ -30,8 +20,7 @@ class NovusEdge:
     def __init__(self):
         """Initialize the application.""" 
         self.start_time = timer()
-
-        self.server = DatabaseServer(DBHOST, DBPORT, PG_EXE)
+        self.server = DatabaseServer(globals.DBHOST, globals.DBPORT, globals.PG_EXE)
 
     def _handle_server(self):
         """Handle server commands."""
@@ -63,24 +52,13 @@ class NovusEdge:
             logger.error(f"An unexpected error occurred: {e}")
             raise
 
-    # Command Handlers
     def _handle_create(self):
         """ 
         Handle the create command to add a new entity to the database.
         """
-        from database.services.create import (
-            handle_create_shareholder, handle_create_transaction, handle_create_firm,
-            handle_create_expense, handle_create_revenue, handle_create_liability
-        )
-        handlers = {
-            'shareholder': handle_create_shareholder,
-            'transaction': handle_create_transaction,
-            'firm': handle_create_firm,
-            'expense': handle_create_expense,
-            'revenue': handle_create_revenue,
-            'liability': handle_create_liability
-        }
-        self._execute_handler(handlers, args.type)
+        from database.services.create import handle_create_entity
+        entity_args = self._filter_global_args(vars(args))
+        handle_create_entity(self.db, args.type, **entity_args)
 
     def _handle_read(self):
         """
@@ -120,13 +98,8 @@ class NovusEdge:
         Handle the search command to find tickers.
         """
         from icarus.retriever import AssetRetriever
-        
-        query = args.query
-        limit = args.limit
-        
         retriever = AssetRetriever("TEMP")
-        
-        retriever.search_similar_tickers(query, limit)
+        retriever.search_similar_tickers(str(args.query), int(args.limit))
 
     def _filter_global_args(self, args_dict):
         """
@@ -143,36 +116,6 @@ class NovusEdge:
         for arg in global_args:
             filtered_args.pop(arg, None)
         return filtered_args
-    
-    def _execute_handler(self, handlers_dict, entity_type, with_id=False):
-        """
-        Execute the appropriate handler function for an entity type.
-
-        Args:
-            handlers_dict: Dictionary mapping entity types to handler functions
-            entity_type: Type of entity to handle
-            with_id: Whether handler requires an ID parameter
-
-        Returns:
-            success: Whether handler executed successfully
-        """
-        handler = handlers_dict.get(entity_type)
-        if not handler:
-            logger.error(f"Unsupported entity type: {entity_type}")
-            return False
-
-        entity_args = self._filter_global_args(vars(args))
-
-        try:
-            if with_id:
-                entity_id = entity_args.pop('id', None)
-                handler(self.db, entity_id, **entity_args)
-            else:
-                handler(self.db, **entity_args)
-            return True
-        except Exception as e:
-            logger.error(f"Error handling {entity_type}: {e}")
-            return False
         
     def run(self):
         """
@@ -186,7 +129,9 @@ class NovusEdge:
                 self._handle_server()
             else:
                 with DatabaseConnection(
-                    DBNAME, DBUSER, DBPASS, DBHOST, DBPORT
+                    globals.DBNAME, globals.DBUSER, 
+                    globals.DBPASS, globals.DBHOST, 
+                    globals.DBPORT
                 ) as self.db:
                     if args.command == 'create':
                         self._handle_create()

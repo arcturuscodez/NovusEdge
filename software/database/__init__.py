@@ -2,11 +2,12 @@
 The database package provides modules for managing database connections,
 repositories, and models related to shareholders and other entities.
 """
-from .connection import DatabaseConnection
+from .connection import DatabaseServer, DatabaseConnection
 
 from .models import (
     BaseModel, GenericModel, ShareholderModel, 
-    TransactionModel, PortfolioModel, FirmModel, TaskModel
+    TransactionModel, PortfolioModel, FirmModel, 
+    TaskModel
 )
 
 from .repositories.shareholder import ShareholderRepository
@@ -20,6 +21,7 @@ __author__ = "Sonny Holman"
 
 __all__ = [
     'DatabaseConnection',
+    'DatabaseServer',
     'BaseModel',
     'GenericModel',
     'ShareholderModel',

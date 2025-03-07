@@ -1,7 +1,6 @@
 """Service module for handling miscellaneous operations such as printing table data."""
 from utility import format_table_data, format_entity_data
-from database.repositories.factory import get_repository
-
+from database.repositories.base import BaseRepository
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ def handle_print_table(db, table_name):
         table_name = table_name.upper()
         logger.debug(f'Attempting to print table: {table_name}')
         
-        repository = get_repository(table_name, db)
+        repository = BaseRepository.get_for_table(db, table_name)
         if not repository:
             logger.error(f'Unknown table name: {table_name} or table repository not found.')
             return
@@ -56,7 +55,7 @@ def handle_get_by_id(db, table_name: str, entity_id: int):
         Optional[BaseModel]: The entity object if found, None otherwise
     """
     try:
-        repository = get_repository(table_name, db)
+        repository = BaseRepository.get_for_table(db, table_name)
         format_entity_data(repository.get_entity(id=entity_id))
     except Exception as e:
         logger.error(f'An unexpected error occurred retrieving by ID: {e}')
@@ -76,7 +75,7 @@ def handle_get_filtered(db, table_name: str, filters: dict, limit: int = None):
         List[BaseModel]: List of entity objects matching the filters
     """
     try:
-        repository = get_repository(table_name, db)
+        repository = BaseRepository.get_for_table(db, table_name)
         return repository.get_all(filters=filters, limit=limit)
     except Exception as e:
         logger.error(f'An unexpected error occurred retrieving by filters: {e}')

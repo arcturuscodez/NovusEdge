@@ -1,7 +1,6 @@
 """Service module for handling the deletion of an entity from a table."""
 from psycopg2.errors import UndefinedTable
-from database.repositories.factory import RepositoryNotFoundError
-from database.repositories.base import GenericRepository
+from database.repositories.base import BaseRepository
 from database.repositories.shareholder import ShareholderRepository
 from database.repositories.transaction import TransactionRepository
 from database.repositories.firm import FirmRepository
@@ -44,7 +43,7 @@ def handle_delete_by_id(db: DatabaseConnection, table: str, entity_id: int) -> b
             return handle_delete_shareholder_v2(db, entity_id)
         
         logger.debug(f"Attempting to delete entity ID {entity_id} from table '{table}'")
-        repository = GenericRepository(db, table)
+        repository = BaseRepository.for_table(db, table)
         result = repository.delete(entity_id)
 
         if result:
@@ -54,9 +53,6 @@ def handle_delete_by_id(db: DatabaseConnection, table: str, entity_id: int) -> b
             logger.warning(f"Failed to delete entity with ID {entity_id} from table '{table}' - entity may not exist")
             return False
 
-    except RepositoryNotFoundError as e:
-        logger.error(f"Repository not found for table '{table}': {e}")
-        return False
     except UndefinedTable as e:
         logger.error(f"Table '{table}' not found: {e}")
         return False
