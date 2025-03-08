@@ -1,8 +1,17 @@
-from finance import FinnishCorporateTaxCalculator
-from retriever import AssetRetriever
-from analysis import project_portfolio_growth
+import sys
+from pathlib import Path
+
+# Add parent directory to path BEFORE other imports
+sys.path.append(str(Path(__file__).parent.parent))
+from analysis.finance import FinnishCorporateTaxCalculator
+from analysis.oracle import Oracle
+from analysis.forecasting import project_portfolio_growth
 from decimal import Decimal
 import pandas as pd
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent))
 
 def test_portfolio() -> None:
     """Test portfolio growth projection."""
@@ -13,7 +22,7 @@ def test_portfolio() -> None:
         'VGWD.DE': Decimal('0.0295')  # Custom yield for VGWD.DE
     }
 
-    retrievers = {ticker: AssetRetriever(ticker) for ticker in tickers}
+    retrievers = {ticker: Oracle(ticker) for ticker in tickers}
     
     portfolio_data = {}
     total_value = Decimal('0')

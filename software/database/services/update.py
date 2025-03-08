@@ -7,7 +7,7 @@ from database.repositories.transaction import TransactionRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.repositories.firm import FirmRepository
 from database.connection import DatabaseConnection
-from icarus.retriever import AssetRetriever
+from icarus.analysis.oracle import Oracle
 
 import logging
 
@@ -169,7 +169,7 @@ def handle_daily_update(db: DatabaseConnection, force_update: bool = False):
         logger.debug(f"Updating {len(assets)} portfolio assets with latest data")
         for asset in assets:
             logger.debug(f"Retrieving data for ticker {asset.ticker}")
-            retriever = AssetRetriever(ticker=asset.ticker)
+            retriever = Oracle(ticker=asset.ticker)
             
             latest_price = retriever.get_latest_closing_price()
             if latest_price is not None:

@@ -97,9 +97,8 @@ class NovusEdge:
         """
         Handle the search command to find tickers.
         """
-        from icarus.retriever import AssetRetriever
-        retriever = AssetRetriever("TEMP")
-        retriever.search_similar_tickers(str(args.query), int(args.limit))
+        from icarus.scripts import search_tickers
+        search_tickers.search_similar_tickers(str(args.query), int(args.limit))
 
     def _filter_global_args(self, args_dict):
         """

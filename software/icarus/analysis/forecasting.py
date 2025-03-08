@@ -1,4 +1,4 @@
-from finance import FinnishCorporateTaxCalculator, TaxableIncome
+from analysis.finance import FinnishCorporateTaxCalculator, TaxableIncome
 from decimal import Decimal
 
 def project_portfolio_growth(tax_calculator: FinnishCorporateTaxCalculator,

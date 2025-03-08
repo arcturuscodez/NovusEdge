@@ -7,7 +7,7 @@ from database.repositories.firm import FirmRepository
 from database.repositories.portfolio import PortfolioRepository
 from database.connection import DatabaseConnection
 
-from icarus.finance import BearhouseCapitalFeeCalculator
+from icarus.analysis.finance import BearhouseCapitalFeeCalculator
 
 from decimal import Decimal
 

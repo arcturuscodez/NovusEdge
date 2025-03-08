@@ -171,4 +171,5 @@ cython_debug/
 config/.env
 **/config/*.env
 *.ini
-config/*.ini
+software/icarus/data/raw
+software/icarus/data/processed

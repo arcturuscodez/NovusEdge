@@ -1,9 +1,9 @@
 """Finance module for Icarus. Includes various financial functions and classes for overall firm operations."""
-from dataclasses import dataclass 
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import Tuple
+from dataclasses import dataclass
 
-@dataclass 
+@dataclass
 class TaxableIncome:
     capital_gains: Decimal # Taxable capital gains (after exemptions)
     dividend_income_domestic: Decimal # Taxable domestic dividends
