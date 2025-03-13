@@ -62,10 +62,10 @@ class DatabaseServer:
                 s.sendall(struct.pack('!i', 80877103))
                 response = s.recv(1)
                 if response in (b'S', b'N'):
-                    logger.info(f'PostgreSQL server is running on {self.host}:{self.port}')
+                    logger.debug(f'PostgreSQL server is running on {self.host}:{self.port}')
                     return True
         except socket.error as e:
-            logger.warning(f'PostgreSQL server is not running on {self.host}:{self.port}: {e}')
+            logger.debug(f'PostgreSQL server is not running on {self.host}:{self.port}: {e}')
         return False
 
     def stop(self) -> bool:
