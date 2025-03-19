@@ -57,7 +57,7 @@ class Oracle:
             return False
         
         return True 
-        
+    
     def get_asset_data(self, start_date: str, end_date: str) -> pd.DataFrame:
         """ 
         Retrieve asset data for a given date range.

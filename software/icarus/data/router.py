@@ -89,6 +89,7 @@ class DataRouter:
         Returns:
             bool: True if successful, False otherwise
         """
+        os.makedirs(os.path.dirname(self.get_processed_path(filename)), exist_ok=True)
         return self._save_data(data, filename, self.processed_dir, format)
     
     def _save_data(self, data, filename, directory, format="auto"):
