@@ -2,6 +2,7 @@ from typing import Optional
 from decimal import Decimal
 from datetime import datetime, timedelta
 import pytz
+import threading
 import time
 import pandas as pd
 import yfinance as yf
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 class Oracle:
     """Oracle class for fetching asset data."""
+    _cache = {}
+    _cache_lock = threading.Lock()
 
     def __init__(self, ticker: str, retries: int = 3, delay: int = 5):
         """
@@ -117,6 +120,32 @@ class Oracle:
             logger.error(f'Failed to retrieve latest closing price for {self.ticker}: {e}')
             return None
         
+    def get_sector(self) -> Optional[str]:
+        """
+        Retrieve the sector of the asset
+
+        Returns:
+            Optional[str]: The sector of the asset, or None if retrieval failed.
+        """
+        if not self._validate_ticker():
+            return None
+        
+        try:
+            logger.debug(f'Fetching sector for {self.ticker}')
+            ticker_data = yf.Ticker(self.ticker)
+            info = ticker_data.info
+            if 'sector' in info:
+                sector = info['sector']
+                logger.debug(f'Sector for {self.ticker}: {sector}')
+                return sector
+            else:
+                logger.info(f'No sector information available for {self.ticker}')
+                return None
+            
+        except Exception as e:
+            logger.error(f'Failed to retrieve sector for {self.ticker}: {e}')
+            return None
+        
     def get_dividend_yield(self) -> Optional[Decimal]:
         """
         Retrieve the current annual yield for the asset as a decimal value.
@@ -124,6 +153,11 @@ class Oracle:
         Returns:
             Optional[Decimal]: The dividend yield as a decimal (e.g., 0.03 for 3%), or None if not available.
         """
+        cache_key = f"{self.ticker}_dividend_yield"
+        with self._cache_lock:
+            if cache_key in self._cache:
+                return self._cache[cache_key]
+
         if not self._validate_ticker():
             return None
         try:

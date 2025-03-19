@@ -8,8 +8,6 @@ from analysis.oracle import Oracle
 from analysis.forecasting import project_portfolio_growth
 from decimal import Decimal
 import pandas as pd
-import sys
-from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 

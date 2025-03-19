@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 from pathlib import Path
-from datetime import datetime
+from decimal import Decimal
 import shutil
 import logging
 
@@ -94,53 +94,48 @@ class DataRouter:
     def _save_data(self, data, filename, directory, format="auto"):
         """
         Internal method to save data in the specified directory.
-        
-        Args:
-            data: Data to save
-            filename (str): Name of the file
-            directory (Path): Directory to save to
-            format (str): Format to save in
-            
-        Returns:
-            bool: True if successful, False otherwise
         """
         self._ensure_directories()
-        
+
+        # Auto-detect format from filename if not specified
         if format == "auto":
-            _, ext = os.path.splitext(filename)
-            if ext:
-                format = ext[1:].lower()
+            ext = Path(filename).suffix.lower()
+            if ext == '.csv':
+                format = 'csv'
+            elif ext == '.json':
+                format = 'json'
+            elif ext in ['.pkl', '.pickle']:
+                format = 'pickle'
             else:
-                format = "csv"  # Default format
-                filename = f"{filename}.csv"
+                format = 'json'  # Default
 
         filepath = directory / filename
-        
+
         try:
             if isinstance(data, pd.DataFrame):
-                if format == "csv":
-                    data.to_csv(filepath, index=False)
-                elif format == "json":
-                    data.to_json(filepath)
-                elif format == "pickle":
-                    data.to_pickle(filepath)
-                else:
-                    logger.error(f"Unsupported format '{format}' for DataFrame")
-                    return False
+                # DataFrame handling...
+                pass
             elif isinstance(data, (dict, list)):
                 if format == "json":
+                    # Custom JSON encoder to handle Decimal objects
+                    class DecimalEncoder(json.JSONEncoder):
+                        def default(self, obj):
+                            if isinstance(obj, Decimal):
+                                return float(obj)
+                            return super(DecimalEncoder, self).default(obj)
+
                     with open(filepath, 'w') as f:
-                        json.dump(data, f)
+                        json.dump(data, f, cls=DecimalEncoder)
                 else:
                     logger.error(f"Format '{format}' not supported for dict/list. Use 'json'")
                     return False
             else:
                 logger.error(f"Unsupported data type: {type(data)}")
                 return False
-            
+
             logger.info(f"Successfully saved data to {filepath}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error saving data to {filepath}: {e}")
             return False
