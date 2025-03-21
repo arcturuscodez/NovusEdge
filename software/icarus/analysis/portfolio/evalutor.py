@@ -5,7 +5,7 @@ import logging
 from decimal import Decimal
 from typing import List, Dict
 import pandas as pd
-from generator import PortfolioGenerator, TickerConfig  # Import from generator.py
+from generator import PortfolioGenerator, TickerConfig
 from analysis.forecasting import project_portfolio_growth
 from analysis.finance import FinnishCorporateTaxCalculator
 
@@ -14,9 +14,10 @@ logging.basicConfig(level=logging.INFO)
 
 def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculator: FinnishCorporateTaxCalculator,
                        initial_value: Decimal, years: int, foreign_withholding_rate: Decimal = Decimal('0.15'),
-                       dividend_growth_rate: Decimal = Decimal('0.02'), asset_growth_rate: Decimal = Decimal('0.07')) -> List[Dict]:
+                       dividend_growth_rate: Decimal = Decimal('0.02'), asset_growth_rate: Decimal = None,
+                       use_historical_growth: bool = True, historical_years: int = 10) -> List[Dict]:
     """
-    Generate portfolios and evaluate their projected growth over time using the original forecasting function.
+    Generate portfolios and evaluate their projected growth over time.
 
     Args:
         num_portfolios: Number of portfolios to generate.
@@ -26,16 +27,19 @@ def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculato
         years: Number of years to project.
         foreign_withholding_rate: Foreign withholding tax rate on dividends.
         dividend_growth_rate: Annual dividend growth rate.
-        asset_growth_rate: Annual asset growth rate.
+        asset_growth_rate: Fallback annual asset growth rate if historical data unavailable.
+        use_historical_growth: Whether to use historical growth rates from Oracle.
+        historical_years: Number of years to use for historical growth calculation.
 
     Returns:
-        List of dictionaries, each containing:
-        - portfolio: List of ticker symbols.
-        - projection: List of yearly growth projections from project_portfolio_growth.
-        - final_value: Final portfolio value after 'years'.
-        - annualized_return: Annualized return over the projection period.
+        List of dictionaries with portfolio evaluation results.
     """
-    # Generate portfolios
+
+    if asset_growth_rate is None:
+        asset_growth_rate = Decimal('0.07')
+        
+    from analysis.oracle import Oracle
+    
     generator = PortfolioGenerator()
     try:
         portfolios = generator.generate_portfolios(num_portfolios, config, strategy='performance_optimized')
@@ -43,7 +47,6 @@ def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculato
         logger.error(f"Failed to generate portfolios: {str(e)}")
         return []
 
-    # Get enriched data for metric calculations
     enriched_data = generator.loader.load_enriched_data()
     if enriched_data.empty:
         logger.error("No enriched data available for evaluation")
@@ -51,17 +54,41 @@ def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculato
 
     results = []
     for i, portfolio in enumerate(portfolios):
-        # Calculate average dividend yield for the portfolio
+        logger.info(f"Evaluating portfolio {i+1}: {portfolio}")
+        
         try:
-            avg_dividend_yield = float(enriched_data.loc[portfolio, 'Dividend_Yield'].mean())  # Ensure float
+            avg_dividend_yield = float(enriched_data.loc[portfolio, 'Dividend_Yield'].mean())
             if pd.isna(avg_dividend_yield):
                 logger.warning(f"Portfolio {i} has missing dividend yield data, using default 0.03")
                 avg_dividend_yield = 0.03
         except KeyError:
             logger.warning(f"Portfolio {i} contains tickers not in enriched data, using default 0.03")
             avg_dividend_yield = 0.03
-
-        # Project growth using the original function signature
+        
+        portfolio_growth_rate = asset_growth_rate
+        if use_historical_growth:
+            growth_rates = []
+            valid_rates = 0
+            
+            for ticker in portfolio:
+                try:
+                    oracle = Oracle(ticker)
+                    ticker_growth = oracle.get_growth_rate(years=historical_years)
+                    
+                    if ticker_growth is not None:
+                        growth_rates.append(ticker_growth)
+                        valid_rates += 1
+                        logger.info(f"Historical growth rate for {ticker}: {ticker_growth:.4f}")
+                except Exception as e:
+                    logger.warning(f"Failed to get growth rate for {ticker}: {e}")
+            
+            if valid_rates > 0:
+                avg_growth_rate = sum(growth_rates) / Decimal(str(valid_rates))
+                portfolio_growth_rate = avg_growth_rate
+                logger.info(f"Using average historical growth rate: {portfolio_growth_rate:.4f}")
+            else:
+                logger.warning(f"No valid historical growth rates for portfolio {i}, using fallback rate: {asset_growth_rate}")
+        
         try:
             projection = project_portfolio_growth(
                 tax_calculator=tax_calculator,
@@ -70,7 +97,7 @@ def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculato
                 foreign_withholding_rate=foreign_withholding_rate,
                 years=years,
                 dividend_growth_rate=dividend_growth_rate,
-                asset_growth_rate=asset_growth_rate
+                asset_growth_rate=portfolio_growth_rate
             )
             final_value = projection[-1]['portfolio_value']
             total_return = (final_value - initial_value) / initial_value
@@ -83,10 +110,10 @@ def evaluate_portfolios(num_portfolios: int, config: TickerConfig, tax_calculato
             "portfolio": portfolio,
             "projection": projection,
             "final_value": final_value,
-            "annualized_return": annualized_return
+            "annualized_return": annualized_return,
+            "growth_rate_used": portfolio_growth_rate
         })
 
-    # Sort by annualized return for ranking
     results.sort(key=lambda x: x['annualized_return'], reverse=True)
     return results
 
@@ -106,7 +133,6 @@ def main():
         min_roe=0.10
     )
 
-    # Evaluate portfolios
     results = evaluate_portfolios(
         num_portfolios=5,
         config=config,
@@ -115,19 +141,26 @@ def main():
         years=5,
         foreign_withholding_rate=Decimal('0.15'),
         dividend_growth_rate=Decimal('0.02'),
-        asset_growth_rate=Decimal('0.07')
+        use_historical_growth=True,
+        historical_years=15,
+        asset_growth_rate=Decimal('0.07')  # Fallback rate if historical data unavailable
     )
 
-    # Print results
     print(f"Evaluated {len(results)} portfolios:")
     for i, result in enumerate(results):
-        print(f"\nPortfolio {i + 1} ({len(result['portfolio'])} stocks): {result['portfolio']}")
-        print(f"Final Value: {result['final_value']:.2f} EUR")
-        print(f"Annualized Return: {float(result['annualized_return']):.4f}")
-        print("Yearly Projections:")
-        for year_data in result['projection']:
-            print(f"  Year {year_data['year']}: Value={year_data['portfolio_value']:.2f}, "
-                  f"Div={year_data['dividend_income']:.2f}, Tax={year_data['total_tax']:.2f}")
+        portfolio = result['portfolio']
+        final_value = result['final_value']
+        annualized_return = result['annualized_return']
+        projections = result['projection']
 
+        return_percentage = f"{float(annualized_return) * 100:.2f}%"
+
+        print(f"\nPortfolio {i} ({len(portfolio)} stocks): {portfolio}")
+        print(f"Final Value: {final_value:.2f} EUR")
+        print(f"Annualized Return: {return_percentage}")
+        print("Yearly Projections:")
+
+        for year, proj in enumerate(projections):
+            print(f"  Year {year}: Value={proj['portfolio_value']:.2f}, Div={proj['dividend_income']:.2f}, Tax={proj['total_tax']:.2f}")
 if __name__ == "__main__":
     main()

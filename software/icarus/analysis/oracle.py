@@ -182,6 +182,89 @@ class Oracle:
             logger.error(f'Failed to retrieve dividend yield for {self.ticker}: {e}')
             return None
         
+    def get_growth_rate(self, years: int = 10, include_dividends: bool = True) -> Optional[Decimal]:
+        """ 
+        Calculate the compound annual growth rate (CAGR) of an asset over a given number of years.
+
+        Args:
+            years (int, optional): The number of years to calculate the growth rate over. Defaults to 10.
+            include_dividends (bool, optional): Whether to include dividends in the calculation. Defaults to True.
+
+        Returns:
+            Optional[Decimal]: The compound annual growth rate as a decimal, or None if invalid.
+        """
+        if not self._validate_ticker():
+            return None
+
+        cache_key = f"{self.ticker}_growth_rate_{years}_{include_dividends}"
+        with self._cache_lock:
+            if cache_key in self._cache:
+                return self._cache[cache_key]
+
+        try:
+            logger.info(f'Calculating {years}-year growth rate for {self.ticker}')
+
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=int(365.25*years))
+
+            start_date_str = start_date.strftime('%Y-%m-%d')
+            end_date_str = end_date.strftime('%Y-%m-%d')
+
+            # Use yf.download to get historical data
+            hist = yf.download(self.ticker, start=start_date_str, end=end_date_str, auto_adjust=False)
+
+            if hist.empty or len(hist) < 2:
+                logger.warning(f'Insufficient historical data for {self.ticker}')
+                return None
+
+            actual_start_date = hist.index[0].to_pydatetime()
+            actual_end_date = hist.index[-1].to_pydatetime()
+            actual_years = (actual_end_date - actual_start_date).days / 365.25
+
+            if actual_years < 1:
+                logger.warning(f'Less than 1 year of data available for {self.ticker}')
+                return None
+
+            logger.debug(f'Available columns: {hist.columns.tolist()}')
+
+            if include_dividends and 'Adj Close' in hist.columns:
+                
+                start_price = hist['Adj Close'].iloc[0].item()
+                end_price = hist['Adj Close'].iloc[-1].item()
+                logger.debug(f'Using Adj Close for growth calculation')
+            else:
+                
+                start_price = hist['Close'].iloc[0].item()
+                end_price = hist['Close'].iloc[-1].item()
+                logger.debug(f'Using Close for growth calculation')
+
+            logger.debug(f'Start price: {start_price}, End price: {end_price}, Years: {actual_years}')
+
+            cagr = (end_price / start_price) ** (1 / actual_years) - 1
+
+            import decimal
+            try:
+                decimal_cagr = Decimal(str(cagr))
+            except decimal.InvalidOperation:
+                if cagr != cagr or abs(cagr) == float('inf'):
+                    logger.warning(f'CAGR calculation resulted in an invalid value: {cagr}')
+                    return None
+                
+                decimal_cagr = Decimal(format(cagr, '.10f'))
+
+            logger.info(f'{actual_years:.2f}-year CAGR for {self.ticker}: {decimal_cagr:.4f}')
+
+            with self._cache_lock:
+                self._cache[cache_key] = decimal_cagr
+
+            return decimal_cagr
+
+        except Exception as e:
+            logger.error(f'Failed to calculate growth rate for {self.ticker}: {e}')
+            import traceback
+            logger.debug(f'Traceback: {traceback.format_exc()}')
+            return None
+
     def custom_dividend_yield(self, div_yield: Decimal) -> Optional[Decimal]:
         """
         Calculate a custom dividend yield based on a user-provided value.

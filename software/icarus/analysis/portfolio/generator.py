@@ -293,26 +293,3 @@ class PortfolioGenerator:
         """Save generated portfolios"""
         data = [{"id": i, "tickers": p, "metadata": {}} for i, p in enumerate(portfolios)]
         self.router.save_processed_data(data, "generated_portfolios.json")
-
-if __name__ == "__main__":
-    generator = PortfolioGenerator()
-    config = TickerConfig(
-        min_dividend_yield=0.02,
-        max_dividend_yield=0.06,
-        max_pe_ratio=25,
-        min_market_cap=5_000_000_000,
-        sectors={"Technology", "Healthcare", "Consumer Defensive", "Financials"},
-        max_beta=1.5,
-        num_stocks=8,
-        max_stocks_per_sector=2,
-        min_eps_growth=0.05,
-        min_roe=0.10
-    )
-
-    try:
-        portfolios = generator.generate_portfolios(5, config, strategy='performance_optimized')
-        print(f"Generated {len(portfolios)} unique portfolios:")
-        for p in portfolios:
-            print(f"Portfolio ({len(p)} stocks): {p}")
-    except Exception as e:
-        print(f"Portfolio generation failed: {str(e)}")
